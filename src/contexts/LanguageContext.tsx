@@ -381,7 +381,8 @@ const translations: Record<string, Record<Language, string>> = {
   "landing.cmp_row2": { bn: "মোবাইলে বিল পাঠানো", en: "Send Bills via Mobile" },
   "landing.cmp_row3": { bn: "পেমেন্ট ট্র্যাকিং", en: "Payment Tracking" },
   "landing.cmp_row4": { bn: "রিয়েল-টাইম রিপোর্ট", en: "Real-time Reports" },
-  "landing.cmp_row5": { bn: "ডেটা ব্যাকআপ", en: "Data Backup" },
+   "landing.cmp_row5": { bn: "ডেটা ব্যাকআপ", en: "Data Backup" },
+   "landing.cmp_row6": { bn: "টু-লেট ম্যানেজমেন্ট", en: "To-Let Management" },
 
   "landing.test_title": { bn: "বাড়িওয়ালারা কি বলছেন", en: "What Landlords Say" },
   "landing.test1_name": { bn: "আবদুল করিম", en: "Abdul Karim" },

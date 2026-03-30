@@ -49,24 +49,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [permissions, setPermissions] = useState<string[]>([]);
   const [staffAssignment, setStaffAssignment] = useState<StaffAssignment | null>(null);
 
-  const fetchUserData = async (userId: string) => {
+  const resetAuthState = useCallback(() => {
+    setRole(null);
+    setProfile(null);
+    setPermissions([]);
+    setStaffAssignment(null);
+  }, []);
+
+  const fetchUserData = useCallback(async (userId: string) => {
     const [profileRes, roleRes] = await Promise.all([
-      supabase.from("profiles").select("full_name, phone, language, avatar_url, email, auto_tolet").eq("user_id", userId).single(),
+      supabase
+        .from("profiles")
+        .select("full_name, phone, language, avatar_url, email, auto_tolet")
+        .eq("user_id", userId)
+        .single(),
       supabase.from("user_roles").select("role").eq("user_id", userId),
     ]);
-    if (profileRes.data) setProfile(profileRes.data);
+
+    setProfile(profileRes.data ?? null);
+
     if (roleRes.data && roleRes.data.length > 0) {
       const rolePriority: AppRole[] = ["admin", "employee", "landlord", "landlord_staff", "staff", "tenant"];
       const userRoles = roleRes.data.map((r) => r.role as AppRole);
-      const highestRole = rolePriority.find((r) => userRoles.includes(r)) || userRoles[0];
+      const highestRole = rolePriority.find((currentRole) => userRoles.includes(currentRole)) || userRoles[0];
       setRole(highestRole);
 
-      // Fetch staff assignment & permissions for employee or landlord_staff
       if (highestRole === "employee" || highestRole === "landlord_staff") {
-        const { data: assignments } = await supabase
+        const { data: assignments } = await (supabase
           .from("staff_assignments")
           .select("preset_id, scope, landlord_id, permission_presets(permissions)")
-          .eq("user_id", userId) as any;
+          .eq("user_id", userId) as any);
 
         if (assignments && assignments.length > 0) {
           const assignment = assignments[0];
@@ -83,15 +95,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setStaffAssignment(null);
         }
       } else if (highestRole === "admin") {
-        // Admin has all permissions
         setPermissions(["*"]);
         setStaffAssignment(null);
       } else {
         setPermissions([]);
         setStaffAssignment(null);
       }
+    } else {
+      setRole(null);
+      setPermissions([]);
+      setStaffAssignment(null);
     }
-  };
+  }, []);
+
+  const applySession = useCallback(async (nextSession: Session | null) => {
+    setSession(nextSession);
+    setUser(nextSession?.user ?? null);
+
+    if (nextSession?.user) {
+      await fetchUserData(nextSession.user.id);
+      return;
+    }
+
+    resetAuthState();
+  }, [fetchUserData, resetAuthState]);
 
   const hasPermission = useCallback((permission: string): boolean => {
     if (role === "admin") return true;
@@ -107,32 +134,59 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [role, staffAssignment, user]);
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        fetchUserData(session.user.id).finally(() => setLoading(false));
-      } else {
-        setRole(null);
-        setProfile(null);
-        setPermissions([]);
-        setStaffAssignment(null);
-        setLoading(false);
-      }
+    let isMounted = true;
+    const hasOAuthHash =
+      window.location.hash.includes("access_token") ||
+      window.location.hash.includes("refresh_token");
+
+    const syncSession = (nextSession: Session | null) => {
+      void applySession(nextSession).finally(() => {
+        if (isMounted) {
+          setLoading(false);
+        }
+      });
+    };
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      if (!isMounted) return;
+      syncSession(nextSession);
     });
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        fetchUserData(session.user.id).finally(() => setLoading(false));
-      } else {
+    const initializeAuth = async () => {
+      try {
+        let nextSession: Session | null = null;
+        const maxAttempts = hasOAuthHash ? 8 : 1;
+
+        for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+          const { data } = await supabase.auth.getSession();
+          nextSession = data.session;
+
+          if (nextSession || !hasOAuthHash) {
+            break;
+          }
+
+          await new Promise((resolve) => window.setTimeout(resolve, 250));
+        }
+
+        if (isMounted) {
+          syncSession(nextSession);
+        }
+      } catch {
+        if (!isMounted) return;
+        setSession(null);
+        setUser(null);
+        resetAuthState();
         setLoading(false);
       }
-    });
+    };
 
-    return () => subscription.unsubscribe();
-  }, []);
+    void initializeAuth();
+
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
+  }, [applySession, resetAuthState]);
 
   const signIn = async (phone: string, pin: string) => {
     try {

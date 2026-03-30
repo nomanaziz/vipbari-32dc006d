@@ -1,37 +1,29 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
-/**
- * Detects OAuth callback tokens in URL hash and redirects to dashboard.
- */
 export const OAuthCallbackHandler = () => {
   const navigate = useNavigate();
+  const { user, role, loading } = useAuth();
+
+  const hasOAuthHash = useMemo(() => {
+    const hash = window.location.hash;
+    return (
+      (hash.includes("access_token") || hash.includes("refresh_token")) &&
+      !hash.includes("type=recovery")
+    );
+  }, []);
 
   useEffect(() => {
-    const hash = window.location.hash;
-    if (hash && hash.includes("access_token")) {
-      // Supabase client auto-picks up the token from the hash.
-      // We just need to wait for session to be established, then redirect.
-      supabase.auth.getSession().then(({ data: { session } }) => {
-        if (session) {
-          // Clean the hash from URL
-          window.history.replaceState(null, "", window.location.pathname);
-          // Check role to decide where to go
-          supabase
-            .from("user_roles")
-            .select("role")
-            .eq("user_id", session.user.id)
-            .then(({ data: roles }) => {
-              const isAdmin = roles?.some((r) =>
-                ["admin", "employee"].includes(r.role)
-              );
-              navigate(isAdmin ? "/admin" : "/dashboard", { replace: true });
-            });
-        }
-      });
+    if (!hasOAuthHash || loading || !user) return;
+
+    const target = role === "admin" || role === "employee" ? "/admin" : "/dashboard";
+    window.history.replaceState(null, "", window.location.pathname + window.location.search);
+
+    if (window.location.pathname !== target) {
+      navigate(target, { replace: true });
     }
-  }, [navigate]);
+  }, [hasOAuthHash, loading, navigate, role, user]);
 
   return null;
 };

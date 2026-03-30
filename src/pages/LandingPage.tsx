@@ -292,10 +292,12 @@ const LandingPage = () => {
               </thead>
               <tbody className="bg-background">
                 {cmpRows.map((row, i) => {
-                  // Excel column: rows 0-1 = X, rows 2-4 = ~, row 5 = ~
+                  // Excel column: rows 0-1 = X, rows 2-4 = ✓, row 5 = ~
                   const excelCell = i <= 1
                     ? <XCircle className="h-4 w-4 text-destructive mx-auto" />
-                    : <span className="text-muted-foreground">~</span>;
+                    : i <= 4
+                      ? <CheckCircle2 className="h-4 w-4 text-primary mx-auto" />
+                      : <span className="text-muted-foreground">~</span>;
                   return (
                     <tr key={i} className="border-t">
                       <td className="p-3">{row}</td>

@@ -74,7 +74,7 @@ export function SellDialog({ open, onOpenChange, sourceType, sourceData, propert
 
     if (totalSlots - usedSlots <= 0) {
       toast.error(language === "bn" ? "বিক্রয় লিস্টিং ব্যালেন্স নেই। সাবস্ক্রিপশন কিনুন।" : "No sale listing balance. Buy subscription first.");
-      navigate("/dashboard/subscription?tab=sale_listing");
+      navigate("/subscription?tab=sale_listing");
       onOpenChange(false);
       return;
     }

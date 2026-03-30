@@ -85,56 +85,79 @@ const HeroSection = () => {
         {/* Right — Animated Phone Mockup */}
         <div className="hidden lg:flex justify-center relative" aria-hidden="true">
           {/* Floating cards */}
-          <FloatingCard className="-top-2 -left-4" delay="0.4s" icon={<Users className={`h-4 w-4 ${iconColor}`} />} label="ভাড়াটিয়া ২৪ জন" />
-          <FloatingCard className="top-4 -right-2" delay="0.7s" icon={<TrendingUp className={`h-4 w-4 ${iconColor}`} />} label="আদায় ৳৮৫K" />
-          <FloatingCard className="bottom-24 -left-8" delay="1s" icon={<MessageSquare className={`h-4 w-4 ${iconColor}`} />} label="SMS ১-ক্লিক" />
-          <FloatingCard className="bottom-32 -right-6" delay="1.2s" icon={<Receipt className={`h-4 w-4 ${iconColor}`} />} label="বিল অটো" />
-          <FloatingCard className="-bottom-2 left-1/2 -translate-x-1/2" delay="1.4s" icon={<Home className={`h-4 w-4 ${iconColor}`} />} label="১০০০+ ব্যবহারকারী" />
+          <FloatingCard className="-top-2 -left-8" delay="0.4s" icon={<Users className="h-4 w-4 text-emerald-500" />} label="ভাড়াটিয়া ৩৬ জন" />
+          <FloatingCard className="top-8 -right-6" delay="0.7s" icon={<TrendingUp className="h-4 w-4 text-amber-500" />} label="আদায় ৳১.২L" />
+          <FloatingCard className="bottom-28 -left-10" delay="1s" icon={<MessageSquare className="h-4 w-4 text-purple-500" />} label="WhatsApp ১-ক্লিক" />
+          <FloatingCard className="bottom-36 -right-8" delay="1.2s" icon={<Receipt className="h-4 w-4 text-rose-500" />} label="বিল অটো" />
+          <FloatingCard className="-bottom-2 left-1/2 -translate-x-1/2" delay="1.4s" icon={<Home className="h-4 w-4 text-sky-500" />} label="১৫০০+ বাড়িওয়ালা" />
 
           {/* Phone */}
           <div className="animate-float">
-            <div className={`w-[280px] h-[540px] rounded-[2.5rem] border-[6px] border-white/15 bg-slate-800 shadow-2xl ${phoneShadow[colorPreset]} overflow-hidden relative`}>
+            <div className={`w-[220px] h-[430px] rounded-[2rem] border-[5px] border-gray-300 bg-white shadow-2xl ${phoneShadow[colorPreset]} overflow-hidden relative`}>
               {/* Notch */}
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-28 h-6 bg-white/10 rounded-b-2xl z-10" />
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-20 h-5 bg-gray-200 rounded-b-xl z-10" />
 
               {/* Screen content */}
-              <div className="pt-8 px-4 pb-4 h-full flex flex-col gap-3">
+              <div className="pt-7 px-3 pb-3 h-full flex flex-col gap-2">
                 {/* Header */}
-                <div className="flex items-center gap-2 mb-1">
-                  <div className="h-7 w-7 rounded-lg bg-pink-500 flex items-center justify-center">
-                    <Building2 className="h-4 w-4 text-white" />
+                <div className="flex items-center justify-between mb-0.5">
+                  <div className="flex items-center gap-1.5">
+                    <div className="h-6 w-6 rounded-md bg-emerald-500 flex items-center justify-center">
+                      <Building2 className="h-3.5 w-3.5 text-white" />
+                    </div>
+                    <span className="text-[11px] font-bold text-gray-800">VIP Bari</span>
                   </div>
-                  <span className="text-sm font-bold text-white">VIP Bari</span>
+                  <span className="text-[7px] px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-600 font-medium">অনলাইন</span>
                 </div>
 
                 {/* Stat cards row */}
-                <div className="grid grid-cols-3 gap-2">
-                  <MiniStat icon={<Users className="h-3 w-3" />} value="24" label="ভাড়াটিয়া" color="text-pink-400" />
-                  <MiniStat icon={<Building2 className="h-3 w-3" />} value="8" label="রুম" color="text-purple-400" />
-                  <MiniStat icon={<CreditCard className="h-3 w-3" />} value="৳85K" label="আদায়" color="text-amber-400" />
+                <div className="grid grid-cols-3 gap-1.5">
+                  <div className="bg-emerald-50 rounded-lg p-1.5 flex flex-col items-center">
+                    <Users className="h-3 w-3 text-emerald-600" />
+                    <span className="text-[11px] font-bold text-gray-800">36</span>
+                    <span className="text-[7px] text-gray-500">ভাড়াটিয়া</span>
+                  </div>
+                  <div className="bg-amber-50 rounded-lg p-1.5 flex flex-col items-center">
+                    <CreditCard className="h-3 w-3 text-amber-600" />
+                    <span className="text-[11px] font-bold text-gray-800">৳১.২L</span>
+                    <span className="text-[7px] text-gray-500">আদায়</span>
+                  </div>
+                  <div className="bg-purple-50 rounded-lg p-1.5 flex flex-col items-center">
+                    <Building2 className="h-3 w-3 text-purple-600" />
+                    <span className="text-[11px] font-bold text-gray-800">22</span>
+                    <span className="text-[7px] text-gray-500">রুম</span>
+                  </div>
                 </div>
 
                 {/* Chart area */}
-                <div className="flex-1 bg-white/5 rounded-xl p-3 flex flex-col justify-end">
-                  <p className="text-[10px] text-white/50 mb-2">মাসিক আদায়</p>
-                  <div className="flex items-end gap-1.5 h-20">
-                    {[40, 60, 45, 70, 55, 80, 65].map((h, i) => (
-                      <div key={i} className="flex-1 bg-gradient-to-t from-pink-500 to-purple-500 rounded-t-sm opacity-70" style={{ height: `${h}%` }} />
+                <div className="flex-1 bg-gray-50 rounded-xl p-2 flex flex-col justify-end">
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="text-[8px] text-gray-500 font-medium">মাসিক আদায়</p>
+                    <span className="text-[7px] px-1 py-0.5 rounded bg-emerald-100 text-emerald-600 font-semibold">+12%</span>
+                  </div>
+                  <div className="flex items-end gap-1 h-14">
+                    {[35, 55, 40, 65, 50, 75, 60].map((h, i) => (
+                      <div key={i} className="flex-1 bg-gradient-to-t from-emerald-500 to-teal-400 rounded-t-sm" style={{ height: `${h}%` }} />
+                    ))}
+                  </div>
+                  <div className="flex justify-between mt-1">
+                    {["জানু", "ফেব", "মার্চ", "এপ্রি", "মে", "জুন", "জুলা"].map((m, i) => (
+                      <span key={i} className="text-[5px] text-gray-400 flex-1 text-center">{m}</span>
                     ))}
                   </div>
                 </div>
 
                 {/* Quick actions */}
-                <div className="grid grid-cols-4 gap-2 pt-1">
+                <div className="grid grid-cols-4 gap-1.5 pt-0.5">
                   {[
-                    { icon: <Users className="h-4 w-4" />, label: "ভাড়াটিয়া" },
-                    { icon: <Receipt className="h-4 w-4" />, label: "বিল" },
-                    { icon: <CreditCard className="h-4 w-4" />, label: "পেমেন্ট" },
-                    { icon: <BarChart3 className="h-4 w-4" />, label: "রিপোর্ট" },
+                    { icon: <CreditCard className="h-3 w-3" />, label: "পে বিলস", bg: "bg-rose-50", color: "text-rose-500" },
+                    { icon: <MessageSquare className="h-3 w-3" />, label: "SMS", bg: "bg-purple-50", color: "text-purple-500" },
+                    { icon: <Users className="h-3 w-3" />, label: "মেসেজ", bg: "bg-sky-50", color: "text-sky-500" },
+                    { icon: <BarChart3 className="h-3 w-3" />, label: "রিপোর্ট", bg: "bg-emerald-50", color: "text-emerald-500" },
                   ].map((a, i) => (
-                    <div key={i} className="flex flex-col items-center gap-1 p-1.5 rounded-lg bg-white/5">
-                      <div className="text-pink-400">{a.icon}</div>
-                      <span className="text-[8px] text-white/50">{a.label}</span>
+                    <div key={i} className={`flex flex-col items-center gap-0.5 p-1.5 rounded-lg ${a.bg}`}>
+                      <div className={a.color}>{a.icon}</div>
+                      <span className="text-[6px] text-gray-600 font-medium">{a.label}</span>
                     </div>
                   ))}
                 </div>
@@ -149,24 +172,16 @@ const HeroSection = () => {
 
 /* ---------- sub-components ---------- */
 
-const MiniStat = ({ icon, value, label, color }: { icon: React.ReactNode; value: string; label: string; color: string }) => (
-  <div className="bg-white/5 rounded-lg p-2 flex flex-col items-center gap-0.5">
-    <div className={color}>{icon}</div>
-    <span className="text-sm font-bold text-white">{value}</span>
-    <span className="text-[8px] text-white/50">{label}</span>
-  </div>
-);
-
 const FloatingCard = ({ className, delay, icon, label }: { className: string; delay: string; icon: React.ReactNode; label: string }) => (
   <div
-    className={`absolute z-10 flex items-center gap-2 px-3 py-2 rounded-xl bg-white/10 backdrop-blur-md border border-white/10 shadow-lg ${className}`}
+    className={`absolute z-10 flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white shadow-md border border-gray-100 ${className}`}
     style={{
       opacity: 0,
       animation: `fade-in-up 0.6s ease-out ${delay} forwards, float-delayed 3.5s ease-in-out ${delay} infinite`,
     }}
   >
     {icon}
-    <span className="text-xs font-medium text-white whitespace-nowrap">{label}</span>
+    <span className="text-[11px] font-medium text-gray-700 whitespace-nowrap">{label}</span>
   </div>
 );
 

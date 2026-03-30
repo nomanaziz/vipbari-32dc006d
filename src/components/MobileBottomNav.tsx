@@ -50,6 +50,7 @@ export function MobileBottomNav() {
       items: [
         { title: L("Guests", "অতিথি"), url: "/guests", icon: UserCog },
         { title: L("Notices", "নোটিশ বোর্ড"), url: "/notices", icon: Bell },
+        { title: L("Leases", "লিজ চুক্তি"), url: "/leases", icon: FileText },
       ],
     },
     {

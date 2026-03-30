@@ -13,7 +13,7 @@ import { FileText, Plus, Search, Clock, CheckCircle2, XCircle, AlertTriangle, Pe
 import { format, differenceInDays, parseISO } from "date-fns";
 import { toast } from "sonner";
 import { LeaseFormDialog } from "@/components/leases/LeaseFormDialog";
-import { DeleteConfirmDialog } from "@/components/DeleteConfirmDialog";
+import DeleteConfirmDialog from "@/components/DeleteConfirmDialog";
 
 export default function Leases() {
   const { language } = useLanguage();

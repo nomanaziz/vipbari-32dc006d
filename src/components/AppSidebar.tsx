@@ -41,6 +41,7 @@ export function AppSidebar() {
         { title: L("Guests", "অতিথি"), url: "/guests", icon: UserCog },
         { title: L("Complaints", "অভিযোগ"), url: "/complaints", icon: AlertTriangle },
         { title: L("Notices", "নোটিশ বোর্ড"), url: "/notices", icon: Bell },
+        { title: L("Leases", "লিজ চুক্তি"), url: "/leases", icon: FileText },
       ],
     },
     {

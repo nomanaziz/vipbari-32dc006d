@@ -120,6 +120,7 @@ export function AppLayout({ children }: AppLayoutProps) {
             {children}
           </main>
           <MobileBottomNav />
+          <ScrollToTop />
         </div>
       </div>
     </SidebarProvider>

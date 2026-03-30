@@ -30,6 +30,7 @@ import { AdminLayout } from "@/components/AdminLayout";
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate } from "react-router-dom";
 import { lazy, Suspense } from "react";
+import { OAuthCallbackHandler } from "@/components/OAuthCallbackHandler";
 
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
 const AdminUsers = lazy(() => import("./pages/admin/AdminUsers"));
@@ -112,6 +113,7 @@ const App = () => (
         <PWAInstallBanner />
         <BrowserRouter>
           <AuthProvider>
+            <OAuthCallbackHandler />
             <Routes>
               <Route path="/login" element={<Login />} />
               <Route path="/xbd-admin" element={<Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>}><AdminLogin /></Suspense>} />

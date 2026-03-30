@@ -6,7 +6,7 @@ import {
   LayoutDashboard, Receipt, Users, AlertTriangle, Menu,
   CreditCard, Inbox, Building2, DoorOpen, Gauge, Car, Bell,
   MessageSquare, Shield, UserCog, Settings, Crown, Home, User, Calculator,
-  ShoppingBag, Send
+  ShoppingBag, Send, FileText
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {

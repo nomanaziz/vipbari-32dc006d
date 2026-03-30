@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
+import { ScrollToTop } from "@/components/ScrollToTop";
 import {
   DropdownMenu,
   DropdownMenuContent,

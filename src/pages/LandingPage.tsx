@@ -22,6 +22,7 @@ import {
   Zap, Droplets, Flame, Wifi, Bell, Shield, FileText, Database,
   Share2, History, CheckCircle2, XCircle, Star, ArrowRight,
   Smartphone, Link as LinkIcon, Warehouse, Rocket, Eye, ParkingCircle,
+  Check, X,
 } from "lucide-react";
 
 const LandingPage = () => {
@@ -292,21 +293,20 @@ const LandingPage = () => {
               </thead>
               <tbody className="bg-background">
                 {cmpRows.map((row, i) => {
-                  // Excel column: rows 0-1 = X, rows 2-4 = ✓, row 5 = ~
-                  const excelCell = i <= 1
-                    ? <XCircle className="h-4 w-4 text-destructive mx-auto" />
-                    : i <= 4
-                      ? <CheckCircle2 className="h-4 w-4 text-primary mx-auto" />
-                      : <span className="text-muted-foreground">~</span>;
-                  return (
-                    <tr key={i} className="border-t">
-                      <td className="p-3">{row}</td>
-                      <td className="p-3 text-center"><CheckCircle2 className="h-4 w-4 text-primary mx-auto" /></td>
-                      <td className="p-3 text-center"><XCircle className="h-4 w-4 text-destructive mx-auto" /></td>
-                      <td className="p-3 text-center">{excelCell}</td>
-                    </tr>
-                  );
-                })}
+                   const excelCell = i <= 1
+                     ? <XCircle className="h-4 w-4 text-orange-500 mx-auto" />
+                     : i <= 4
+                       ? <Check className="h-4 w-4 text-gray-800 dark:text-gray-200 mx-auto" strokeWidth={3} />
+                       : <X className="h-4 w-4 text-gray-800 dark:text-gray-200 mx-auto" strokeWidth={3} />;
+                   return (
+                     <tr key={i} className="border-t">
+                       <td className="p-3">{row}</td>
+                       <td className="p-3 text-center"><CheckCircle2 className="h-4 w-4 text-pink-500 mx-auto" /></td>
+                       <td className="p-3 text-center"><XCircle className="h-4 w-4 text-pink-500 mx-auto" /></td>
+                       <td className="p-3 text-center">{excelCell}</td>
+                     </tr>
+                   );
+                 })}
               </tbody>
             </table>
           </div>

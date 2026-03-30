@@ -1,5 +1,5 @@
 import {
-  LayoutDashboard, Building2, DoorOpen, Users, Receipt, CreditCard, Settings, Shield, Gauge, Home, Inbox, MessageSquare, UserCog, User, AlertTriangle, Bell, Car, Crown, Calculator, ShoppingBag, Send
+  LayoutDashboard, Building2, DoorOpen, Users, Receipt, CreditCard, Settings, Shield, Gauge, Home, Inbox, MessageSquare, UserCog, User, AlertTriangle, Bell, Car, Crown, Calculator, ShoppingBag, Send, FileText
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";

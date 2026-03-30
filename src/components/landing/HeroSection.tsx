@@ -172,24 +172,16 @@ const HeroSection = () => {
 
 /* ---------- sub-components ---------- */
 
-const MiniStat = ({ icon, value, label, color }: { icon: React.ReactNode; value: string; label: string; color: string }) => (
-  <div className="bg-white/5 rounded-lg p-2 flex flex-col items-center gap-0.5">
-    <div className={color}>{icon}</div>
-    <span className="text-sm font-bold text-white">{value}</span>
-    <span className="text-[8px] text-white/50">{label}</span>
-  </div>
-);
-
 const FloatingCard = ({ className, delay, icon, label }: { className: string; delay: string; icon: React.ReactNode; label: string }) => (
   <div
-    className={`absolute z-10 flex items-center gap-2 px-3 py-2 rounded-xl bg-white/10 backdrop-blur-md border border-white/10 shadow-lg ${className}`}
+    className={`absolute z-10 flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white shadow-md border border-gray-100 ${className}`}
     style={{
       opacity: 0,
       animation: `fade-in-up 0.6s ease-out ${delay} forwards, float-delayed 3.5s ease-in-out ${delay} infinite`,
     }}
   >
     {icon}
-    <span className="text-xs font-medium text-white whitespace-nowrap">{label}</span>
+    <span className="text-[11px] font-medium text-gray-700 whitespace-nowrap">{label}</span>
   </div>
 );
 

@@ -280,6 +280,7 @@ const Register = () => {
                 className="w-full h-11 gap-3 font-medium"
                 disabled={loading}
                 onClick={async () => {
+                  localStorage.setItem("oauth_pending_role", activeTab);
                   const { error } = await supabase.auth.signInWithOAuth({
                     provider: "google",
                     options: {

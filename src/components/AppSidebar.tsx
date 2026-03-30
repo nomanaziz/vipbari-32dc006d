@@ -1,5 +1,5 @@
 import {
-  LayoutDashboard, Building2, DoorOpen, Users, Receipt, CreditCard, Settings, Shield, Gauge, Home, Inbox, MessageSquare, UserCog, User, AlertTriangle, Bell, Car, Crown, Calculator, ShoppingBag, Send
+  LayoutDashboard, Building2, DoorOpen, Users, Receipt, CreditCard, Settings, Shield, Gauge, Home, Inbox, MessageSquare, UserCog, User, AlertTriangle, Bell, Car, Crown, Calculator, ShoppingBag, Send, FileText
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -41,6 +41,7 @@ export function AppSidebar() {
         { title: L("Guests", "অতিথি"), url: "/guests", icon: UserCog },
         { title: L("Complaints", "অভিযোগ"), url: "/complaints", icon: AlertTriangle },
         { title: L("Notices", "নোটিশ বোর্ড"), url: "/notices", icon: Bell },
+        { title: L("Leases", "লিজ চুক্তি"), url: "/leases", icon: FileText },
       ],
     },
     {

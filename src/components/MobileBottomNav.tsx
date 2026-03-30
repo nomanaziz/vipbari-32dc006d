@@ -6,7 +6,7 @@ import {
   LayoutDashboard, Receipt, Users, AlertTriangle, Menu,
   CreditCard, Inbox, Building2, DoorOpen, Gauge, Car, Bell,
   MessageSquare, Shield, UserCog, Settings, Crown, Home, User, Calculator,
-  ShoppingBag, Send
+  ShoppingBag, Send, FileText
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -50,6 +50,7 @@ export function MobileBottomNav() {
       items: [
         { title: L("Guests", "অতিথি"), url: "/guests", icon: UserCog },
         { title: L("Notices", "নোটিশ বোর্ড"), url: "/notices", icon: Bell },
+        { title: L("Leases", "লিজ চুক্তি"), url: "/leases", icon: FileText },
       ],
     },
     {

@@ -78,6 +78,7 @@ const SaleListingDetail = lazy(() => import("./pages/SaleListingDetail"));
 const MyListings = lazy(() => import("./pages/MyListings"));
 // SaleMessages merged into Messages page
 const AdminSaleListings = lazy(() => import("./pages/admin/AdminSaleListings"));
+const Leases = lazy(() => import("./pages/Leases"));
 
 const queryClient = new QueryClient();
 
@@ -148,6 +149,7 @@ const App = () => (
               <Route path="/subscription" element={<ProtectedRoute><Suspense fallback={<div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>}><Subscription /></Suspense></ProtectedRoute>} />
               <Route path="/accounting" element={<ProtectedRoute><Suspense fallback={<div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>}><Accounting /></Suspense></ProtectedRoute>} />
               <Route path="/my-listings" element={<ProtectedRoute><Suspense fallback={<div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>}><MyListings /></Suspense></ProtectedRoute>} />
+              <Route path="/leases" element={<ProtectedRoute><Suspense fallback={<div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>}><Leases /></Suspense></ProtectedRoute>} />
               {/* sale-messages merged into /messages?tab=sale */}
               <Route path="/tenant/profile" element={<ProtectedRoute><Suspense fallback={<div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>}><TenantProfile /></Suspense></ProtectedRoute>} />
               <Route path="/tenant/family" element={<ProtectedRoute><Suspense fallback={<div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>}><TenantFamily /></Suspense></ProtectedRoute>} />

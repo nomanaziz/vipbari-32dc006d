@@ -94,6 +94,7 @@ const Register = () => {
       email,
       password: pin,
       options: {
+        emailRedirectTo: window.location.origin + "/dashboard",
         data: {
           full_name: name,
           role,
@@ -107,6 +108,7 @@ const Register = () => {
     if (error) {
       toast.error(error.message);
     } else {
+      localStorage.setItem("pending_verification_email", email);
       toast.success(t("auth.register_success"));
       navigate("/verify-email");
     }

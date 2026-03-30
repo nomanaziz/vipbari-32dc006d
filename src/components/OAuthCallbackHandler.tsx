@@ -9,28 +9,37 @@ export const OAuthCallbackHandler = () => {
   const { user, role, loading } = useAuth();
   const [processing, setProcessing] = useState(false);
 
-  const hasOAuthHash = useMemo(() => {
+  const hashType = useMemo(() => {
     const hash = window.location.hash;
-    return (
-      (hash.includes("access_token") || hash.includes("refresh_token")) &&
-      !hash.includes("type=recovery")
-    );
+    if (hash.includes("type=recovery")) return "recovery";
+    if (hash.includes("type=signup") && hash.includes("access_token")) return "signup";
+    if (hash.includes("access_token") || hash.includes("refresh_token")) return "oauth";
+    return null;
   }, []);
 
+  // Handle email verification (type=signup)
   useEffect(() => {
-    if (!hasOAuthHash || loading || !user || processing) return;
+    if (hashType !== "signup" || loading || !user) return;
+
+    toast.success("Email verified successfully!");
+    localStorage.removeItem("pending_verification_email");
+    window.history.replaceState(null, "", "/dashboard");
+    navigate("/dashboard", { replace: true });
+  }, [hashType, loading, user, navigate]);
+
+  // Handle OAuth callback
+  useEffect(() => {
+    if (hashType !== "oauth" || loading || !user || processing) return;
 
     const handleOAuth = async () => {
       setProcessing(true);
 
-      // Check if user already has a role (existing user)
       const { data: roles } = await supabase
         .from("user_roles")
         .select("role")
         .eq("user_id", user.id);
 
       if (roles && roles.length > 0) {
-        // Existing user — redirect based on role
         const userRole = roles[0].role;
         const target = userRole === "admin" || userRole === "employee" ? "/admin" : "/dashboard";
         window.history.replaceState(null, "", window.location.pathname + window.location.search);
@@ -41,10 +50,8 @@ export const OAuthCallbackHandler = () => {
         return;
       }
 
-      // New OAuth user — check for pending role from registration
       const pendingRole = localStorage.getItem("oauth_pending_role");
       if (!pendingRole || !["landlord", "tenant"].includes(pendingRole)) {
-        // No role selected — sign out and redirect to register
         await supabase.auth.signOut();
         localStorage.removeItem("oauth_pending_role");
         window.history.replaceState(null, "", "/register");
@@ -54,7 +61,6 @@ export const OAuthCallbackHandler = () => {
         return;
       }
 
-      // Call edge function to complete registration
       const { error } = await supabase.functions.invoke("complete-oauth-registration", {
         body: { role: pendingRole },
       });
@@ -78,7 +84,7 @@ export const OAuthCallbackHandler = () => {
     };
 
     handleOAuth();
-  }, [hasOAuthHash, loading, user, navigate, processing]);
+  }, [hashType, loading, user, navigate, processing]);
 
   return null;
 };

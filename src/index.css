@@ -1,97 +1,202 @@
+@import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
-
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 270 20% 99%;
+    --foreground: 270 25% 10%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 270 25% 10%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 270 25% 10%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 330 80% 55%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 270 20% 95%;
+    --secondary-foreground: 270 25% 15%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 270 15% 95%;
+    --muted-foreground: 270 10% 45%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 270 60% 92%;
+    --accent-foreground: 270 55% 35%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 270 15% 90%;
+    --input: 270 15% 88%;
+    --ring: 280 70% 50%;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
 
-    --sidebar-background: 0 0% 98%;
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 270 20% 30%;
+    --sidebar-primary: 270 55% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 270 50% 96%;
+    --sidebar-accent-foreground: 270 55% 55%;
+    --sidebar-border: 270 13% 91%;
+    --sidebar-ring: 270 55% 55%;
 
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --chart-1: 330 80% 55%;
+    --chart-2: 270 55% 55%;
+    --chart-3: 290 70% 50%;
+    --chart-4: 340 75% 60%;
+    --chart-5: 260 60% 65%;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    --background: 270 20% 6%;
+    --foreground: 270 15% 92%;
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --card: 270 20% 8%;
+    --card-foreground: 270 15% 92%;
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 270 20% 8%;
+    --popover-foreground: 270 15% 92%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 330 75% 60%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 270 15% 15%;
+    --secondary-foreground: 270 15% 92%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 270 15% 15%;
+    --muted-foreground: 270 10% 55%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 270 30% 20%;
+    --accent-foreground: 270 15% 92%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 62% 30%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
+    --border: 270 15% 18%;
+    --input: 270 15% 18%;
+    --ring: 280 65% 55%;
+
+    --sidebar-background: 270 40% 11%;
+    --sidebar-foreground: 270 20% 91%;
+    --sidebar-primary: 270 55% 60%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-accent: 270 40% 16%;
+    --sidebar-accent-foreground: 270 20% 91%;
+    --sidebar-border: 270 40% 18%;
+    --sidebar-ring: 270 55% 60%;
   }
+}
+
+/* ===== Green Preset ===== */
+@layer base {
+  [data-color-preset="green"] {
+    --primary: 152 70% 40%;
+    --primary-foreground: 0 0% 100%;
+    --accent: 160 60% 92%;
+    --accent-foreground: 160 55% 30%;
+    --ring: 152 65% 45%;
+    --sidebar-primary: 152 55% 45%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 160 50% 96%;
+    --sidebar-accent-foreground: 152 55% 40%;
+    --sidebar-ring: 152 55% 45%;
+    --chart-1: 152 70% 40%;
+    --chart-2: 160 55% 45%;
+    --chart-3: 170 60% 42%;
+    --chart-4: 145 65% 50%;
+    --chart-5: 165 50% 55%;
+  }
+  [data-color-preset="green"].dark,
+  .dark[data-color-preset="green"] {
+    --primary: 152 65% 50%;
+    --primary-foreground: 0 0% 100%;
+    --accent: 160 30% 20%;
+    --accent-foreground: 160 15% 92%;
+    --ring: 152 60% 50%;
+    --sidebar-primary: 152 55% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 160 40% 16%;
+    --sidebar-accent-foreground: 160 20% 91%;
+    --sidebar-ring: 152 55% 55%;
+  }
+}
+
+/* ===== Blue Preset ===== */
+@layer base {
+  [data-color-preset="blue"] {
+    --primary: 217 80% 50%;
+    --primary-foreground: 0 0% 100%;
+    --accent: 220 60% 92%;
+    --accent-foreground: 220 55% 35%;
+    --ring: 217 70% 50%;
+    --sidebar-primary: 220 55% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 50% 96%;
+    --sidebar-accent-foreground: 220 55% 50%;
+    --sidebar-ring: 220 55% 55%;
+    --chart-1: 217 80% 50%;
+    --chart-2: 220 55% 55%;
+    --chart-3: 230 60% 50%;
+    --chart-4: 210 70% 55%;
+    --chart-5: 225 50% 60%;
+  }
+  [data-color-preset="blue"].dark,
+  .dark[data-color-preset="blue"] {
+    --primary: 217 75% 60%;
+    --primary-foreground: 0 0% 100%;
+    --accent: 220 30% 20%;
+    --accent-foreground: 220 15% 92%;
+    --ring: 217 65% 55%;
+    --sidebar-primary: 220 55% 60%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 40% 16%;
+    --sidebar-accent-foreground: 220 20% 91%;
+    --sidebar-ring: 220 55% 60%;
+  }
+}
+
+/* ===== Yellow Preset ===== */
+@layer base {
+  [data-color-preset="yellow"] {
+    --primary: 45 90% 50%;
+    --primary-foreground: 0 0% 10%;
+    --accent: 40 60% 92%;
+    --accent-foreground: 35 55% 30%;
+    --ring: 45 80% 50%;
+    --sidebar-primary: 35 70% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 40 50% 96%;
+    --sidebar-accent-foreground: 35 55% 45%;
+    --sidebar-ring: 35 70% 50%;
+    --chart-1: 45 90% 50%;
+    --chart-2: 35 70% 50%;
+    --chart-3: 25 75% 50%;
+    --chart-4: 50 80% 55%;
+    --chart-5: 30 65% 55%;
+  }
+  [data-color-preset="yellow"].dark,
+  .dark[data-color-preset="yellow"] {
+    --primary: 45 85% 55%;
+    --primary-foreground: 0 0% 10%;
+    --accent: 40 30% 20%;
+    --accent-foreground: 40 15% 92%;
+    --ring: 45 75% 55%;
+    --sidebar-primary: 35 65% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 40 40% 16%;
+    --sidebar-accent-foreground: 40 20% 91%;
+    --sidebar-ring: 35 65% 55%;
+  }
+}
+
+@keyframes marquee {
+  0% { transform: translateX(100%); }
+  100% { transform: translateX(-100%); }
 }
 
 @layer base {
@@ -101,5 +206,42 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+    font-family: 'Hind Siliguri', sans-serif;
+  }
+}
+
+/* Print styles for rent receipts */
+@media print {
+  body * {
+    visibility: hidden !important;
+  }
+  .mobile-bottom-nav {
+    display: none !important;
+  }
+  .print-receipt,
+  .print-receipt * {
+    visibility: visible !important;
+  }
+  .print-receipt {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+  .receipt-page {
+    display: flex !important;
+    justify-content: space-between !important;
+    gap: 8px !important;
+    padding: 4mm !important;
+  }
+  .receipt-copy {
+    width: 48% !important;
+    border: 1px solid #000 !important;
+    padding: 3mm !important;
+    font-size: 11px !important;
+  }
+  @page {
+    size: A4;
+    margin: 5mm;
   }
 }

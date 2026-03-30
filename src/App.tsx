@@ -30,6 +30,7 @@ import { AdminLayout } from "@/components/AdminLayout";
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate } from "react-router-dom";
 import { lazy, Suspense } from "react";
+import { OAuthCallbackHandler } from "@/components/OAuthCallbackHandler";
 
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
 const AdminUsers = lazy(() => import("./pages/admin/AdminUsers"));

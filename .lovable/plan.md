@@ -1,126 +1,113 @@
 
 
-# VIP Bari — Database Migration Plan
+## Problem
 
-## Overview
-Fully recreate the VIP Bari property management database from your previous Lovable project into your new Supabase instance. This includes **35+ tables**, **1 enum**, **6+ functions**, **10+ triggers**, **100+ RLS policies**, **4 storage buckets**, and **30 edge functions**.
+Currently, Google OAuth on both Login and Register pages auto-creates a user with the default "landlord" role (via `handle_new_user` trigger) without asking the user to choose a role. There is no way to register as a tenant via Google. Also, the Login page should not allow Google sign-in for unregistered users — it should only work on the Register page.
 
----
+## Plan
 
-## Phase 1: Foundation (Enum, Core Tables, Base Functions)
+### 1. Remove Google Sign-In from Login page
 
-Create the consolidated "final state" schema in correct dependency order:
+Remove the Google OAuth button from `src/pages/Login.tsx`. Google sign-in should only be available during registration, where the user picks a role.
 
-1. **Enum**: `app_role` with values: `landlord`, `tenant`, `staff`, `admin`, `employee`, `landlord_staff`
-2. **Extensions**: `pgmq`, `supabase_vault` (pg_cron and pg_net are usually pre-installed)
-3. **Base function**: `update_updated_at_column()` trigger function
-4. **Core tables** (no FK dependencies):
-   - `profiles` (user_id → auth.users)
-   - `user_roles` (user_id → auth.users)
-   - `properties` (owner_id → auth.users)
-   - `subscription_plans`
-   - `cms_pages`, `site_settings`, `tutorials`
-   - `ads`, `landing_sections`
-   - `password_reset_tokens`
-   - `notifications`, `push_subscriptions`
-   - `permission_presets`
-   - `landlord_discounts`, `landlord_settings`
-   - `email_send_log`, `email_send_state`, `suppressed_emails`, `email_unsubscribe_tokens`
-   - `subscription_payments`, `boost_balances`
-   - `scheduled_actions` (partial — tenant FK added later)
+### 2. Update Google OAuth on Register page with role context
 
-5. **`has_role()` security definer function**
+In `src/pages/Register.tsx`, modify the Google sign-in button to pass the selected role (landlord/tenant) via the OAuth state. Use Supabase's `queryParams` or store the selected role in `localStorage` before initiating OAuth, since Supabase OAuth does not support passing custom metadata during the redirect.
 
-## Phase 2: Dependent Tables
+- Before calling `signInWithOAuth`, save `localStorage.setItem("oauth_pending_role", activeTab)` (either "landlord" or "tenant").
+- The redirect URL remains `/dashboard`.
 
-Tables with foreign keys to Phase 1 tables:
+### 3. Create an OAuth completion page/handler
 
-- `tenants` → rooms (FK added after rooms), auth.users
-- `rooms` → properties, tenants
-- `bills` → tenants, rooms
-- `payments` → bills, tenants
-- `garages` → properties, rooms, tenants
-- `meters` → rooms, tenants
-- `tenant_members` → tenants
-- `guests` → tenants
-- `complaints` → tenants
-- `notices`
-- `conversations`, `messages`
-- `tolet_requests` → rooms
-- `accounting_entries` → bills, payments
-- `property_images` → properties
-- `room_images` → rooms
-- `property_staff` → properties
-- `payment_accounts`
-- `user_subscriptions` → subscription_plans
-- `staff_assignments` → permission_presets
-- `room_boosts` → rooms
-- `sale_listings` → properties, rooms
-- `sale_listing_images` → sale_listings
-- `sale_favorites` → sale_listings
-- `sale_conversations` → sale_listings
-- `sale_messages` → sale_conversations
-- `sale_buy_requests` → sale_listings
-- `property_transfers` → properties, rooms, sale_listings
+Update `OAuthCallbackHandler.tsx` to detect first-time Google OAuth users (no profile/role yet) and:
 
-## Phase 3: Functions & Triggers
+1. After session is established, check if `user_roles` has any entry for the user.
+2. If no role exists (new user via Google), read `localStorage.getItem("oauth_pending_role")`.
+3. If no pending role found in localStorage, sign the user out and redirect to `/register` with an error toast: "Please register first by choosing your account type."
+4. If pending role exists, call a new edge function `complete-oauth-registration` that:
+   - Creates the profile row (using Google's `user_metadata` for name/email)
+   - Inserts the correct role into `user_roles`
+   - If tenant, creates the tenant record
+   - Clears localStorage item
+5. Then redirect to `/dashboard`.
 
-- `handle_new_user()` — auto-create profile + role + tenant on signup (trigger on `auth.users`)
-- `get_current_tenant_notice_context()` — tenant notice context
-- `notify_new_tolet_request()` — trigger on tolet_requests INSERT
-- `notify_new_complaint()` — trigger on complaints INSERT
-- `notify_complaint_status_change()` — trigger on complaints UPDATE
-- Email queue RPC wrappers: `enqueue_email`, `read_email_batch`, `delete_email`, `move_to_dlq`
-- `updated_at` triggers on all relevant tables
-- Email queues via pgmq: `auth_emails`, `transactional_emails` + DLQ queues
+### 4. New edge function: `complete-oauth-registration`
 
-## Phase 4: RLS Policies
+Creates `supabase/functions/complete-oauth-registration/index.ts`:
 
-All 100+ RLS policies covering:
-- Owner/landlord access to own data
-- Tenant access to own records
-- Admin full access via `has_role()`
-- Staff access via `staff_assignments`
-- Public/anon access for tolet listings, CMS, ads, tutorials
-- Service role access for email infrastructure
+- Accepts: `{ role: "landlord" | "tenant" }` 
+- Authenticates via the user's JWT
+- Checks if profile already exists (idempotent)
+- Inserts into `profiles` (full_name from user metadata, email from auth)
+- Inserts into `user_roles` with the chosen role
+- If tenant, inserts into `tenants` table
+- Uses service role key for writes
 
-## Phase 5: Storage Buckets
+### 5. Update `handle_new_user` trigger
 
-- `property-images` (public)
-- `avatars` (public)
-- `tenant-documents` (public)
-- `sale-listing-images` (public)
-- Storage RLS policies for each bucket
+The existing trigger auto-creates profile + role for ALL new users. For Google OAuth users, the `raw_user_meta_data` won't have a `role` field, so it defaults to "landlord". We need to modify the trigger to skip profile/role creation when no explicit role is provided (i.e., when `role` metadata is null), letting the edge function handle it instead.
 
-## Phase 6: Realtime & Seed Data
+**Migration SQL:**
+```sql
+-- Update handle_new_user to skip when role is not explicitly set (OAuth users)
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public'
+AS $$
+BEGIN
+  -- Skip auto-creation for OAuth users (no role in metadata)
+  -- They will be handled by complete-oauth-registration edge function
+  IF NEW.raw_user_meta_data->>'role' IS NULL THEN
+    RETURN NEW;
+  END IF;
 
-- Enable realtime on `messages`, `notifications`, `sale_messages`
-- Seed default `permission_presets` (Admin + Landlord scopes)
-- Initialize `email_send_state` row
+  INSERT INTO public.profiles (user_id, full_name, phone, email, date_of_birth)
+  VALUES (
+    NEW.id,
+    COALESCE(NEW.raw_user_meta_data->>'full_name', ''),
+    TRIM(COALESCE(NEW.raw_user_meta_data->>'phone', '')),
+    COALESCE(NEW.raw_user_meta_data->>'email', ''),
+    CASE WHEN NEW.raw_user_meta_data->>'date_of_birth' IS NOT NULL
+         THEN (NEW.raw_user_meta_data->>'date_of_birth')::date ELSE NULL END
+  );
+  INSERT INTO public.user_roles (user_id, role)
+  VALUES (NEW.id, (NEW.raw_user_meta_data->>'role')::app_role);
+  IF NEW.raw_user_meta_data->>'role' = 'tenant' THEN
+    INSERT INTO public.tenants (user_id, owner_id, full_name, phone, status)
+    VALUES (NEW.id, NEW.id, COALESCE(NEW.raw_user_meta_data->>'full_name', ''),
+            TRIM(COALESCE(NEW.raw_user_meta_data->>'phone', '')), 'active');
+  END IF;
+  RETURN NEW;
+END;
+$$;
+```
 
-## Phase 7: Edge Functions
+### 6. Files to modify
 
-Copy and deploy all **30 edge functions** from the previous project:
-- Auth: `login-with-email`, `login-with-phone`, `forgot-email`, `request-password-reset`, `verify-reset-token`, `check-registration`
-- Admin: `admin-create-user`, `admin-delete-user`, `admin-manage-user`, `admin-add-balance`, `admin-reassign`
-- Tenant: `create-tenant-user`, `link-tenant`, `migrate-existing-users`
-- Payment: `approve-manual-payment`, `create-boost-payment`, `verify-boost-payment`, `create-subscription-payment`, `verify-subscription-payment`
-- Property: `transfer-property`, `handle-tolet-accept`
-- Staff: `invite-staff`, `manage-staff-password`
-- Data: `export-data`, `import-data`
-- Email: `process-email-queue`, `check-email-status`
-- Other: `auto-generate-bills`, `send-push-notification`, `visitor-chat`
+| File | Change |
+|------|--------|
+| `src/pages/Login.tsx` | Remove Google sign-in button and related code |
+| `src/pages/Register.tsx` | Save role to localStorage before Google OAuth, keep role tabs |
+| `src/components/OAuthCallbackHandler.tsx` | Detect new OAuth users, call edge function or sign out |
+| `supabase/functions/complete-oauth-registration/index.ts` | New edge function for profile+role setup |
+| DB migration | Update `handle_new_user` trigger to skip OAuth users |
 
-## Phase 8: Copy Frontend Code
+### Flow summary
 
-Copy all source code from the previous project (components, pages, hooks, utilities, types) to the new project.
+```text
+Register Page
+  ├─ User selects Landlord/Tenant tab
+  ├─ Clicks "Sign in with Google"
+  ├─ Role saved to localStorage
+  ├─ Google OAuth flow completes
+  └─ OAuthCallbackHandler detects new user
+       ├─ Reads role from localStorage
+       ├─ Calls complete-oauth-registration edge function
+       ├─ Profile + role + tenant record created
+       └─ Redirects to /dashboard
 
----
-
-## Execution Notes
-- All SQL will use `IF NOT EXISTS` / `DROP IF EXISTS` for idempotency
-- Foreign keys use proper CASCADE/SET NULL as per original
-- CHECK constraints on email tables preserved
-- Numeric columns use proper precision matching original schema
-- The migration will be split into manageable chunks for the migration tool
+Login Page
+  ├─ No Google button
+  ├─ Email/phone + PIN only
+  └─ Existing users only
+```
 

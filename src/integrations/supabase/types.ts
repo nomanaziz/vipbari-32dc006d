@@ -687,6 +687,88 @@ export type Database = {
         }
         Relationships: []
       }
+      leases: {
+        Row: {
+          advance_amount: number | null
+          created_at: string | null
+          end_date: string | null
+          id: string
+          monthly_rent: number | null
+          notes: string | null
+          notice_period: string | null
+          owner_id: string
+          property_id: string | null
+          room_id: string | null
+          security_deposit: number | null
+          start_date: string | null
+          status: string | null
+          tenant_id: string | null
+          tenant_name: string
+          unit_flat: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          advance_amount?: number | null
+          created_at?: string | null
+          end_date?: string | null
+          id?: string
+          monthly_rent?: number | null
+          notes?: string | null
+          notice_period?: string | null
+          owner_id: string
+          property_id?: string | null
+          room_id?: string | null
+          security_deposit?: number | null
+          start_date?: string | null
+          status?: string | null
+          tenant_id?: string | null
+          tenant_name?: string
+          unit_flat?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          advance_amount?: number | null
+          created_at?: string | null
+          end_date?: string | null
+          id?: string
+          monthly_rent?: number | null
+          notes?: string | null
+          notice_period?: string | null
+          owner_id?: string
+          property_id?: string | null
+          room_id?: string | null
+          security_deposit?: number | null
+          start_date?: string | null
+          status?: string | null
+          tenant_id?: string | null
+          tenant_name?: string
+          unit_flat?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leases_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leases_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "rooms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leases_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           content: string

@@ -148,8 +148,9 @@ const LandingPage = () => {
             {mainFeatures.map((f) => (
               <Link key={f.dbTitle} to={`/features/${f.slug}`}>
                 <Card className="hover:shadow-md transition-shadow h-full">
-                  <CardContent className="p-8 flex flex-col items-center justify-center text-center">
+                  <CardContent className="p-8 flex flex-col items-center justify-center text-center gap-3">
                     <AppIcon icon={f.icon} color={f.color} />
+                    <h3 className="font-semibold text-sm">{lc(f.dbTitle, f.fallbackTitle)}</h3>
                   </CardContent>
                 </Card>
               </Link>
@@ -161,16 +162,19 @@ const LandingPage = () => {
             {miniFeatures.length > 0 ? miniFeatures.map((f, i) => {
               const Icon = miniFeatureIcons[i] || Bell;
               const color = miniFeatureColors[i] || "blue";
+              const val = lc(f.section_key, miniFallbackKeys[i]);
               return (
-                <div key={f.id} className="flex flex-col items-center justify-center p-4 rounded-lg bg-background border hover:border-primary/40 transition-colors">
+                <div key={f.id} className="flex flex-col items-center justify-center gap-2 p-4 rounded-lg bg-background border hover:border-primary/40 transition-colors">
                   <AppIcon icon={Icon} color={color} size="sm" />
+                  <span className="text-xs text-center">{val}</span>
                 </div>
               );
             }) : Array.from({ length: 14 }, (_, i) => {
               const Icon = miniFeatureIcons[i];
               return (
-                <div key={i} className="flex flex-col items-center justify-center p-4 rounded-lg bg-background border hover:border-primary/40 transition-colors">
+                <div key={i} className="flex flex-col items-center justify-center gap-2 p-4 rounded-lg bg-background border hover:border-primary/40 transition-colors">
                   <AppIcon icon={Icon} color={miniFeatureColors[i]} size="sm" />
+                  <span className="text-xs text-center">{t(miniFallbackKeys[i]) || lc(`mini_${i + 1}`)}</span>
                 </div>
               );
             })}

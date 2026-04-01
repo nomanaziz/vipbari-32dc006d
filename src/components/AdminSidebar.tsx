@@ -98,7 +98,7 @@ export function AdminSidebar() {
           </div>
           {!collapsed && (
             <span className="text-base font-semibold text-sidebar-foreground tracking-tight">
-              BariWala
+              VIP Bari
             </span>
           )}
         </div>

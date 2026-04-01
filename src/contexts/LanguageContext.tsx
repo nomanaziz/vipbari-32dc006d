@@ -1234,7 +1234,7 @@ const translations: Record<string, Record<Language, string>> = {
   "landing.install_android_2": { bn: "মেনু (⋮) থেকে 'Add to Home screen' চাপুন", en: "Tap menu (⋮) → 'Add to Home screen'" },
   "landing.install_android_3": { bn: "'Install' বাটনে ক্লিক করুন", en: "Click 'Install' button" },
   "landing.install_ios": { bn: "iPhone/iPad (Safari ব্রাউজার)", en: "iPhone/iPad (Safari Browser)" },
-  "landing.install_ios_1": { bn: "Safari ব্রাউজারে bariwala.app খুলুন", en: "Open bariwala.app in Safari" },
+  "landing.install_ios_1": { bn: "Safari ব্রাউজারে vipbari.app খুলুন", en: "Open vipbari.app in Safari" },
   "landing.install_ios_2": { bn: "Share (↑) বাটন চাপুন", en: "Tap Share (↑) button" },
   "landing.install_ios_3": { bn: "'Add to Home Screen' সিলেক্ট করুন", en: "Select 'Add to Home Screen'" },
   "landing.install_btn": { bn: "ইনস্টল করুন", en: "Install Now" },

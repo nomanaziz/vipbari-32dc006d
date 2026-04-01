@@ -113,10 +113,6 @@ export const PublicNavbar = () => {
             <Tag className="h-4 w-4" />
             {language === "bn" ? "কেনা - বেচা" : "Buy & Sell"}
           </Link>
-          <button onClick={() => scrollToSection("how")} className="hover:text-white transition-colors flex items-center gap-1.5">
-            <Zap className="h-4 w-4" />
-            {t("landing.nav_how")}
-          </button>
           <button onClick={() => scrollToSection("pricing")} className="hover:text-white transition-colors flex items-center gap-1.5">
             <Tag className="h-4 w-4" />
             {t("landing.nav_pricing")}

@@ -38,6 +38,9 @@ const featureIcons: Record<string, LucideIcon[]> = {
   "smart-automation": [RefreshCw, MessageSquare, Bell, Settings, FileText, Zap],
   "analytics-insights": [PieChart, TrendingUp, FileText, Activity, FileText, BarChart3],
   "security-protection": [Lock, Database, RefreshCw, Lock, Activity, Shield],
+  "tolet": [Smartphone, Building2, MessageSquare, FileText, Activity, RefreshCw],
+  "buy-sell": [Building2, Smartphone, Database, CreditCard, CheckCircle2, RefreshCw],
+  "lease-management": [FileText, Clock, Bell, CreditCard, Building2, Settings],
 };
 
 const featureColors: Record<string, string> = {

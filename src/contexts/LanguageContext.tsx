@@ -326,6 +326,13 @@ const translations: Record<string, Record<Language, string>> = {
   "landing.feat_report": { bn: "রিপোর্ট ও এনালিটিক্স", en: "Reports & Analytics" },
   "landing.feat_report_desc": { bn: "মাসিক আয়, বকেয়া, অকুপেন্সি — সব ড্যাশবোর্ডে", en: "Monthly income, dues, occupancy — all on your dashboard" },
 
+  "landing.feat_garage": { bn: "গ্যারেজ ম্যানেজমেন্ট", en: "Garage Management" },
+  "landing.feat_garage_desc": { bn: "গাড়ি ও মোটরসাইকেল গ্যারেজ বরাদ্দ ও ভাড়া ম্যানেজ করুন", en: "Manage car & motorcycle garage allocation and rent" },
+  "landing.feat_boost": { bn: "লিস্টিং বুস্ট", en: "Listing Boost" },
+  "landing.feat_boost_desc": { bn: "আপনার টু-লেট বা সেল লিস্টিং বুস্ট করে দ্রুত ভাড়াটিয়া পান", en: "Boost your to-let or sale listings to find tenants faster" },
+  "landing.feat_main_title": { bn: "প্রধান ফিচারসমূহ", en: "Core Features" },
+  "landing.feat_mini_title": { bn: "আরও ফিচার", en: "More Features" },
+
   "landing.mini_link": { bn: "পেমেন্ট লিংক", en: "Payment Link" },
   "landing.mini_sms": { bn: "SMS/WhatsApp", en: "SMS/WhatsApp" },
   "landing.mini_elec": { bn: "বিদ্যুৎ বিল", en: "Electricity" },
@@ -338,6 +345,8 @@ const translations: Record<string, Record<Language, string>> = {
   "landing.mini_backup": { bn: "ব্যাকআপ", en: "Backup" },
   "landing.mini_share": { bn: "বিল শেয়ার", en: "Bill Share" },
   "landing.mini_history": { bn: "পেমেন্ট হিস্ট্রি", en: "Payment History" },
+  "landing.mini_eye": { bn: "ভিউ ট্র্যাকিং", en: "View Tracking" },
+  "landing.mini_parking": { bn: "পার্কিং", en: "Parking" },
 
   "landing.for_landlord": { bn: "বাড়িওয়ালাদের জন্য", en: "For Landlords" },
   "landing.landlord_1": { bn: "সব সম্পত্তি ও রুম এক ড্যাশবোর্ডে দেখুন", en: "View all properties & rooms in one dashboard" },

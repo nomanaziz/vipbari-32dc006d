@@ -425,17 +425,10 @@ const BulkRoomAddDialog = ({ properties, onSuccess }: Props) => {
         description: unit.description,
       });
 
-      if (unitMode === "same") {
-        for (let floor = fromFloor; floor <= toFloor; floor++) {
-          for (const unit of units) {
-            rows.push(buildRow(unit, floor));
-          }
-        }
-      } else {
-        for (const floor of floors) {
-          for (const unit of (floorUnits[floor] || [])) {
-            rows.push(buildRow(unit, floor));
-          }
+      const templateUnits = unitMode === "same" ? units : diffUnits;
+      for (let floor = fromFloor; floor <= toFloor; floor++) {
+        for (const unit of templateUnits) {
+          rows.push(buildRow(unit, floor));
         }
       }
 

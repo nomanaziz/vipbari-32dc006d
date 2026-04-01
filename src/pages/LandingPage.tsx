@@ -162,16 +162,19 @@ const LandingPage = () => {
             {miniFeatures.length > 0 ? miniFeatures.map((f, i) => {
               const Icon = miniFeatureIcons[i] || Bell;
               const color = miniFeatureColors[i] || "blue";
+              const val = lc(f.section_key, miniFallbackKeys[i]);
               return (
-                <div key={f.id} className="flex flex-col items-center justify-center p-4 rounded-lg bg-background border hover:border-primary/40 transition-colors">
+                <div key={f.id} className="flex flex-col items-center justify-center gap-2 p-4 rounded-lg bg-background border hover:border-primary/40 transition-colors">
                   <AppIcon icon={Icon} color={color} size="sm" />
+                  <span className="text-xs text-center">{val}</span>
                 </div>
               );
             }) : Array.from({ length: 14 }, (_, i) => {
               const Icon = miniFeatureIcons[i];
               return (
-                <div key={i} className="flex flex-col items-center justify-center p-4 rounded-lg bg-background border hover:border-primary/40 transition-colors">
+                <div key={i} className="flex flex-col items-center justify-center gap-2 p-4 rounded-lg bg-background border hover:border-primary/40 transition-colors">
                   <AppIcon icon={Icon} color={miniFeatureColors[i]} size="sm" />
+                  <span className="text-xs text-center">{t(miniFallbackKeys[i]) || lc(`mini_${i + 1}`)}</span>
                 </div>
               );
             })}

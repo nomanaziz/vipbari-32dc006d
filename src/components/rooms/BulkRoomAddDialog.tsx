@@ -466,21 +466,14 @@ const BulkRoomAddDialog = ({ properties, onSuccess }: Props) => {
 
   const previewItems = useMemo(() => {
     const items: { floor: number; label: string }[] = [];
-    if (unitMode === "same") {
-      for (const floor of floors) {
-        for (const unit of units) {
-          items.push({ floor, label: generateRoomNumber(floor, unit.label) });
-        }
-      }
-    } else {
-      for (const floor of floors) {
-        for (const unit of (floorUnits[floor] || [])) {
-          items.push({ floor, label: generateRoomNumber(floor, unit.label) });
-        }
+    const templateUnits = unitMode === "same" ? units : diffUnits;
+    for (const floor of floors) {
+      for (const unit of templateUnits) {
+        items.push({ floor, label: generateRoomNumber(floor, unit.label) });
       }
     }
     return items;
-  }, [unitMode, floors, units, floorUnits]);
+  }, [unitMode, floors, units, diffUnits]);
 
   // Group summary for display
   const groupSummary = useMemo(() => {

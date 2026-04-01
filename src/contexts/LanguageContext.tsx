@@ -1178,7 +1178,7 @@ const translations: Record<string, Record<Language, string>> = {
   "image.max_3": { bn: "সর্বোচ্চ ৩টি", en: "Max 3" },
   "image.max_10": { bn: "সর্বোচ্চ ১০টি", en: "Max 10" },
 
-  // ===== Why Bariwala Section =====
+  // ===== Why VIP Bari Section =====
   "landing.why_badge": { bn: "কেন VIP Bari?", en: "Why VIP Bari?" },
   "landing.why_title": { bn: "আমাদের বিশেষত্ব", en: "Our Specialties" },
   "landing.why_sub": { bn: "বাংলাদেশের সেরা বাড়ি ভাড়া ম্যানেজমেন্ট প্ল্যাটফর্ম", en: "Bangladesh's best rental management platform" },

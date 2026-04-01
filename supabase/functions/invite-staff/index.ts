@@ -36,7 +36,10 @@ Deno.serve(async (req) => {
 
     if (!isAdmin && !isLandlord) throw new Error("Not authorized");
 
-    const { email, password, full_name, phone, role, preset_id, landlord_id, staff_type } = await req.json();
+    const {
+      email, password, full_name, phone, role, preset_id, landlord_id, staff_type,
+      permanent_address, present_address, nid_number, doc_type, date_of_birth, salary, joining_date,
+    } = await req.json();
 
     if (!password || !full_name || !role || !preset_id) {
       throw new Error("Missing required fields");
@@ -68,7 +71,7 @@ Deno.serve(async (req) => {
 
     // Create staff assignment
     const scope = role === "employee" ? "admin" : "landlord";
-    const { error: assignError } = await supabaseAdmin
+    const { data: assignment, error: assignError } = await supabaseAdmin
       .from("staff_assignments")
       .insert({
         user_id: newUser.user.id,
@@ -77,9 +80,31 @@ Deno.serve(async (req) => {
         scope,
         landlord_id: role === "landlord_staff" ? (landlord_id || caller.id) : null,
         staff_type: staff_type || "general",
-      });
+      })
+      .select("id")
+      .single();
 
     if (assignError) throw assignError;
+
+    // Create staff_details if any detail field is provided
+    if (assignment) {
+      const { error: detailError } = await supabaseAdmin
+        .from("staff_details")
+        .insert({
+          staff_assignment_id: assignment.id,
+          permanent_address: permanent_address || "",
+          present_address: present_address || "",
+          nid_number: nid_number || "",
+          doc_type: doc_type || "nid",
+          date_of_birth: date_of_birth || null,
+          salary: parseFloat(salary) || 0,
+          joining_date: joining_date || null,
+        });
+
+      if (detailError) {
+        console.error("Staff details insert error:", detailError);
+      }
+    }
 
     return new Response(JSON.stringify({ user: newUser.user }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

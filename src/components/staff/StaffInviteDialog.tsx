@@ -5,9 +5,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Plus } from "lucide-react";
-
-const STAFF_TYPES = ["general", "caretaker", "security", "electrician", "cleaner", "plumber"] as const;
 
 interface StaffInviteDialogProps {
   presets: any[];
@@ -19,66 +18,112 @@ const StaffInviteDialog = ({ presets, onInvite, isPending }: StaffInviteDialogPr
   const { t } = useLanguage();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({
-    full_name: "", email: "", phone: "", password: "", preset_id: "", staff_type: "general",
+    full_name: "", email: "", phone: "", password: "", preset_id: "",
+    permanent_address: "", present_address: "", nid_number: "", doc_type: "nid",
+    date_of_birth: "", salary: "", joining_date: "",
   });
 
   const handleSubmit = () => {
     onInvite(form);
     setOpen(false);
-    setForm({ full_name: "", email: "", phone: "", password: "", preset_id: "", staff_type: "general" });
+    setForm({
+      full_name: "", email: "", phone: "", password: "", preset_id: "",
+      permanent_address: "", present_address: "", nid_number: "", doc_type: "nid",
+      date_of_birth: "", salary: "", joining_date: "",
+    });
   };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button><Plus className="h-4 w-4 mr-2" />{t("staff.add_staff")}</Button>
+        <Button><Plus className="h-4 w-4 mr-2" />স্টাফ যোগ করুন</Button>
       </DialogTrigger>
-      <DialogContent className="max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-h-[90vh] overflow-y-auto max-w-lg">
         <DialogHeader>
-          <DialogTitle>{t("staff.add_staff")}</DialogTitle>
-          <p className="text-sm text-muted-foreground">{t("staff.add_desc")}</p>
+          <DialogTitle>স্টাফ যোগ করুন / Add Staff</DialogTitle>
+          <p className="text-sm text-muted-foreground">স্টাফের সম্পূর্ণ তথ্য দিন</p>
         </DialogHeader>
         <div className="space-y-4">
+          {/* Basic Info */}
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">মৌলিক তথ্য / Basic Info</p>
           <div>
-            <Label>{t("auth.name")} *</Label>
+            <Label>নাম / Name *</Label>
             <Input value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label>{t("auth.phone")} *</Label>
+              <Label>মোবাইল / Phone *</Label>
               <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
             </div>
             <div>
-              <Label>{t("auth.email")}</Label>
+              <Label>ইমেইল / Email</Label>
               <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
             </div>
           </div>
-          <div>
-            <Label>{t("auth.pin")} *</Label>
-            <Input type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} placeholder="6+ digit PIN" />
-          </div>
-          <div>
-            <Label>{t("staff.position")}</Label>
-            <Select value={form.staff_type} onValueChange={(v) => setForm({ ...form, staff_type: v })}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {STAFF_TYPES.map((type) => (
-                  <SelectItem key={type} value={type}>{t(`staff.type_${type}`)}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label>পিন / PIN *</Label>
+              <Input type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} placeholder="6+ digit PIN" />
+            </div>
+            <div>
+              <Label>পদবী / Role *</Label>
+              <Select value={form.preset_id} onValueChange={(v) => setForm({ ...form, preset_id: v })}>
+                <SelectTrigger><SelectValue placeholder="রোল নির্বাচন করুন" /></SelectTrigger>
+                <SelectContent>
+                  {presets.map((preset: any) => (
+                    <SelectItem key={preset.id} value={preset.id}>{preset.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
+          {/* Personal Details */}
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide pt-2">ব্যক্তিগত তথ্য / Personal Details</p>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label>জন্ম তারিখ / Date of Birth</Label>
+              <Input type="date" value={form.date_of_birth} onChange={(e) => setForm({ ...form, date_of_birth: e.target.value })} />
+            </div>
+            <div>
+              <Label>যোগদানের তারিখ / Joining Date</Label>
+              <Input type="date" value={form.joining_date} onChange={(e) => setForm({ ...form, joining_date: e.target.value })} />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label>ডকুমেন্ট টাইপ / Doc Type</Label>
+              <Select value={form.doc_type} onValueChange={(v) => setForm({ ...form, doc_type: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="nid">NID / জাতীয় পরিচয়পত্র</SelectItem>
+                  <SelectItem value="birth_certificate">জন্ম নিবন্ধন / Birth Certificate</SelectItem>
+                  <SelectItem value="passport">পাসপোর্ট / Passport</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>ডকুমেন্ট নম্বর / Doc Number</Label>
+              <Input value={form.nid_number} onChange={(e) => setForm({ ...form, nid_number: e.target.value })} placeholder="NID / Birth / Passport No." />
+            </div>
+          </div>
+
+          {/* Address */}
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide pt-2">ঠিকানা / Address</p>
           <div>
-            <Label>{t("staff.role_preset")} *</Label>
-            <Select value={form.preset_id} onValueChange={(v) => setForm({ ...form, preset_id: v })}>
-              <SelectTrigger><SelectValue placeholder={t("staff.select_role")} /></SelectTrigger>
-              <SelectContent>
-                {presets.map((preset: any) => (
-                  <SelectItem key={preset.id} value={preset.id}>{preset.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label>স্থায়ী ঠিকানা / Permanent Address</Label>
+            <Textarea value={form.permanent_address} onChange={(e) => setForm({ ...form, permanent_address: e.target.value })} className="min-h-[60px]" />
+          </div>
+          <div>
+            <Label>বর্তমান ঠিকানা / Present Address</Label>
+            <Textarea value={form.present_address} onChange={(e) => setForm({ ...form, present_address: e.target.value })} className="min-h-[60px]" />
+          </div>
+
+          {/* Salary */}
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide pt-2">বেতন / Salary</p>
+          <div>
+            <Label>মাসিক বেতন / Monthly Salary (৳)</Label>
+            <Input type="number" value={form.salary} onChange={(e) => setForm({ ...form, salary: e.target.value })} placeholder="0" />
           </div>
 
           <Button
@@ -86,7 +131,7 @@ const StaffInviteDialog = ({ presets, onInvite, isPending }: StaffInviteDialogPr
             onClick={handleSubmit}
             disabled={isPending || !form.full_name || !form.phone || !form.password || !form.preset_id}
           >
-            {isPending ? t("common.loading") : t("staff.add_staff")}
+            {isPending ? "প্রক্রিয়াকরণ..." : "স্টাফ যোগ করুন / Add Staff"}
           </Button>
         </div>
       </DialogContent>

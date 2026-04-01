@@ -10,9 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Layers, Plus, Trash2, Copy, Settings2 } from "lucide-react";
+import { Layers, Plus, Trash2, Settings2 } from "lucide-react";
 import { toast } from "sonner";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
@@ -189,7 +188,6 @@ const BulkRoomAddDialog = ({ properties, onSuccess }: Props) => {
   const [floorTo, setFloorTo] = useState("5");
   const [unitMode, setUnitMode] = useState<"same" | "different">("same");
   const [units, setUnits] = useState<UnitTemplate[]>([defaultUnit()]);
-  const [floorUnits, setFloorUnits] = useState<Record<number, UnitTemplate[]>>({});
   const [isPending, setIsPending] = useState(false);
 
   // New state for enhanced features
@@ -233,37 +231,54 @@ const BulkRoomAddDialog = ({ properties, onSuccess }: Props) => {
     });
   }, []);
 
-  // Initialize floorUnits when switching to different mode or floor range changes
-  const ensureFloorUnits = () => {
-    setFloorUnits(prev => {
-      const next = { ...prev };
-      for (const f of floors) {
-        if (!next[f]) next[f] = [defaultUnit()];
-      }
-      for (const key of Object.keys(next)) {
-        if (!floors.includes(Number(key))) delete next[Number(key)];
-      }
-      return next;
-    });
-  };
-
   const handleModeChange = (mode: "same" | "different") => {
     setUnitMode(mode);
-    if (mode === "different") ensureFloorUnits();
   };
 
   const handleFloorChange = (from: string, to: string) => {
     setFloorFrom(from);
     setFloorTo(to);
-    if (unitMode === "different") {
-      setTimeout(() => ensureFloorUnits(), 0);
-    }
   };
+
+  // Different mode units (independent unit types)
+  const [diffUnits, setDiffUnits] = useState<UnitTemplate[]>([defaultUnit()]);
+  const [diffUnitsPerFloor, setDiffUnitsPerFloor] = useState("1");
+
+  const handleDiffUnitsPerFloorChange = useCallback((val: string) => {
+    setDiffUnitsPerFloor(val);
+    const count = Math.max(0, Math.min(20, parseInt(val) || 0));
+    if (count === 0) return;
+    setDiffUnits(prev => {
+      if (count === prev.length) return prev;
+      if (count > prev.length) {
+        const newUnits = [...prev];
+        for (let i = prev.length; i < count; i++) {
+          newUnits.push({ ...defaultUnit(String.fromCharCode(65 + i)), id: crypto.randomUUID() });
+        }
+        return newUnits;
+      }
+      return prev.slice(0, count);
+    });
+  }, []);
+
+  const addDiffUnit = () => {
+    const nextLabel = String.fromCharCode(65 + diffUnits.length);
+    setDiffUnits(prev => [...prev, { ...defaultUnit(nextLabel), id: crypto.randomUUID() }]);
+    setDiffUnitsPerFloor(String(diffUnits.length + 1));
+  };
+  const removeDiffUnit = (id: string) => {
+    if (diffUnits.length <= 1) return;
+    setDiffUnits(prev => prev.filter(u => u.id !== id));
+    setDiffUnitsPerFloor(String(diffUnits.length - 1));
+  };
+  const updateDiffUnit = useCallback((id: string, patch: Partial<UnitTemplate>) => {
+    setDiffUnits(prev => prev.map(u => u.id === id ? { ...u, ...patch } : u));
+  }, []);
 
   const totalRooms = useMemo(() => {
     if (unitMode === "same") return floorCount * units.length;
-    return floors.reduce((sum, f) => sum + (floorUnits[f]?.length || 0), 0);
-  }, [unitMode, floorCount, units.length, floors, floorUnits]);
+    return floorCount * diffUnits.length;
+  }, [unitMode, floorCount, units.length, diffUnits.length]);
 
   const generateRoomNumber = (floor: number, unitLabel: string) => `${floor}${unitLabel}`;
 
@@ -310,34 +325,6 @@ const BulkRoomAddDialog = ({ properties, onSuccess }: Props) => {
       }
     }
   }, [symmetryEnabled, unitGroups]);
-
-  // --- Different mode helpers ---
-  const addFloorUnit = (floor: number) => {
-    setFloorUnits(prev => {
-      const arr = prev[floor] || [];
-      const nextLabel = String.fromCharCode(65 + arr.length);
-      return { ...prev, [floor]: [...arr, { ...defaultUnit(nextLabel), id: crypto.randomUUID() }] };
-    });
-  };
-  const removeFloorUnit = (floor: number, id: string) => {
-    setFloorUnits(prev => {
-      const arr = prev[floor] || [];
-      if (arr.length <= 1) return prev;
-      return { ...prev, [floor]: arr.filter(u => u.id !== id) };
-    });
-  };
-  const updateFloorUnit = (floor: number, id: string, patch: Partial<UnitTemplate>) => {
-    setFloorUnits(prev => ({
-      ...prev,
-      [floor]: (prev[floor] || []).map(u => u.id === id ? { ...u, ...patch } : u),
-    }));
-  };
-  const copyFromFloor = (targetFloor: number, sourceFloor: number) => {
-    setFloorUnits(prev => ({
-      ...prev,
-      [targetFloor]: (prev[sourceFloor] || []).map(u => ({ ...u, id: crypto.randomUUID() })),
-    }));
-  };
 
   const handleSubmit = async () => {
     if (!propertyId) { toast.error(t("room.select_property") || "Select a property"); return; }
@@ -390,17 +377,10 @@ const BulkRoomAddDialog = ({ properties, onSuccess }: Props) => {
         description: unit.description,
       });
 
-      if (unitMode === "same") {
-        for (let floor = fromFloor; floor <= toFloor; floor++) {
-          for (const unit of units) {
-            rows.push(buildRow(unit, floor));
-          }
-        }
-      } else {
-        for (const floor of floors) {
-          for (const unit of (floorUnits[floor] || [])) {
-            rows.push(buildRow(unit, floor));
-          }
+      const templateUnits = unitMode === "same" ? units : diffUnits;
+      for (let floor = fromFloor; floor <= toFloor; floor++) {
+        for (const unit of templateUnits) {
+          rows.push(buildRow(unit, floor));
         }
       }
 
@@ -422,7 +402,8 @@ const BulkRoomAddDialog = ({ properties, onSuccess }: Props) => {
       onSuccess();
       setOpen(false);
       setUnits([defaultUnit()]);
-      setFloorUnits({});
+      setDiffUnits([defaultUnit()]);
+      setDiffUnitsPerFloor("1");
       setFloorFrom("1");
       setFloorTo("5");
       setUnitMode("same");
@@ -438,21 +419,14 @@ const BulkRoomAddDialog = ({ properties, onSuccess }: Props) => {
 
   const previewItems = useMemo(() => {
     const items: { floor: number; label: string }[] = [];
-    if (unitMode === "same") {
-      for (const floor of floors) {
-        for (const unit of units) {
-          items.push({ floor, label: generateRoomNumber(floor, unit.label) });
-        }
-      }
-    } else {
-      for (const floor of floors) {
-        for (const unit of (floorUnits[floor] || [])) {
-          items.push({ floor, label: generateRoomNumber(floor, unit.label) });
-        }
+    const templateUnits = unitMode === "same" ? units : diffUnits;
+    for (const floor of floors) {
+      for (const unit of templateUnits) {
+        items.push({ floor, label: generateRoomNumber(floor, unit.label) });
       }
     }
     return items;
-  }, [unitMode, floors, units, floorUnits]);
+  }, [unitMode, floors, units, diffUnits]);
 
   // Group summary for display
   const groupSummary = useMemo(() => {
@@ -515,7 +489,7 @@ const BulkRoomAddDialog = ({ properties, onSuccess }: Props) => {
                 </div>
                 <div className="flex items-center gap-2">
                   <RadioGroupItem value="different" id="mode-different" />
-                  <Label htmlFor="mode-different" className="text-sm font-normal cursor-pointer">{t("bulk.different_units") || "Different units per floor"}</Label>
+                  <Label htmlFor="mode-different" className="text-sm font-normal cursor-pointer">{t("bulk.different_units") || "আলাদা আলাদা ইউনিট / Different unit types"}</Label>
                 </div>
               </RadioGroup>
             </div>
@@ -623,57 +597,48 @@ const BulkRoomAddDialog = ({ properties, onSuccess }: Props) => {
               </div>
             )}
 
-            {/* DIFFERENT MODE */}
-            {unitMode === "different" && floorCount > 0 && (
-              <Accordion type="multiple" defaultValue={floors.map(String)} className="space-y-2">
-                {floors.map(floor => {
-                  const fUnits = floorUnits[floor] || [];
-                  return (
-                    <AccordionItem key={floor} value={String(floor)} className="border rounded-lg">
-                      <div className="flex items-center justify-between pr-4">
-                        <AccordionTrigger className="px-4 py-3 hover:no-underline">
-                          <span className="text-sm font-medium">
-                            {t("bulk.floor_x") || "Floor"} {floor} ({fUnits.length} {t("bulk.unit") || "Unit"})
-                          </span>
-                        </AccordionTrigger>
-                        {floors.length > 1 && (
-                          <Select onValueChange={(v) => copyFromFloor(floor, Number(v))}>
-                            <SelectTrigger className="h-7 w-auto text-xs gap-1 border-dashed">
-                              <Copy className="h-3 w-3" />
-                              <SelectValue placeholder={t("bulk.copy_from_floor") || "Copy from floor"} />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {floors.filter(f => f !== floor).map(f => (
-                                <SelectItem key={f} value={String(f)}>
-                                  {t("bulk.floor_x") || "Floor"} {f}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        )}
-                      </div>
-                      <AccordionContent className="px-4 pb-4 space-y-3">
-                        {fUnits.map((unit, idx) => (
-                          <UnitCard
-                            key={unit.id}
-                            unit={unit}
-                            idx={idx}
-                            canRemove={fUnits.length > 1}
-                            onUpdate={(patch) => updateFloorUnit(floor, unit.id, patch)}
-                            onRemove={() => removeFloorUnit(floor, unit.id)}
-                            t={t}
-                            roomTypeLabels={roomTypeLabels}
-                          />
-                        ))}
-                        <Button type="button" variant="outline" size="sm" onClick={() => addFloorUnit(floor)} className="gap-1">
-                          <Plus className="h-3 w-3" />
-                          {t("bulk.add_unit") || "Add Unit"}
-                        </Button>
-                      </AccordionContent>
-                    </AccordionItem>
-                  );
-                })}
-              </Accordion>
+            {/* DIFFERENT MODE — each unit type configured independently, applied to all floors */}
+            {unitMode === "different" && (
+              <div className="space-y-3">
+                <div className="space-y-2">
+                  <Label>{t("bulk.units_per_floor") || "প্রতি তলায় ইউনিট সংখ্যা"}</Label>
+                  <div className="flex items-center gap-3">
+                    <Input
+                      type="number"
+                      min="1"
+                      max="20"
+                      value={diffUnitsPerFloor}
+                      onChange={e => handleDiffUnitsPerFloorChange(e.target.value)}
+                      className="w-24"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      {"প্রতিটি ইউনিট টাইপ সকল তলায় প্রযোজ্য হবে"}
+                    </p>
+                  </div>
+                </div>
+
+                <ScrollArea className="max-h-[45vh]">
+                  <div className="space-y-3 pr-2">
+                    {diffUnits.map((unit, idx) => (
+                      <UnitCard
+                        key={unit.id}
+                        unit={unit}
+                        idx={idx}
+                        canRemove={diffUnits.length > 1}
+                        onUpdate={(patch) => updateDiffUnit(unit.id, patch)}
+                        onRemove={() => removeDiffUnit(unit.id)}
+                        t={t}
+                        roomTypeLabels={roomTypeLabels}
+                      />
+                    ))}
+                  </div>
+                </ScrollArea>
+
+                <Button type="button" variant="outline" size="sm" onClick={addDiffUnit} className="gap-1">
+                  <Plus className="h-3 w-3" />
+                  {t("bulk.add_unit") || "ইউনিট যোগ করুন"}
+                </Button>
+              </div>
             )}
 
             {/* Preview */}

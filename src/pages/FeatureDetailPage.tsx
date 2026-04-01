@@ -51,6 +51,9 @@ const featureColors: Record<string, string> = {
   "smart-automation": "from-purple-400 to-violet-500",
   "analytics-insights": "from-indigo-400 to-blue-500",
   "security-protection": "from-emerald-400 to-green-500",
+  "tolet": "from-cyan-400 to-sky-500",
+  "buy-sell": "from-orange-400 to-red-500",
+  "lease-management": "from-violet-400 to-purple-500",
 };
 
 const featureBorderColors: Record<string, string> = {

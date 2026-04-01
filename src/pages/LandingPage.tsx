@@ -368,6 +368,7 @@ const LandingPage = () => {
         </div>
       </section>
 
+      <ScrollToTop />
       <LandingFooter />
     </div>
   );

@@ -149,7 +149,7 @@ const LandingPage = () => {
               <Link key={f.dbTitle} to={`/features/${f.slug}`}>
                 <Card className="hover:shadow-md transition-shadow h-full">
                   <CardContent className="p-8 flex flex-col items-center justify-center text-center">
-                    <AppIcon icon={f.icon} color={f.color} size="lg" />
+                    <AppIcon icon={f.icon} color={f.color} />
                   </CardContent>
                 </Card>
               </Link>

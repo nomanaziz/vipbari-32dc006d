@@ -577,7 +577,24 @@ const Properties = () => {
 
               {/* Facilities */}
               <div className="space-y-3">
-                <Label className="text-base font-semibold">{language === "bn" ? "সুবিধাসমূহ" : "Facilities"}</Label>
+                <div className="flex items-center justify-between">
+                  <Label className="text-base font-semibold">{language === "bn" ? "সুবিধাসমূহ" : "Facilities"}</Label>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const allChecked = facilityKeys.every(k => !!form[k]);
+                      const update: any = {};
+                      facilityKeys.forEach(k => { update[k] = !allChecked; });
+                      setForm(f => ({ ...f, ...update }));
+                    }}
+                  >
+                    {facilityKeys.every(k => !!form[k])
+                      ? (language === "bn" ? "সব বাদ দিন" : "Unmark All")
+                      : (language === "bn" ? "সব নির্বাচন" : "Mark All")}
+                  </Button>
+                </div>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   {([
                     ["has_garage", language === "bn" ? "গ্যারেজ" : "Garage", Car],

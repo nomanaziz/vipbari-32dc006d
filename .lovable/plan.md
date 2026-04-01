@@ -1,62 +1,50 @@
 
 
-## Plan: Fix Comparison Icons, Add Scroll-to-Top on Landing, Make All Content Editable
+## Plan: Copy Feature Text from bariwala.pro & Update Comparison Table
 
-### 1. Fix Comparison Table Icons (same style for all rows)
+### 1. Update Feature Text (Bangla descriptions from bariwala.pro)
 
-**Problem**: The comparison table uses different icons per column/row — `CheckCircle2` (pink), `XCircle` (pink/orange), `Check`, `X` with different colors. User wants consistent icons.
+Update `src/contexts/LanguageContext.tsx` translation keys to use bariwala.pro's richer Bangla text:
 
-**Fix** in `LandingPage.tsx` (lines 301-316):
-- VIP Bari column: `CheckCircle2` green for all rows (✓ supported)
-- Manual column: `XCircle` red for all rows (✗ not supported)  
-- Excel column: Use a consistent partial icon — `CheckCircle2` orange for partial, `XCircle` red for no. Keep simple: rows 3-5 get orange check (partial), rest get red X.
+| Key | Current Bangla | New Bangla (from bariwala.pro) |
+|-----|---------------|-------------------------------|
+| `feat_tenant` | ভাড়াটিয়া ম্যানেজমেন্ট | ভাড়াটিয়া ম্যানেজমেন্ট |
+| `feat_tenant_desc` | ভাড়াটিয়ার তথ্য, NID, ফোন... | সহজেই ভাড়াটিয়াদের তথ্য সংরক্ষণ, NID ভেরিফিকেশন এবং ট্র্যাকিং। |
+| `feat_room` | রুম/ফ্ল্যাট/দোকান | রুম/ফ্ল্যাট/দোকান |
+| `feat_room_desc` | প্রতিটি সম্পত্তির রুম... | সব ধরনের প্রপার্টি এক জায়গায় ম্যানেজ করুন সহজে। |
+| `feat_billing` | অটো বিলিং | স্বয়ংক্রিয় বিল |
+| `feat_billing_desc` | ভাড়া + ইউটিলিটি... | বিদ্যুৎ মিটার রিডিং থেকে অটোমেটিক বিল ক্যালকুলেশন। |
+| `feat_send` | বিল পাঠান | বিল পাঠান |
+| `feat_send_desc` | SMS বা WhatsApp-এ... | বিল তৈরি হলে অটো পেমেন্ট লিংকসহ SMS ও WhatsApp এ বিল পাঠান। |
+| `feat_payment` | অনলাইন পেমেন্ট | অনলাইন পেমেন্ট |
+| `feat_payment_desc` | বিকাশ, নগদ... | ভাড়াটিয়ারা সরাসরি বিকাশ/নগদে পেমেন্ট করতে পারে। |
+| `feat_report` | রিপোর্ট ও এনালিটিক্স | রিপোর্ট ও আয়-ব্যয় |
+| `feat_report_desc` | মাসিক আয়... | মাসিক কালেকশন এবং বকেয়ার বিস্তারিত রিপোর্ট। |
 
-### 2. Add Scroll-to-Top Button on Landing Page
+Also update mini feature descriptions to match bariwala.pro:
 
-**Problem**: `ScrollToTop` component exists but only used in `AppLayout` (authenticated pages). Landing page scrolls `window`, not `<main>`.
+| Key | New Bangla |
+|-----|-----------|
+| `mini_link` | পেমেন্ট লিংক |
+| `mini_sms` | অটো SMS/WhatsApp |
+| `mini_elec` | বিদ্যুৎ বিল |
+| `mini_water` | পানি বিল |
+| `mini_gas` | গ্যাস বিল |
+| `mini_wifi` | ওয়াইফাই বিল |
+| `mini_notif` | নোটিফিকেশন |
+| `mini_security` | নিরাপদ |
+| `mini_pdf` | PDF ডাউনলোড |
+| `mini_backup` | ডেটা ব্যাকআপ |
+| `mini_share` | বিল শেয়ার |
+| `mini_history` | পেমেন্ট হিস্ট্রি |
 
-**Fix**:
-- Update `ScrollToTop` component to also listen to `window` scroll (fallback when no `<main>` element or when `<main>` scrollTop is 0)
-- Add `<ScrollToTop />` to `LandingPage.tsx` before `<LandingFooter />`
+### 2. Fix Comparison Table — All ✗ for Excel (match bariwala.pro)
 
-### 3. Make ALL Home Page Sections Editable from Admin
+bariwala.pro shows VIP Bari ✓ for all 6 rows, Manual ✗ for all, Excel ✗ for all. No partial support.
 
-**Problem**: Several sections use hardcoded `t()` translation keys instead of `lc()` (database-backed content): `WhySection`, `WhoUsesSection`, `BenefitsSection`, `PaymentMethodsSection`, `InstallSection`, `ToLetHighlight`, `HeroSection`.
-
-**Approach**: Convert these sections to use `useLandingContent()` hook with `lc(dbKey, fallbackTranslationKey)` pattern, so they keep working with existing translations but can be overridden from admin.
-
-**Changes**:
-
-**a) Add new admin groups** in `AdminLanding.tsx` GROUPS array:
-- `{ key: "hero", label: "Hero" }` — already exists
-- `{ key: "why", label: "Why VIP Bari" }`
-- `{ key: "tolet_hl", label: "To-Let Highlight" }`
-- `{ key: "who", label: "Who Uses" }`
-- `{ key: "benefits", label: "Benefits" }`
-- `{ key: "payment", label: "Payment Methods" }`
-- `{ key: "install", label: "Install" }`
-
-**b) Update each section component** to import and use `useLandingContent`:
-
-- **WhySection.tsx**: Replace `t("landing.why_badge")` → `lc("why_badge", "landing.why_badge")`, etc. for all 4 items
-- **WhoUsesSection.tsx**: Same pattern for badge, title, 4 items
-- **BenefitsSection.tsx**: Same pattern for badge, title, 4 items  
-- **PaymentMethodsSection.tsx**: Same pattern for title, subtitle, 3 methods
-- **InstallSection.tsx**: Same pattern for badge, title, subtitle, step descriptions
-- **ToLetHighlight.tsx**: Same pattern for badge, title, desc, bullets, button labels
-- **HeroSection.tsx**: Same pattern for hero_title, hero_sub, badges
-
-Each section keeps its current text as fallback via the translation key, so nothing breaks if no DB entry exists.
+**Change in `LandingPage.tsx`** (lines 301-314): Remove the orange partial logic for Excel. All Excel cells become red `XCircle`, same as Manual.
 
 ### Files Modified
-1. `src/pages/LandingPage.tsx` — fix comparison icons, add ScrollToTop
-2. `src/components/ScrollToTop.tsx` — support window scroll (for landing page)
-3. `src/components/landing/WhySection.tsx` — use `lc()` 
-4. `src/components/landing/WhoUsesSection.tsx` — use `lc()`
-5. `src/components/landing/BenefitsSection.tsx` — use `lc()`
-6. `src/components/landing/PaymentMethodsSection.tsx` — use `lc()`
-7. `src/components/landing/InstallSection.tsx` — use `lc()`
-8. `src/components/landing/ToLetHighlight.tsx` — use `lc()`
-9. `src/components/landing/HeroSection.tsx` — use `lc()`
-10. `src/pages/admin/AdminLanding.tsx` — add new section groups
+1. `src/contexts/LanguageContext.tsx` — update Bangla feature descriptions
+2. `src/pages/LandingPage.tsx` — simplify comparison table (all Excel = ✗)
 

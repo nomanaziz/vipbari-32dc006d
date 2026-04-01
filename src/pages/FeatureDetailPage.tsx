@@ -64,6 +64,9 @@ const featureBorderColors: Record<string, string> = {
   "smart-automation": "border-t-purple-400",
   "analytics-insights": "border-t-indigo-400",
   "security-protection": "border-t-emerald-400",
+  "tolet": "border-t-cyan-400",
+  "buy-sell": "border-t-orange-400",
+  "lease-management": "border-t-violet-400",
 };
 
 const mainIcons: Record<string, LucideIcon> = {

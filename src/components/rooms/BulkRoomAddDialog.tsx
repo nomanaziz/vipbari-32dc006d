@@ -550,7 +550,7 @@ const BulkRoomAddDialog = ({ properties, onSuccess }: Props) => {
                 </div>
                 <div className="flex items-center gap-2">
                   <RadioGroupItem value="different" id="mode-different" />
-                  <Label htmlFor="mode-different" className="text-sm font-normal cursor-pointer">{t("bulk.different_units") || "Different units per floor"}</Label>
+                  <Label htmlFor="mode-different" className="text-sm font-normal cursor-pointer">{t("bulk.different_units") || "আলাদা আলাদা ইউনিট / Different unit types"}</Label>
                 </div>
               </RadioGroup>
             </div>

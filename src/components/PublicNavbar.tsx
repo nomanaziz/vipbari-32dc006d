@@ -186,10 +186,6 @@ export const PublicNavbar = () => {
                   <ShoppingBag className="h-4 w-4" />
                   {language === "bn" ? "কেনা - বেচা" : "Buy & Sell"}
                 </Link>
-                <button onClick={() => scrollToSection("how")} className="flex items-center gap-3 rounded-md p-3 text-sm hover:bg-accent transition-colors text-left">
-                  <Zap className="h-4 w-4" />
-                  {t("landing.nav_how")}
-                </button>
                 <button onClick={() => scrollToSection("pricing")} className="flex items-center gap-3 rounded-md p-3 text-sm hover:bg-accent transition-colors text-left">
                   <Tag className="h-4 w-4" />
                   {t("landing.nav_pricing")}

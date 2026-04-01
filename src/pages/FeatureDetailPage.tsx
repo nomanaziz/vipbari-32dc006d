@@ -85,6 +85,7 @@ const mainIcons: Record<string, LucideIcon> = {
 const slugs = [
   "bill-calculation", "payment-link", "sms-notification",
   "room-management", "smart-automation", "analytics-insights", "security-protection",
+  "tolet", "buy-sell", "lease-management",
 ];
 
 const FeatureDetailPage = () => {

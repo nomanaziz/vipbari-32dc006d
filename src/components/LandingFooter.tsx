@@ -14,6 +14,9 @@ const featureLinks = [
   { slug: "smart-automation", icon: Zap, key: "feat_smart_automation.title" },
   { slug: "analytics-insights", icon: BarChart3, key: "feat_analytics_insights.title" },
   { slug: "security-protection", icon: ShieldCheck, key: "feat_security_protection.title" },
+  { slug: "tolet", icon: Building2, key: "feat_tolet.title" },
+  { slug: "buy-sell", icon: Building2, key: "feat_buy_sell.title" },
+  { slug: "lease-management", icon: Building2, key: "feat_lease_management.title" },
 ];
 
 const quickLinks = [

@@ -314,7 +314,7 @@ const translations: Record<string, Record<Language, string>> = {
   "landing.feat_title": { bn: "সব ফিচার", en: "All Features" },
   "landing.feat_sub": { bn: "বাড়ি ভাড়া ম্যানেজমেন্টের জন্য যা যা দরকার সব একসাথে", en: "Everything you need for rental management, all in one place" },
   "landing.feat_tenant": { bn: "ভাড়াটিয়া ম্যানেজমেন্ট", en: "Tenant Management" },
-  "landing.feat_tenant_desc": { bn: "ভাড়াটিয়ার তথ্য, NID, ফোন, ইমার্জেন্সি কন্টাক্ট সব এক জায়গায়", en: "Store tenant info, NID, phone, emergency contacts in one place" },
+  "landing.feat_tenant_desc": { bn: "সহজেই ভাড়াটিয়াদের তথ্য সংরক্ষণ, NID ভেরিফিকেশন এবং ট্র্যাকিং।", en: "Easily store tenant info, NID verification and tracking." },
   "landing.feat_room": { bn: "রুম/ফ্ল্যাট/দোকান", en: "Room/Flat/Shop" },
   "landing.feat_room_desc": { bn: "প্রতিটি সম্পত্তির রুম, ফ্ল্যাট, দোকান আলাদাভাবে ম্যানেজ করুন", en: "Manage rooms, flats, shops per property individually" },
   "landing.feat_billing": { bn: "অটো বিলিং", en: "Auto Billing" },

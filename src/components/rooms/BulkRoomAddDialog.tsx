@@ -188,7 +188,6 @@ const BulkRoomAddDialog = ({ properties, onSuccess }: Props) => {
   const [floorTo, setFloorTo] = useState("5");
   const [unitMode, setUnitMode] = useState<"same" | "different">("same");
   const [units, setUnits] = useState<UnitTemplate[]>([defaultUnit()]);
-  const [floorUnits, setFloorUnits] = useState<Record<number, UnitTemplate[]>>({});
   const [isPending, setIsPending] = useState(false);
 
   // New state for enhanced features
@@ -232,31 +231,13 @@ const BulkRoomAddDialog = ({ properties, onSuccess }: Props) => {
     });
   }, []);
 
-  // Initialize floorUnits when switching to different mode or floor range changes
-  const ensureFloorUnits = () => {
-    setFloorUnits(prev => {
-      const next = { ...prev };
-      for (const f of floors) {
-        if (!next[f]) next[f] = [defaultUnit()];
-      }
-      for (const key of Object.keys(next)) {
-        if (!floors.includes(Number(key))) delete next[Number(key)];
-      }
-      return next;
-    });
-  };
-
   const handleModeChange = (mode: "same" | "different") => {
     setUnitMode(mode);
-    if (mode === "different") ensureFloorUnits();
   };
 
   const handleFloorChange = (from: string, to: string) => {
     setFloorFrom(from);
     setFloorTo(to);
-    if (unitMode === "different") {
-      setTimeout(() => ensureFloorUnits(), 0);
-    }
   };
 
   // Different mode units (independent unit types)

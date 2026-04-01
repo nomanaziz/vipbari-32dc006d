@@ -148,8 +148,9 @@ const LandingPage = () => {
             {mainFeatures.map((f) => (
               <Link key={f.dbTitle} to={`/features/${f.slug}`}>
                 <Card className="hover:shadow-md transition-shadow h-full">
-                  <CardContent className="p-8 flex flex-col items-center justify-center text-center">
+                  <CardContent className="p-8 flex flex-col items-center justify-center text-center gap-3">
                     <AppIcon icon={f.icon} color={f.color} />
+                    <h3 className="font-semibold text-sm">{lc(f.dbTitle, f.fallbackTitle)}</h3>
                   </CardContent>
                 </Card>
               </Link>

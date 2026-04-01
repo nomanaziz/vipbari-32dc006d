@@ -1228,7 +1228,7 @@ const translations: Record<string, Record<Language, string>> = {
   // ===== Install Section =====
   "landing.install_badge": { bn: "অ্যাপ ডাউনলোড করুন", en: "Download App" },
   "landing.install_title": { bn: "আপনার ফোনে ইনস্টল করুন", en: "Install on Your Phone" },
-  "landing.install_sub": { bn: "বাড়িওয়ালা অ্যাপ আপনার হোম স্ক্রিনে যোগ করুন দ্রুত অ্যাক্সেসের জন্য।", en: "Add Bariwala to your home screen for quick access." },
+  "landing.install_sub": { bn: "VIP Bari অ্যাপ আপনার হোম স্ক্রিনে যোগ করুন দ্রুত অ্যাক্সেসের জন্য।", en: "Add VIP Bari to your home screen for quick access." },
   "landing.install_android": { bn: "Android (Chrome ব্রাউজার)", en: "Android (Chrome Browser)" },
   "landing.install_android_1": { bn: "Chrome ব্রাউজারে bariwala.app খুলুন", en: "Open bariwala.app in Chrome" },
   "landing.install_android_2": { bn: "মেনু (⋮) থেকে 'Add to Home screen' চাপুন", en: "Tap menu (⋮) → 'Add to Home screen'" },

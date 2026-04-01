@@ -260,10 +260,45 @@ const BulkRoomAddDialog = ({ properties, onSuccess }: Props) => {
     }
   };
 
+  // Different mode units (independent unit types)
+  const [diffUnits, setDiffUnits] = useState<UnitTemplate[]>([defaultUnit()]);
+  const [diffUnitsPerFloor, setDiffUnitsPerFloor] = useState("1");
+
+  const handleDiffUnitsPerFloorChange = useCallback((val: string) => {
+    setDiffUnitsPerFloor(val);
+    const count = Math.max(0, Math.min(20, parseInt(val) || 0));
+    if (count === 0) return;
+    setDiffUnits(prev => {
+      if (count === prev.length) return prev;
+      if (count > prev.length) {
+        const newUnits = [...prev];
+        for (let i = prev.length; i < count; i++) {
+          newUnits.push({ ...defaultUnit(String.fromCharCode(65 + i)), id: crypto.randomUUID() });
+        }
+        return newUnits;
+      }
+      return prev.slice(0, count);
+    });
+  }, []);
+
+  const addDiffUnit = () => {
+    const nextLabel = String.fromCharCode(65 + diffUnits.length);
+    setDiffUnits(prev => [...prev, { ...defaultUnit(nextLabel), id: crypto.randomUUID() }]);
+    setDiffUnitsPerFloor(String(diffUnits.length + 1));
+  };
+  const removeDiffUnit = (id: string) => {
+    if (diffUnits.length <= 1) return;
+    setDiffUnits(prev => prev.filter(u => u.id !== id));
+    setDiffUnitsPerFloor(String(diffUnits.length - 1));
+  };
+  const updateDiffUnit = useCallback((id: string, patch: Partial<UnitTemplate>) => {
+    setDiffUnits(prev => prev.map(u => u.id === id ? { ...u, ...patch } : u));
+  }, []);
+
   const totalRooms = useMemo(() => {
     if (unitMode === "same") return floorCount * units.length;
-    return floors.reduce((sum, f) => sum + (floorUnits[f]?.length || 0), 0);
-  }, [unitMode, floorCount, units.length, floors, floorUnits]);
+    return floorCount * diffUnits.length;
+  }, [unitMode, floorCount, units.length, diffUnits.length]);
 
   const generateRoomNumber = (floor: number, unitLabel: string) => `${floor}${unitLabel}`;
 

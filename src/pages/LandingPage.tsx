@@ -144,15 +144,12 @@ const LandingPage = () => {
           <p className="text-muted-foreground text-center mb-12 max-w-xl mx-auto">{lc("feat_sub", "landing.feat_sub")}</p>
 
           {/* Main Features */}
-          <h3 className="text-xl font-semibold text-center mb-6">{lc("feat_main_title", "landing.feat_main_title") || t("landing.feat_main_title")}</h3>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
             {mainFeatures.map((f) => (
               <Link key={f.dbTitle} to={`/features/${f.slug}`}>
                 <Card className="hover:shadow-md transition-shadow h-full">
-                  <CardContent className="p-6 flex flex-col items-center text-center">
+                  <CardContent className="p-8 flex flex-col items-center justify-center text-center">
                     <AppIcon icon={f.icon} color={f.color} />
-                    <h3 className="font-semibold mt-4 mb-2">{lc(f.dbTitle, f.fallbackTitle)}</h3>
-                    <p className="text-sm text-muted-foreground">{lc(f.dbDesc, f.fallbackDesc)}</p>
                   </CardContent>
                 </Card>
               </Link>
@@ -160,24 +157,20 @@ const LandingPage = () => {
           </div>
 
           {/* Mini Features */}
-          <h3 className="text-xl font-semibold text-center mb-6">{lc("feat_mini_title", "landing.feat_mini_title") || t("landing.feat_mini_title")}</h3>
-          <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-4">
+          <div className="grid grid-cols-4 sm:grid-cols-7 gap-4">
             {miniFeatures.length > 0 ? miniFeatures.map((f, i) => {
               const Icon = miniFeatureIcons[i] || Bell;
               const color = miniFeatureColors[i] || "blue";
-              const val = lc(f.section_key, miniFallbackKeys[i]);
               return (
-                <div key={f.id} className="flex flex-col items-center gap-2 p-4 rounded-lg bg-background border hover:border-primary/40 transition-colors">
+                <div key={f.id} className="flex flex-col items-center justify-center p-4 rounded-lg bg-background border hover:border-primary/40 transition-colors">
                   <AppIcon icon={Icon} color={color} size="sm" />
-                  <span className="text-xs text-center">{val}</span>
                 </div>
               );
             }) : Array.from({ length: 14 }, (_, i) => {
               const Icon = miniFeatureIcons[i];
               return (
-                <div key={i} className="flex flex-col items-center gap-2 p-4 rounded-lg bg-background border hover:border-primary/40 transition-colors">
+                <div key={i} className="flex flex-col items-center justify-center p-4 rounded-lg bg-background border hover:border-primary/40 transition-colors">
                   <AppIcon icon={Icon} color={miniFeatureColors[i]} size="sm" />
-                  <span className="text-xs text-center">{t(miniFallbackKeys[i]) || lc(`mini_${i + 1}`)}</span>
                 </div>
               );
             })}

@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Badge } from "@/components/ui/badge";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Layers, Plus, Trash2, Copy } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Layers, Plus, Trash2, Copy, Settings2 } from "lucide-react";
 import { toast } from "sonner";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
@@ -47,12 +48,20 @@ const defaultUnit = (label = "A"): UnitTemplate => ({
   description: "",
 });
 
+const GROUP_COLORS: Record<string, string> = {
+  A: "bg-blue-500",
+  B: "bg-green-500",
+  C: "bg-orange-500",
+  D: "bg-purple-500",
+  E: "bg-pink-500",
+  F: "bg-cyan-500",
+};
+
 interface Props {
   properties: { id: string; name: string }[];
   onSuccess: () => void;
 }
 
-// Extracted unit card to reduce duplication
 const UnitCard = ({
   unit,
   idx,
@@ -61,6 +70,10 @@ const UnitCard = ({
   onRemove,
   t,
   roomTypeLabels,
+  group,
+  onGroupChange,
+  showGroup,
+  availableGroups,
 }: {
   unit: UnitTemplate;
   idx: number;
@@ -69,25 +82,53 @@ const UnitCard = ({
   onRemove: () => void;
   t: (key: string) => string;
   roomTypeLabels: Record<string, string>;
+  group?: string;
+  onGroupChange?: (g: string) => void;
+  showGroup?: boolean;
+  availableGroups?: string[];
 }) => (
   <div className="border rounded-lg p-4 space-y-3 bg-muted/30">
     <div className="flex items-center justify-between">
-      <h4 className="font-semibold text-sm">
-        {t("bulk.unit")} {idx + 1}
-      </h4>
-      {canRemove && (
-        <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={onRemove}>
-          <Trash2 className="h-3.5 w-3.5" />
-        </Button>
-      )}
+      <div className="flex items-center gap-2">
+        <h4 className="font-semibold text-sm">
+          {t("bulk.unit") || "Unit"} {idx + 1}
+        </h4>
+        {showGroup && group && (
+          <span className={`inline-block w-3 h-3 rounded-full ${GROUP_COLORS[group] || "bg-muted-foreground"}`} title={`${t("bulk.group") || "Group"} ${group}`} />
+        )}
+      </div>
+      <div className="flex items-center gap-2">
+        {showGroup && onGroupChange && availableGroups && (
+          <Select value={group || "A"} onValueChange={onGroupChange}>
+            <SelectTrigger className="h-7 w-20 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {availableGroups.map(g => (
+                <SelectItem key={g} value={g}>
+                  <span className="flex items-center gap-1.5">
+                    <span className={`inline-block w-2 h-2 rounded-full ${GROUP_COLORS[g] || "bg-muted-foreground"}`} />
+                    {t("bulk.group") || "Group"} {g}
+                  </span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+        {canRemove && (
+          <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={onRemove}>
+            <Trash2 className="h-3.5 w-3.5" />
+          </Button>
+        )}
+      </div>
     </div>
     <div className="grid grid-cols-3 gap-3">
       <div className="space-y-1">
-        <Label className="text-xs">{t("bulk.unit_label")}</Label>
+        <Label className="text-xs">{t("bulk.unit_label") || "Unit Label"}</Label>
         <Input value={unit.label} onChange={e => onUpdate({ label: e.target.value })} placeholder="A" className="h-8 text-sm" />
       </div>
       <div className="space-y-1">
-        <Label className="text-xs">{t("room.type")}</Label>
+        <Label className="text-xs">{t("room.type") || "Type"}</Label>
         <Select value={unit.room_type} onValueChange={v => onUpdate({ room_type: v })}>
           <SelectTrigger className="h-8 text-sm"><SelectValue /></SelectTrigger>
           <SelectContent>
@@ -98,25 +139,25 @@ const UnitCard = ({
         </Select>
       </div>
       <div className="space-y-1">
-        <Label className="text-xs">{t("room.rent")} (৳)</Label>
+        <Label className="text-xs">{t("room.rent") || "Rent"} (৳)</Label>
         <Input type="number" value={unit.rent_amount} onChange={e => onUpdate({ rent_amount: e.target.value })} className="h-8 text-sm" />
       </div>
     </div>
     <div className="grid grid-cols-4 gap-3">
       <div className="space-y-1">
-        <Label className="text-xs">{t("room.bedrooms")}</Label>
+        <Label className="text-xs">{t("room.bedrooms") || "Bedrooms"}</Label>
         <Input type="number" min="0" value={unit.bedrooms} onChange={e => onUpdate({ bedrooms: e.target.value })} className="h-8 text-sm" />
       </div>
       <div className="space-y-1">
-        <Label className="text-xs">{t("room.bathrooms")}</Label>
+        <Label className="text-xs">{t("room.bathrooms") || "Bathrooms"}</Label>
         <Input type="number" min="0" value={unit.bathrooms} onChange={e => onUpdate({ bathrooms: e.target.value })} className="h-8 text-sm" />
       </div>
       <div className="space-y-1">
-        <Label className="text-xs">{t("room.balcony")}</Label>
+        <Label className="text-xs">{t("room.balcony") || "Balcony"}</Label>
         <Input type="number" min="0" value={unit.balconies} onChange={e => onUpdate({ balconies: e.target.value })} className="h-8 text-sm" />
       </div>
       <div className="space-y-1">
-        <Label className="text-xs">{t("room.area_sqft")}</Label>
+        <Label className="text-xs">{t("room.area_sqft") || "Area (sqft)"}</Label>
         <Input type="number" min="0" value={unit.area_sqft} onChange={e => onUpdate({ area_sqft: e.target.value })} className="h-8 text-sm" />
       </div>
     </div>
@@ -134,7 +175,7 @@ const UnitCard = ({
       ))}
     </div>
     <div className="space-y-1">
-      <Label className="text-xs">{t("room.description")}</Label>
+      <Label className="text-xs">{t("room.description") || "Description"}</Label>
       <Textarea value={unit.description} onChange={e => onUpdate({ description: e.target.value })} rows={1} className="text-sm" />
     </div>
   </div>
@@ -151,6 +192,11 @@ const BulkRoomAddDialog = ({ properties, onSuccess }: Props) => {
   const [floorUnits, setFloorUnits] = useState<Record<number, UnitTemplate[]>>({});
   const [isPending, setIsPending] = useState(false);
 
+  // New state for enhanced features
+  const [unitsPerFloor, setUnitsPerFloor] = useState("1");
+  const [symmetryEnabled, setSymmetryEnabled] = useState(false);
+  const [unitGroups, setUnitGroups] = useState<Record<string, string>>({});
+
   const roomTypeLabels: Record<string, string> = {
     room: t("room.type_room") || "Room",
     flat: t("room.type_flat") || "Flat",
@@ -162,6 +208,31 @@ const BulkRoomAddDialog = ({ properties, onSuccess }: Props) => {
   const floorCount = Math.max(0, toFloor - fromFloor + 1);
   const floors = useMemo(() => Array.from({ length: floorCount }, (_, i) => fromFloor + i), [fromFloor, floorCount]);
 
+  // Available groups based on unit count
+  const availableGroups = useMemo(() => {
+    const maxGroups = Math.min(units.length, 6);
+    return Array.from({ length: maxGroups }, (_, i) => String.fromCharCode(65 + i));
+  }, [units.length]);
+
+  // Handle units-per-floor change: auto-generate unit cards
+  const handleUnitsPerFloorChange = useCallback((val: string) => {
+    setUnitsPerFloor(val);
+    const count = Math.max(0, Math.min(20, parseInt(val) || 0));
+    if (count === 0) return;
+
+    setUnits(prev => {
+      if (count === prev.length) return prev;
+      if (count > prev.length) {
+        const newUnits = [...prev];
+        for (let i = prev.length; i < count; i++) {
+          newUnits.push({ ...defaultUnit(String.fromCharCode(65 + i)), id: crypto.randomUUID() });
+        }
+        return newUnits;
+      }
+      return prev.slice(0, count);
+    });
+  }, []);
+
   // Initialize floorUnits when switching to different mode or floor range changes
   const ensureFloorUnits = () => {
     setFloorUnits(prev => {
@@ -169,7 +240,6 @@ const BulkRoomAddDialog = ({ properties, onSuccess }: Props) => {
       for (const f of floors) {
         if (!next[f]) next[f] = [defaultUnit()];
       }
-      // Remove floors no longer in range
       for (const key of Object.keys(next)) {
         if (!floors.includes(Number(key))) delete next[Number(key)];
       }
@@ -182,7 +252,6 @@ const BulkRoomAddDialog = ({ properties, onSuccess }: Props) => {
     if (mode === "different") ensureFloorUnits();
   };
 
-  // Recalc floorUnits when floor range changes in different mode
   const handleFloorChange = (from: string, to: string) => {
     setFloorFrom(from);
     setFloorTo(to);
@@ -201,15 +270,46 @@ const BulkRoomAddDialog = ({ properties, onSuccess }: Props) => {
   // --- Same mode helpers ---
   const addUnit = () => {
     const nextLabel = String.fromCharCode(65 + units.length);
-    setUnits(prev => [...prev, { ...defaultUnit(nextLabel), id: crypto.randomUUID() }]);
+    const newUnit = { ...defaultUnit(nextLabel), id: crypto.randomUUID() };
+    setUnits(prev => [...prev, newUnit]);
+    setUnitsPerFloor(String(units.length + 1));
   };
   const removeUnit = (id: string) => {
     if (units.length <= 1) return;
     setUnits(prev => prev.filter(u => u.id !== id));
+    setUnitsPerFloor(String(units.length - 1));
+    // Clean up group assignment
+    setUnitGroups(prev => {
+      const next = { ...prev };
+      delete next[id];
+      return next;
+    });
   };
-  const updateUnit = (id: string, patch: Partial<UnitTemplate>) => {
-    setUnits(prev => prev.map(u => u.id === id ? { ...u, ...patch } : u));
-  };
+  const updateUnit = useCallback((id: string, patch: Partial<UnitTemplate>) => {
+    setUnits(prev => {
+      const updated = prev.map(u => u.id === id ? { ...u, ...patch } : u);
+      return updated;
+    });
+
+    // Symmetry: propagate to same-group units (except label)
+    if (symmetryEnabled) {
+      const group = unitGroups[id];
+      if (group) {
+        const patchWithoutLabel = { ...patch };
+        delete patchWithoutLabel.label;
+        if (Object.keys(patchWithoutLabel).length > 0) {
+          setUnits(prev =>
+            prev.map(u => {
+              if (u.id !== id && unitGroups[u.id] === group) {
+                return { ...u, ...patchWithoutLabel };
+              }
+              return u;
+            })
+          );
+        }
+      }
+    }
+  }, [symmetryEnabled, unitGroups]);
 
   // --- Different mode helpers ---
   const addFloorUnit = (floor: number) => {
@@ -241,13 +341,12 @@ const BulkRoomAddDialog = ({ properties, onSuccess }: Props) => {
 
   const handleSubmit = async () => {
     if (!propertyId) { toast.error(t("room.select_property") || "Select a property"); return; }
-    if (fromFloor > toFloor) { toast.error(t("bulk.invalid_floor_range")); return; }
-    if (totalRooms > 100) { toast.error(t("bulk.too_many")); return; }
+    if (fromFloor > toFloor) { toast.error(t("bulk.invalid_floor_range") || "Invalid floor range"); return; }
+    if (totalRooms > 100) { toast.error(t("bulk.too_many") || "Maximum 100 rooms at once"); return; }
     if (totalRooms === 0) return;
 
     setIsPending(true);
     try {
-      // Get current active room count & subscription slots
       const { data: propData } = await supabase.from("properties").select("owner_id").eq("id", propertyId).single();
       const ownerId = propData?.owner_id;
 
@@ -269,8 +368,6 @@ const BulkRoomAddDialog = ({ properties, onSuccess }: Props) => {
           .eq("status", "active")
           .gte("expires_at", new Date().toISOString());
         const paidSlots = (subs || []).reduce((sum, s) => sum + s.room_count, 0);
-
-        // 4 free rooms total per landlord
         const freeSlots = 4;
         slotCount = paidSlots + freeSlots;
       }
@@ -307,7 +404,6 @@ const BulkRoomAddDialog = ({ properties, onSuccess }: Props) => {
         }
       }
 
-      // Mark rooms that exceed the slot limit as inactive
       const slotsAvailable = Math.max(0, slotCount - activeCount);
       const rowsWithStatus = rows.map((row, idx) => ({
         ...row,
@@ -319,9 +415,9 @@ const BulkRoomAddDialog = ({ properties, onSuccess }: Props) => {
 
       const inactiveCount = rowsWithStatus.filter(r => r.status === "inactive").length;
       if (inactiveCount > 0) {
-        toast.warning(`${rows.length} ${t("bulk.rooms_added")}. ${inactiveCount} ${t("room.inactive") || "inactive"}.`);
+        toast.warning(`${rows.length} ${t("bulk.rooms_added") || "rooms added"}. ${inactiveCount} ${t("room.inactive") || "inactive"}.`);
       } else {
-        toast.success(`${rows.length} ${t("bulk.rooms_added")}`);
+        toast.success(`${rows.length} ${t("bulk.rooms_added") || "rooms added successfully!"}`);
       }
       onSuccess();
       setOpen(false);
@@ -330,6 +426,9 @@ const BulkRoomAddDialog = ({ properties, onSuccess }: Props) => {
       setFloorFrom("1");
       setFloorTo("5");
       setUnitMode("same");
+      setUnitsPerFloor("1");
+      setSymmetryEnabled(false);
+      setUnitGroups({});
     } catch (err: any) {
       toast.error(err.message);
     } finally {
@@ -337,7 +436,6 @@ const BulkRoomAddDialog = ({ properties, onSuccess }: Props) => {
     }
   };
 
-  // Build preview items
   const previewItems = useMemo(() => {
     const items: { floor: number; label: string }[] = [];
     if (unitMode === "same") {
@@ -356,17 +454,29 @@ const BulkRoomAddDialog = ({ properties, onSuccess }: Props) => {
     return items;
   }, [unitMode, floors, units, floorUnits]);
 
+  // Group summary for display
+  const groupSummary = useMemo(() => {
+    if (!symmetryEnabled) return null;
+    const groups: Record<string, number[]> = {};
+    units.forEach((u, idx) => {
+      const g = unitGroups[u.id] || "A";
+      if (!groups[g]) groups[g] = [];
+      groups[g].push(idx + 1);
+    });
+    return groups;
+  }, [symmetryEnabled, units, unitGroups]);
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" className="gap-2">
           <Layers className="h-4 w-4" />
-          {t("bulk.add_rooms")}
+          {t("bulk.add_rooms") || "Bulk Add"}
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
-          <DialogTitle>{t("bulk.add_rooms_title")}</DialogTitle>
+          <DialogTitle>{t("bulk.add_rooms_title") || "Bulk Add Rooms"}</DialogTitle>
         </DialogHeader>
 
         <ScrollArea className="flex-1 pr-4">
@@ -375,7 +485,7 @@ const BulkRoomAddDialog = ({ properties, onSuccess }: Props) => {
             <div className="space-y-2">
               <Label>{t("room.property") || "Property"}</Label>
               <Select value={propertyId} onValueChange={setPropertyId}>
-                <SelectTrigger><SelectValue placeholder="Select property" /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder={t("bulk.select_property") || "Select property"} /></SelectTrigger>
                 <SelectContent>
                   {properties?.map(p => (
                     <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
@@ -386,26 +496,26 @@ const BulkRoomAddDialog = ({ properties, onSuccess }: Props) => {
 
             {/* Floor range */}
             <div className="space-y-2">
-              <Label>{t("bulk.floor_range")}</Label>
+              <Label>{t("bulk.floor_range") || "Floor Range"}</Label>
               <div className="flex items-center gap-3">
-                <Input type="number" value={floorFrom} onChange={e => handleFloorChange(e.target.value, floorTo.toString())} placeholder={t("bulk.from")} className="w-24" />
-                <span className="text-muted-foreground">{t("bulk.to")}</span>
-                <Input type="number" value={floorTo} onChange={e => handleFloorChange(floorFrom.toString(), e.target.value)} placeholder={t("bulk.to")} className="w-24" />
-                <span className="text-sm text-muted-foreground">({floorCount} {t("bulk.floors")})</span>
+                <Input type="number" value={floorFrom} onChange={e => handleFloorChange(e.target.value, floorTo.toString())} placeholder={t("bulk.from") || "From"} className="w-24" />
+                <span className="text-muted-foreground">{t("bulk.to") || "to"}</span>
+                <Input type="number" value={floorTo} onChange={e => handleFloorChange(floorFrom.toString(), e.target.value)} placeholder={t("bulk.to") || "to"} className="w-24" />
+                <span className="text-sm text-muted-foreground">({floorCount} {t("bulk.floors") || "floors"})</span>
               </div>
             </div>
 
             {/* Mode toggle */}
             <div className="space-y-2">
-              <Label className="text-base">{t("bulk.unit_templates")}</Label>
+              <Label className="text-base">{t("bulk.unit_templates") || "Unit Templates"}</Label>
               <RadioGroup value={unitMode} onValueChange={(v) => handleModeChange(v as "same" | "different")} className="flex gap-4">
                 <div className="flex items-center gap-2">
                   <RadioGroupItem value="same" id="mode-same" />
-                  <Label htmlFor="mode-same" className="text-sm font-normal cursor-pointer">{t("bulk.same_units")}</Label>
+                  <Label htmlFor="mode-same" className="text-sm font-normal cursor-pointer">{t("bulk.same_units") || "Same units on all floors"}</Label>
                 </div>
                 <div className="flex items-center gap-2">
                   <RadioGroupItem value="different" id="mode-different" />
-                  <Label htmlFor="mode-different" className="text-sm font-normal cursor-pointer">{t("bulk.different_units")}</Label>
+                  <Label htmlFor="mode-different" className="text-sm font-normal cursor-pointer">{t("bulk.different_units") || "Different units per floor"}</Label>
                 </div>
               </RadioGroup>
             </div>
@@ -413,25 +523,103 @@ const BulkRoomAddDialog = ({ properties, onSuccess }: Props) => {
             {/* SAME MODE */}
             {unitMode === "same" && (
               <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <p className="text-xs text-muted-foreground">{t("bulk.unit_desc")}</p>
-                  <Button type="button" variant="outline" size="sm" onClick={addUnit} className="gap-1">
-                    <Plus className="h-3 w-3" />
-                    {t("bulk.add_unit")}
-                  </Button>
+                {/* Units per floor input */}
+                <div className="space-y-2">
+                  <Label>{t("bulk.units_per_floor") || "Units per floor"}</Label>
+                  <div className="flex items-center gap-3">
+                    <Input
+                      type="number"
+                      min="1"
+                      max="20"
+                      value={unitsPerFloor}
+                      onChange={e => handleUnitsPerFloorChange(e.target.value)}
+                      className="w-24"
+                    />
+                    <p className="text-xs text-muted-foreground">{t("bulk.unit_desc") || "Each unit template will be created on every floor."}</p>
+                  </div>
                 </div>
-                {units.map((unit, idx) => (
-                  <UnitCard
-                    key={unit.id}
-                    unit={unit}
-                    idx={idx}
-                    canRemove={units.length > 1}
-                    onUpdate={(patch) => updateUnit(unit.id, patch)}
-                    onRemove={() => removeUnit(unit.id)}
-                    t={t}
-                    roomTypeLabels={roomTypeLabels}
-                  />
-                ))}
+
+                {/* Scrollable unit cards */}
+                <ScrollArea className="max-h-[45vh]">
+                  <div className="space-y-3 pr-2">
+                    {units.map((unit, idx) => (
+                      <UnitCard
+                        key={unit.id}
+                        unit={unit}
+                        idx={idx}
+                        canRemove={units.length > 1}
+                        onUpdate={(patch) => updateUnit(unit.id, patch)}
+                        onRemove={() => removeUnit(unit.id)}
+                        t={t}
+                        roomTypeLabels={roomTypeLabels}
+                        group={symmetryEnabled ? (unitGroups[unit.id] || "A") : undefined}
+                        onGroupChange={symmetryEnabled ? (g) => setUnitGroups(prev => ({ ...prev, [unit.id]: g })) : undefined}
+                        showGroup={symmetryEnabled}
+                        availableGroups={symmetryEnabled ? availableGroups : undefined}
+                      />
+                    ))}
+                  </div>
+                </ScrollArea>
+
+                <Button type="button" variant="outline" size="sm" onClick={addUnit} className="gap-1">
+                  <Plus className="h-3 w-3" />
+                  {t("bulk.add_unit") || "Add Unit"}
+                </Button>
+
+                {/* Advanced Configuration */}
+                {units.length >= 2 && (
+                  <Collapsible>
+                    <CollapsibleTrigger asChild>
+                      <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground">
+                        <Settings2 className="h-3.5 w-3.5" />
+                        {t("bulk.advanced") || "Advanced Settings"}
+                      </Button>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="space-y-3 pt-2">
+                      <div className="flex items-start gap-2 p-3 border rounded-lg bg-muted/20">
+                        <Checkbox
+                          checked={symmetryEnabled}
+                          onCheckedChange={(checked) => {
+                            const enabled = !!checked;
+                            setSymmetryEnabled(enabled);
+                            if (enabled) {
+                              // Auto-assign groups: first half → A, second half → B
+                              const groups: Record<string, string> = {};
+                              const half = Math.ceil(units.length / 2);
+                              units.forEach((u, i) => {
+                                groups[u.id] = i < half ? "A" : "B";
+                              });
+                              setUnitGroups(groups);
+                            } else {
+                              setUnitGroups({});
+                            }
+                          }}
+                        />
+                        <div>
+                          <span className="text-sm font-medium">{t("bulk.symmetry") || "Symmetrical units"}</span>
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            {t("bulk.symmetry_desc") || "Units in the same group share identical configuration"}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Group summary */}
+                      {symmetryEnabled && groupSummary && (
+                        <div className="space-y-1.5 p-3 border rounded-lg bg-muted/20">
+                          {Object.entries(groupSummary).sort().map(([group, unitNums]) => (
+                            <div key={group} className="flex items-center gap-2 text-xs">
+                              <span className={`inline-block w-3 h-3 rounded-full ${GROUP_COLORS[group] || "bg-muted-foreground"}`} />
+                              <span className="font-medium">{t("bulk.group") || "Group"} {group}:</span>
+                              <span className="text-muted-foreground">
+                                {unitNums.map(n => `${t("bulk.unit") || "Unit"} ${n}`).join(", ")}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </CollapsibleContent>
+                  </Collapsible>
+                )}
               </div>
             )}
 
@@ -445,19 +633,19 @@ const BulkRoomAddDialog = ({ properties, onSuccess }: Props) => {
                       <div className="flex items-center justify-between pr-4">
                         <AccordionTrigger className="px-4 py-3 hover:no-underline">
                           <span className="text-sm font-medium">
-                            {t("bulk.floor_x")} {floor} ({fUnits.length} {t("bulk.unit")})
+                            {t("bulk.floor_x") || "Floor"} {floor} ({fUnits.length} {t("bulk.unit") || "Unit"})
                           </span>
                         </AccordionTrigger>
                         {floors.length > 1 && (
                           <Select onValueChange={(v) => copyFromFloor(floor, Number(v))}>
                             <SelectTrigger className="h-7 w-auto text-xs gap-1 border-dashed">
                               <Copy className="h-3 w-3" />
-                              <SelectValue placeholder={t("bulk.copy_from_floor")} />
+                              <SelectValue placeholder={t("bulk.copy_from_floor") || "Copy from floor"} />
                             </SelectTrigger>
                             <SelectContent>
                               {floors.filter(f => f !== floor).map(f => (
                                 <SelectItem key={f} value={String(f)}>
-                                  {t("bulk.floor_x")} {f}
+                                  {t("bulk.floor_x") || "Floor"} {f}
                                 </SelectItem>
                               ))}
                             </SelectContent>
@@ -479,7 +667,7 @@ const BulkRoomAddDialog = ({ properties, onSuccess }: Props) => {
                         ))}
                         <Button type="button" variant="outline" size="sm" onClick={() => addFloorUnit(floor)} className="gap-1">
                           <Plus className="h-3 w-3" />
-                          {t("bulk.add_unit")}
+                          {t("bulk.add_unit") || "Add Unit"}
                         </Button>
                       </AccordionContent>
                     </AccordionItem>
@@ -491,14 +679,14 @@ const BulkRoomAddDialog = ({ properties, onSuccess }: Props) => {
             {/* Preview */}
             {totalRooms > 0 && (
               <div className="space-y-2">
-                <Label>{t("bulk.preview")} ({totalRooms} {t("bulk.rooms")})</Label>
+                <Label>{t("bulk.preview") || "Preview"} ({totalRooms} {t("bulk.rooms") || "rooms"})</Label>
                 <div className="bg-muted rounded-lg p-3 max-h-40 overflow-y-auto">
                   <div className="flex flex-wrap gap-1.5">
                     {previewItems.slice(0, 50).map((item, i) => (
                       <Badge key={i} variant="secondary" className="text-xs">{item.label}</Badge>
                     ))}
                     {totalRooms > 50 && (
-                      <Badge variant="outline" className="text-xs">+{totalRooms - 50} {t("bulk.more")}</Badge>
+                      <Badge variant="outline" className="text-xs">+{totalRooms - 50} {t("bulk.more") || "more"}</Badge>
                     )}
                   </div>
                 </div>
@@ -509,12 +697,12 @@ const BulkRoomAddDialog = ({ properties, onSuccess }: Props) => {
 
         <div className="flex justify-end gap-2 pt-4 border-t">
           <Button variant="outline" onClick={() => setOpen(false)}>
-            {t("common.cancel")}
+            {t("common.cancel") || "Cancel"}
           </Button>
           <Button onClick={handleSubmit} disabled={isPending || totalRooms === 0}>
             {isPending
               ? (t("common.saving") || "Creating...")
-              : `${t("bulk.create")} ${totalRooms} ${t("bulk.rooms")}`}
+              : `${t("bulk.create") || "Create"} ${totalRooms} ${t("bulk.rooms") || "rooms"}`}
           </Button>
         </div>
       </DialogContent>

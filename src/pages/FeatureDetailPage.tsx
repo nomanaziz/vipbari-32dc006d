@@ -77,6 +77,9 @@ const mainIcons: Record<string, LucideIcon> = {
   "smart-automation": Zap,
   "analytics-insights": BarChart3,
   "security-protection": Shield,
+  "tolet": Building2,
+  "buy-sell": TrendingUp,
+  "lease-management": FileText,
 };
 
 const slugs = [

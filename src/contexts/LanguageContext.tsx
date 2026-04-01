@@ -354,6 +354,7 @@ const translations: Record<string, Record<Language, string>> = {
   "landing.landlord_2": { bn: "অটো বিল তৈরি ও পাঠানো", en: "Auto bill generation & sending" },
   "landing.landlord_3": { bn: "পেমেন্ট ট্র্যাকিং ও রিমাইন্ডার", en: "Payment tracking & reminders" },
   "landing.landlord_4": { bn: "মাসিক আয় ও খরচের রিপোর্ট", en: "Monthly income & expense reports" },
+  "landing.landlord_5": { bn: "স্টাফ যোগ করুন, রোল ও পারমিশন সেট করুন", en: "Add staff, assign roles & permissions" },
   "landing.for_tenant": { bn: "ভাড়াটিয়াদের জন্য", en: "For Tenants" },
   "landing.tenant_1": { bn: "নিজের বিল ও পেমেন্ট হিস্ট্রি দেখুন", en: "View your bills & payment history" },
   "landing.tenant_2": { bn: "অনলাইনে ভাড়া পরিশোধ করুন", en: "Pay rent online" },

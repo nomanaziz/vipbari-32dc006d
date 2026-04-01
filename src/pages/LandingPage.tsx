@@ -12,6 +12,7 @@ import PaymentMethodsSection from "@/components/landing/PaymentMethodsSection";
 import InstallSection from "@/components/landing/InstallSection";
 import ToLetHighlight from "@/components/landing/ToLetHighlight";
 import AppIcon from "@/components/landing/AppIcon";
+import { ScrollToTop } from "@/components/ScrollToTop";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -22,7 +23,6 @@ import {
   Zap, Droplets, Flame, Wifi, Bell, Shield, FileText, Database,
   Share2, History, CheckCircle2, XCircle, Star, ArrowRight,
   Smartphone, Link as LinkIcon, Warehouse, Rocket, Eye, ParkingCircle,
-  Check, X,
 } from "lucide-react";
 
 const LandingPage = () => {
@@ -298,18 +298,16 @@ const LandingPage = () => {
                   <th className="p-3 text-center">{lc("compare_excel", "landing.compare_excel")}</th>
                 </tr>
               </thead>
-              <tbody className="bg-background">
+               <tbody className="bg-background">
                 {cmpRows.map((row, i) => {
-                   const excelCell = i <= 1
-                     ? <XCircle className="h-4 w-4 text-orange-500 mx-auto" />
-                     : i <= 4
-                       ? <Check className="h-4 w-4 text-gray-800 dark:text-gray-200 mx-auto" strokeWidth={3} />
-                       : <X className="h-4 w-4 text-gray-800 dark:text-gray-200 mx-auto" strokeWidth={3} />;
+                   const excelCell = (i >= 2 && i <= 4)
+                     ? <CheckCircle2 className="h-4 w-4 text-orange-500 mx-auto" />
+                     : <XCircle className="h-4 w-4 text-destructive mx-auto" />;
                    return (
                      <tr key={i} className="border-t">
                        <td className="p-3">{row}</td>
-                       <td className="p-3 text-center"><CheckCircle2 className="h-4 w-4 text-pink-500 mx-auto" /></td>
-                       <td className="p-3 text-center"><XCircle className="h-4 w-4 text-pink-500 mx-auto" /></td>
+                       <td className="p-3 text-center"><CheckCircle2 className="h-4 w-4 text-green-500 mx-auto" /></td>
+                       <td className="p-3 text-center"><XCircle className="h-4 w-4 text-destructive mx-auto" /></td>
                        <td className="p-3 text-center">{excelCell}</td>
                      </tr>
                    );
@@ -370,6 +368,7 @@ const LandingPage = () => {
         </div>
       </section>
 
+      <ScrollToTop />
       <LandingFooter />
     </div>
   );

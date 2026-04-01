@@ -8,14 +8,28 @@ export function ScrollToTop() {
 
   useEffect(() => {
     const container = document.querySelector("main");
-    if (!container) return;
-    const onScroll = () => setVisible(container.scrollTop > 300);
-    container.addEventListener("scroll", onScroll, { passive: true });
-    return () => container.removeEventListener("scroll", onScroll);
+
+    const onMainScroll = () => setVisible((container?.scrollTop ?? 0) > 300);
+    const onWindowScroll = () => setVisible(window.scrollY > 300);
+
+    if (container) {
+      container.addEventListener("scroll", onMainScroll, { passive: true });
+    }
+    window.addEventListener("scroll", onWindowScroll, { passive: true });
+
+    return () => {
+      container?.removeEventListener("scroll", onMainScroll);
+      window.removeEventListener("scroll", onWindowScroll);
+    };
   }, []);
 
   const scrollUp = () => {
-    document.querySelector("main")?.scrollTo({ top: 0, behavior: "smooth" });
+    const container = document.querySelector("main");
+    if (container && container.scrollTop > 0) {
+      container.scrollTo({ top: 0, behavior: "smooth" });
+    } else {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
   };
 
   return (

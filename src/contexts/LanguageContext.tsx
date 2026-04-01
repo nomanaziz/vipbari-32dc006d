@@ -1230,7 +1230,7 @@ const translations: Record<string, Record<Language, string>> = {
   "landing.install_title": { bn: "আপনার ফোনে ইনস্টল করুন", en: "Install on Your Phone" },
   "landing.install_sub": { bn: "VIP Bari অ্যাপ আপনার হোম স্ক্রিনে যোগ করুন দ্রুত অ্যাক্সেসের জন্য।", en: "Add VIP Bari to your home screen for quick access." },
   "landing.install_android": { bn: "Android (Chrome ব্রাউজার)", en: "Android (Chrome Browser)" },
-  "landing.install_android_1": { bn: "Chrome ব্রাউজারে bariwala.app খুলুন", en: "Open bariwala.app in Chrome" },
+  "landing.install_android_1": { bn: "Chrome ব্রাউজারে vipbari.app খুলুন", en: "Open vipbari.app in Chrome" },
   "landing.install_android_2": { bn: "মেনু (⋮) থেকে 'Add to Home screen' চাপুন", en: "Tap menu (⋮) → 'Add to Home screen'" },
   "landing.install_android_3": { bn: "'Install' বাটনে ক্লিক করুন", en: "Click 'Install' button" },
   "landing.install_ios": { bn: "iPhone/iPad (Safari ব্রাউজার)", en: "iPhone/iPad (Safari Browser)" },

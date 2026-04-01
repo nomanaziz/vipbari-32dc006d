@@ -300,9 +300,7 @@ const LandingPage = () => {
               </thead>
                <tbody className="bg-background">
                 {cmpRows.map((row, i) => {
-                   const excelCell = (i >= 2 && i <= 4)
-                     ? <CheckCircle2 className="h-4 w-4 text-orange-500 mx-auto" />
-                     : <XCircle className="h-4 w-4 text-destructive mx-auto" />;
+                   const excelCell = <XCircle className="h-4 w-4 text-destructive mx-auto" />;
                    return (
                      <tr key={i} className="border-t">
                        <td className="p-3">{row}</td>

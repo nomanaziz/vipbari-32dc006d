@@ -658,57 +658,48 @@ const BulkRoomAddDialog = ({ properties, onSuccess }: Props) => {
               </div>
             )}
 
-            {/* DIFFERENT MODE */}
-            {unitMode === "different" && floorCount > 0 && (
-              <Accordion type="multiple" defaultValue={floors.map(String)} className="space-y-2">
-                {floors.map(floor => {
-                  const fUnits = floorUnits[floor] || [];
-                  return (
-                    <AccordionItem key={floor} value={String(floor)} className="border rounded-lg">
-                      <div className="flex items-center justify-between pr-4">
-                        <AccordionTrigger className="px-4 py-3 hover:no-underline">
-                          <span className="text-sm font-medium">
-                            {t("bulk.floor_x") || "Floor"} {floor} ({fUnits.length} {t("bulk.unit") || "Unit"})
-                          </span>
-                        </AccordionTrigger>
-                        {floors.length > 1 && (
-                          <Select onValueChange={(v) => copyFromFloor(floor, Number(v))}>
-                            <SelectTrigger className="h-7 w-auto text-xs gap-1 border-dashed">
-                              <Copy className="h-3 w-3" />
-                              <SelectValue placeholder={t("bulk.copy_from_floor") || "Copy from floor"} />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {floors.filter(f => f !== floor).map(f => (
-                                <SelectItem key={f} value={String(f)}>
-                                  {t("bulk.floor_x") || "Floor"} {f}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        )}
-                      </div>
-                      <AccordionContent className="px-4 pb-4 space-y-3">
-                        {fUnits.map((unit, idx) => (
-                          <UnitCard
-                            key={unit.id}
-                            unit={unit}
-                            idx={idx}
-                            canRemove={fUnits.length > 1}
-                            onUpdate={(patch) => updateFloorUnit(floor, unit.id, patch)}
-                            onRemove={() => removeFloorUnit(floor, unit.id)}
-                            t={t}
-                            roomTypeLabels={roomTypeLabels}
-                          />
-                        ))}
-                        <Button type="button" variant="outline" size="sm" onClick={() => addFloorUnit(floor)} className="gap-1">
-                          <Plus className="h-3 w-3" />
-                          {t("bulk.add_unit") || "Add Unit"}
-                        </Button>
-                      </AccordionContent>
-                    </AccordionItem>
-                  );
-                })}
-              </Accordion>
+            {/* DIFFERENT MODE — each unit type configured independently, applied to all floors */}
+            {unitMode === "different" && (
+              <div className="space-y-3">
+                <div className="space-y-2">
+                  <Label>{t("bulk.units_per_floor") || "প্রতি তলায় ইউনিট সংখ্যা"}</Label>
+                  <div className="flex items-center gap-3">
+                    <Input
+                      type="number"
+                      min="1"
+                      max="20"
+                      value={diffUnitsPerFloor}
+                      onChange={e => handleDiffUnitsPerFloorChange(e.target.value)}
+                      className="w-24"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      {"প্রতিটি ইউনিট টাইপ সকল তলায় প্রযোজ্য হবে"}
+                    </p>
+                  </div>
+                </div>
+
+                <ScrollArea className="max-h-[45vh]">
+                  <div className="space-y-3 pr-2">
+                    {diffUnits.map((unit, idx) => (
+                      <UnitCard
+                        key={unit.id}
+                        unit={unit}
+                        idx={idx}
+                        canRemove={diffUnits.length > 1}
+                        onUpdate={(patch) => updateDiffUnit(unit.id, patch)}
+                        onRemove={() => removeDiffUnit(unit.id)}
+                        t={t}
+                        roomTypeLabels={roomTypeLabels}
+                      />
+                    ))}
+                  </div>
+                </ScrollArea>
+
+                <Button type="button" variant="outline" size="sm" onClick={addDiffUnit} className="gap-1">
+                  <Plus className="h-3 w-3" />
+                  {t("bulk.add_unit") || "ইউনিট যোগ করুন"}
+                </Button>
+              </div>
             )}
 
             {/* Preview */}

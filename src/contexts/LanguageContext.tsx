@@ -320,7 +320,7 @@ const translations: Record<string, Record<Language, string>> = {
   "landing.feat_billing": { bn: "স্বয়ংক্রিয় বিল", en: "Auto Billing" },
   "landing.feat_billing_desc": { bn: "বিদ্যুৎ মিটার রিডিং থেকে অটোমেটিক বিল ক্যালকুলেশন।", en: "Automatic bill calculation from electricity meter readings." },
   "landing.feat_send": { bn: "বিল পাঠান", en: "Send Bills" },
-  "landing.feat_send_desc": { bn: "SMS বা WhatsApp-এ সরাসরি বিল পাঠান ভাড়াটিয়াকে", en: "Send bills directly to tenants via SMS or WhatsApp" },
+  "landing.feat_send_desc": { bn: "বিল তৈরি হলে অটো পেমেন্ট লিংকসহ SMS ও WhatsApp এ বিল পাঠান।", en: "Auto-send bills with payment links via SMS and WhatsApp." },
   "landing.feat_payment": { bn: "অনলাইন পেমেন্ট", en: "Online Payment" },
   "landing.feat_payment_desc": { bn: "বিকাশ, নগদ, ব্যাংক ট্রান্সফারে পেমেন্ট নিন", en: "Accept payments via bKash, Nagad, bank transfer" },
   "landing.feat_report": { bn: "রিপোর্ট ও এনালিটিক্স", en: "Reports & Analytics" },

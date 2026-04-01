@@ -38,9 +38,12 @@ Deno.serve(async (req) => {
 
     const { email, password, full_name, phone, role, preset_id, landlord_id, staff_type } = await req.json();
 
-    if (!email || !password || !full_name || !role || !preset_id) {
+    if (!password || !full_name || !role || !preset_id) {
       throw new Error("Missing required fields");
     }
+
+    // Generate a placeholder email if not provided
+    const userEmail = email || `staff_${Date.now()}_${Math.random().toString(36).slice(2, 8)}@placeholder.local`;
 
     // Validate: landlords can only create landlord_staff
     if (isLandlord && !isAdmin) {

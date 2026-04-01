@@ -1205,7 +1205,7 @@ const translations: Record<string, Record<Language, string>> = {
 
   // ===== Benefits Section =====
   "landing.benefit_badge": { bn: "আপনার সুবিধা", en: "Your Benefits" },
-  "landing.benefit_title": { bn: "বাড়িওয়ালা ব্যবহার করলে আপনি পাবেন", en: "What You Get with Bariwala" },
+  "landing.benefit_title": { bn: "VIP Bari ব্যবহার করলে আপনি পাবেন", en: "What You Get with VIP Bari" },
   "landing.benefit_hassle": { bn: "ঝামেলা নেই", en: "No Hassle" },
   "landing.benefit_hassle_desc": { bn: "এক জায়গায় সব — রুম, ভাড়াটিয়া, বিল, পেমেন্ট", en: "Everything in one place — rooms, tenants, bills, payments" },
   "landing.benefit_save_money": { bn: "টাকা বাঁচান", en: "Save Money" },

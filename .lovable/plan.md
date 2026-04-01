@@ -1,61 +1,42 @@
 
 
-## Plan: Fix Email Verification Flow
+## Plan: Add Feature Pages, Update Nav & Footer, Add Install Pop Notification
 
-### Problem Analysis
+### 1. Add New Feature Detail Pages (To-Let, Buy-Sell, Lease Management)
 
-The verification email link pointed to an **old Supabase project** (`uaddsxwrwxigualtdqqw`) instead of the current one (`djspxvtoxysjivhzrnuo`). This confirms the issue is in **Supabase Dashboard settings**, not code — but we also need code fixes to make the flow more robust.
+The existing `FeatureDetailPage.tsx` uses slug-based routing (`/features/:slug`). Currently it supports 7 slugs. We need to add 3 new slugs with full page data:
 
-**Database check**: User `fileserverbd@gmail.com` exists on the current project with `email_confirmed_at = NULL` (unverified). The auth logs confirm the email was sent from the correct project. So either:
-1. The **Site URL** in Supabase Dashboard is still set to the old project URL, causing bad redirect links
-2. The user clicked an old email from a previous project
+- `/features/tolet` — About the To-Let feature
+- `/features/buy-sell` — About Buy & Sell feature  
+- `/features/lease-management` — About Lease Management feature
 
-### Fixes
+**Files:** `src/pages/FeatureDetailPage.tsx` — add entries to `featureIcons`, `featureColors`, and the main `featureData` map for the 3 new slugs with Bangla/English content.
 
-#### 1. Manual: Update Supabase Dashboard Settings
-Go to [Authentication → URL Configuration](https://supabase.com/dashboard/project/djspxvtoxysjivhzrnuo/auth/url-configuration):
+### 2. Add New Features to Nav Dropdown
 
-- **Site URL**: Set to `https://2eb1e69c-66d3-4783-b04c-cac5c79b84a4.lovableproject.com`
-- Verify these **Redirect URLs** exist:
-  - `https://2eb1e69c-66d3-4783-b04c-cac5c79b84a4.lovableproject.com/**`
-  - `https://id-preview--2eb1e69c-66d3-4783-b04c-cac5c79b84a4.lovable.app/**`
-  - `https://vipbari.com/**`
+Add the 3 new feature links to the Features dropdown menu in the navbar (both desktop and mobile).
 
-#### 2. Code: Add explicit `emailRedirectTo` in Register
-**File**: `src/pages/Register.tsx`
+**Files:** 
+- `src/components/PublicNavbar.tsx` — add to `featureLinks` array:
+  - `{ slug: "tolet", icon: Home, titleKey: ... }`
+  - `{ slug: "buy-sell", icon: ShoppingBag, titleKey: ... }`
+  - `{ slug: "lease-management", icon: FileText, titleKey: ... }`
+- `src/components/LandingFooter.tsx` — add same 3 links to footer `featureLinks` array
 
-In the `signUp` call, add `emailRedirectTo` so verification emails always redirect to the correct app URL:
+### 3. Remove "কিভাবে কাজ করে" from Nav, Add to Footer
 
-```typescript
-const { error } = await supabase.auth.signUp({
-  email,
-  password: pin,
-  options: {
-    emailRedirectTo: window.location.origin + "/dashboard",
-    data: { ... },
-  },
-});
-```
+- **PublicNavbar.tsx**: Remove the `scrollToSection("how")` button from both desktop nav (line 113-116) and mobile menu (line 190-193)
+- **LandingFooter.tsx**: Add a "কিভাবে কাজ করে / How It Works" link to the Quick Links section pointing to `/#how`
 
-#### 3. Code: Handle email verification callback
-**File**: `src/App.tsx` (in `OAuthCallbackHandler` or a new handler)
+### 4. Add Small Pop-up Install Notification
 
-When user clicks the verification link, Supabase redirects to the app with `#type=signup&access_token=...` in the URL hash. Currently the `OAuthCallbackHandler` only handles OAuth tokens. We need to also detect `type=signup` verification callbacks and show a success toast + redirect to login/dashboard.
+Replace the current full-width bottom banner (`PWAInstallBanner`) with a small, compact pop-up notification style (toast-like, bottom-right corner on desktop, bottom-center on mobile). Small card with app icon, "Install App" text, Install button, and dismiss X. Auto-dismisses after 10 seconds. Shows once per session.
 
-**File**: `src/components/OAuthCallbackHandler.tsx`
+**Files:** `src/components/PWAInstallBanner.tsx` — redesign to a small floating pop notification instead of full-width banner.
 
-Add detection for `type=signup` in the hash — when found, show "Email verified successfully!" toast and redirect to `/dashboard`.
+### Technical Details
 
-#### 4. Code: Add "Resend Verification Email" button
-**File**: `src/pages/VerifyEmail.tsx`
-
-Add a button that calls `supabase.auth.resend({ type: 'signup', email })` so users can resend if the original email was lost or pointed to the wrong project. Store the email in localStorage during registration to pre-fill.
-
-### Files Modified
-
-| File | Change |
-|------|--------|
-| `src/pages/Register.tsx` | Add `emailRedirectTo` to signUp options, store email in localStorage |
-| `src/components/OAuthCallbackHandler.tsx` | Handle `type=signup` verification callback |
-| `src/pages/VerifyEmail.tsx` | Add resend verification email button |
+- All new feature page content will use plain readable Bangla/English text (per memory preference), not translation keys
+- The `FeatureDetailPage` already handles unknown slugs with a "not found" state, so the 3 new slugs just need data entries
+- For the install pop notification, use `fixed bottom-4 right-4` positioning with `max-w-[280px]`, rounded card with shadow, animate-in from bottom
 

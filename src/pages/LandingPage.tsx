@@ -42,18 +42,19 @@ const LandingPage = () => {
   }, [location.state]);
 
   const mainFeatures = [
-    { icon: Users, dbTitle: "feat_1_title", dbDesc: "feat_1_desc", slug: "room-management", color: "blue" },
-    { icon: Building2, dbTitle: "feat_2_title", dbDesc: "feat_2_desc", slug: "room-management", color: "green" },
-    { icon: Receipt, dbTitle: "feat_3_title", dbDesc: "feat_3_desc", slug: "bill-calculation", color: "orange" },
-    { icon: Send, dbTitle: "feat_4_title", dbDesc: "feat_4_desc", slug: "sms-notification", color: "purple" },
-    { icon: CreditCard, dbTitle: "feat_5_title", dbDesc: "feat_5_desc", slug: "payment-link", color: "pink" },
-    { icon: BarChart3, dbTitle: "feat_6_title", dbDesc: "feat_6_desc", slug: "analytics-insights", color: "teal" },
-    { icon: Warehouse, dbTitle: "feat_7_title", dbDesc: "feat_7_desc", slug: "garage-management", color: "cyan" },
-    { icon: Rocket, dbTitle: "feat_8_title", dbDesc: "feat_8_desc", slug: "listing-boosting", color: "violet" },
+    { icon: Users, dbTitle: "feat_1_title", dbDesc: "feat_1_desc", fallbackTitle: "landing.feat_tenant", fallbackDesc: "landing.feat_tenant_desc", slug: "room-management", color: "blue" },
+    { icon: Building2, dbTitle: "feat_2_title", dbDesc: "feat_2_desc", fallbackTitle: "landing.feat_room", fallbackDesc: "landing.feat_room_desc", slug: "room-management", color: "green" },
+    { icon: Receipt, dbTitle: "feat_3_title", dbDesc: "feat_3_desc", fallbackTitle: "landing.feat_billing", fallbackDesc: "landing.feat_billing_desc", slug: "bill-calculation", color: "orange" },
+    { icon: Send, dbTitle: "feat_4_title", dbDesc: "feat_4_desc", fallbackTitle: "landing.feat_send", fallbackDesc: "landing.feat_send_desc", slug: "sms-notification", color: "purple" },
+    { icon: CreditCard, dbTitle: "feat_5_title", dbDesc: "feat_5_desc", fallbackTitle: "landing.feat_payment", fallbackDesc: "landing.feat_payment_desc", slug: "payment-link", color: "pink" },
+    { icon: BarChart3, dbTitle: "feat_6_title", dbDesc: "feat_6_desc", fallbackTitle: "landing.feat_report", fallbackDesc: "landing.feat_report_desc", slug: "analytics-insights", color: "teal" },
+    { icon: Warehouse, dbTitle: "feat_7_title", dbDesc: "feat_7_desc", fallbackTitle: "landing.feat_garage", fallbackDesc: "landing.feat_garage_desc", slug: "garage-management", color: "cyan" },
+    { icon: Rocket, dbTitle: "feat_8_title", dbDesc: "feat_8_desc", fallbackTitle: "landing.feat_boost", fallbackDesc: "landing.feat_boost_desc", slug: "listing-boosting", color: "violet" },
   ];
 
   const miniFeatureIcons = [LinkIcon, Smartphone, Zap, Droplets, Flame, Wifi, Bell, Shield, FileText, Database, Share2, History, Eye, ParkingCircle];
   const miniFeatureColors = ["blue", "green", "yellow", "cyan", "orange", "indigo", "red", "purple", "rose", "teal", "pink", "lime", "emerald", "slate"];
+  const miniFallbackKeys = ["landing.mini_link", "landing.mini_sms", "landing.mini_elec", "landing.mini_water", "landing.mini_gas", "landing.mini_wifi", "landing.mini_notif", "landing.mini_security", "landing.mini_pdf", "landing.mini_backup", "landing.mini_share", "landing.mini_history", "landing.mini_eye", "landing.mini_parking"];
 
   const miniFeatures = getGroup("mini_features");
 

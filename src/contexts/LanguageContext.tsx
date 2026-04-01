@@ -1178,7 +1178,7 @@ const translations: Record<string, Record<Language, string>> = {
   "image.max_3": { bn: "সর্বোচ্চ ৩টি", en: "Max 3" },
   "image.max_10": { bn: "সর্বোচ্চ ১০টি", en: "Max 10" },
 
-  // ===== Why Bariwala Section =====
+  // ===== Why VIP Bari Section =====
   "landing.why_badge": { bn: "কেন VIP Bari?", en: "Why VIP Bari?" },
   "landing.why_title": { bn: "আমাদের বিশেষত্ব", en: "Our Specialties" },
   "landing.why_sub": { bn: "বাংলাদেশের সেরা বাড়ি ভাড়া ম্যানেজমেন্ট প্ল্যাটফর্ম", en: "Bangladesh's best rental management platform" },
@@ -1205,7 +1205,7 @@ const translations: Record<string, Record<Language, string>> = {
 
   // ===== Benefits Section =====
   "landing.benefit_badge": { bn: "আপনার সুবিধা", en: "Your Benefits" },
-  "landing.benefit_title": { bn: "বাড়িওয়ালা ব্যবহার করলে আপনি পাবেন", en: "What You Get with Bariwala" },
+  "landing.benefit_title": { bn: "VIP Bari ব্যবহার করলে আপনি পাবেন", en: "What You Get with VIP Bari" },
   "landing.benefit_hassle": { bn: "ঝামেলা নেই", en: "No Hassle" },
   "landing.benefit_hassle_desc": { bn: "এক জায়গায় সব — রুম, ভাড়াটিয়া, বিল, পেমেন্ট", en: "Everything in one place — rooms, tenants, bills, payments" },
   "landing.benefit_save_money": { bn: "টাকা বাঁচান", en: "Save Money" },
@@ -1228,13 +1228,13 @@ const translations: Record<string, Record<Language, string>> = {
   // ===== Install Section =====
   "landing.install_badge": { bn: "অ্যাপ ডাউনলোড করুন", en: "Download App" },
   "landing.install_title": { bn: "আপনার ফোনে ইনস্টল করুন", en: "Install on Your Phone" },
-  "landing.install_sub": { bn: "বাড়িওয়ালা অ্যাপ আপনার হোম স্ক্রিনে যোগ করুন দ্রুত অ্যাক্সেসের জন্য।", en: "Add Bariwala to your home screen for quick access." },
+  "landing.install_sub": { bn: "VIP Bari অ্যাপ আপনার হোম স্ক্রিনে যোগ করুন দ্রুত অ্যাক্সেসের জন্য।", en: "Add VIP Bari to your home screen for quick access." },
   "landing.install_android": { bn: "Android (Chrome ব্রাউজার)", en: "Android (Chrome Browser)" },
-  "landing.install_android_1": { bn: "Chrome ব্রাউজারে bariwala.app খুলুন", en: "Open bariwala.app in Chrome" },
+  "landing.install_android_1": { bn: "Chrome ব্রাউজারে vipbari.app খুলুন", en: "Open vipbari.app in Chrome" },
   "landing.install_android_2": { bn: "মেনু (⋮) থেকে 'Add to Home screen' চাপুন", en: "Tap menu (⋮) → 'Add to Home screen'" },
   "landing.install_android_3": { bn: "'Install' বাটনে ক্লিক করুন", en: "Click 'Install' button" },
   "landing.install_ios": { bn: "iPhone/iPad (Safari ব্রাউজার)", en: "iPhone/iPad (Safari Browser)" },
-  "landing.install_ios_1": { bn: "Safari ব্রাউজারে bariwala.app খুলুন", en: "Open bariwala.app in Safari" },
+  "landing.install_ios_1": { bn: "Safari ব্রাউজারে vipbari.app খুলুন", en: "Open vipbari.app in Safari" },
   "landing.install_ios_2": { bn: "Share (↑) বাটন চাপুন", en: "Tap Share (↑) button" },
   "landing.install_ios_3": { bn: "'Add to Home Screen' সিলেক্ট করুন", en: "Select 'Add to Home Screen'" },
   "landing.install_btn": { bn: "ইনস্টল করুন", en: "Install Now" },

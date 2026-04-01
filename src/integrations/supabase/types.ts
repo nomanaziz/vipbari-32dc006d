@@ -1570,6 +1570,47 @@ export type Database = {
           },
         ]
       }
+      salary_payments: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          month: string
+          notes: string
+          owner_id: string
+          payment_date: string
+          staff_assignment_id: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          id?: string
+          month?: string
+          notes?: string
+          owner_id: string
+          payment_date?: string
+          staff_assignment_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          month?: string
+          notes?: string
+          owner_id?: string
+          payment_date?: string
+          staff_assignment_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "salary_payments_staff_assignment_id_fkey"
+            columns: ["staff_assignment_id"]
+            isOneToOne: false
+            referencedRelation: "staff_assignments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sale_buy_requests: {
         Row: {
           buyer_id: string
@@ -1955,6 +1996,59 @@ export type Database = {
             columns: ["preset_id"]
             isOneToOne: false
             referencedRelation: "permission_presets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      staff_details: {
+        Row: {
+          created_at: string
+          date_of_birth: string | null
+          doc_type: string
+          id: string
+          joining_date: string | null
+          nid_number: string
+          permanent_address: string
+          photo_url: string | null
+          present_address: string
+          salary: number
+          staff_assignment_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          date_of_birth?: string | null
+          doc_type?: string
+          id?: string
+          joining_date?: string | null
+          nid_number?: string
+          permanent_address?: string
+          photo_url?: string | null
+          present_address?: string
+          salary?: number
+          staff_assignment_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          date_of_birth?: string | null
+          doc_type?: string
+          id?: string
+          joining_date?: string | null
+          nid_number?: string
+          permanent_address?: string
+          photo_url?: string | null
+          present_address?: string
+          salary?: number
+          staff_assignment_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "staff_details_staff_assignment_id_fkey"
+            columns: ["staff_assignment_id"]
+            isOneToOne: true
+            referencedRelation: "staff_assignments"
             referencedColumns: ["id"]
           },
         ]

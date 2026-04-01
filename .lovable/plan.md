@@ -1,42 +1,62 @@
 
 
-## Plan: Add Feature Pages, Update Nav & Footer, Add Install Pop Notification
+## Plan: Fix Comparison Icons, Add Scroll-to-Top on Landing, Make All Content Editable
 
-### 1. Add New Feature Detail Pages (To-Let, Buy-Sell, Lease Management)
+### 1. Fix Comparison Table Icons (same style for all rows)
 
-The existing `FeatureDetailPage.tsx` uses slug-based routing (`/features/:slug`). Currently it supports 7 slugs. We need to add 3 new slugs with full page data:
+**Problem**: The comparison table uses different icons per column/row — `CheckCircle2` (pink), `XCircle` (pink/orange), `Check`, `X` with different colors. User wants consistent icons.
 
-- `/features/tolet` — About the To-Let feature
-- `/features/buy-sell` — About Buy & Sell feature  
-- `/features/lease-management` — About Lease Management feature
+**Fix** in `LandingPage.tsx` (lines 301-316):
+- VIP Bari column: `CheckCircle2` green for all rows (✓ supported)
+- Manual column: `XCircle` red for all rows (✗ not supported)  
+- Excel column: Use a consistent partial icon — `CheckCircle2` orange for partial, `XCircle` red for no. Keep simple: rows 3-5 get orange check (partial), rest get red X.
 
-**Files:** `src/pages/FeatureDetailPage.tsx` — add entries to `featureIcons`, `featureColors`, and the main `featureData` map for the 3 new slugs with Bangla/English content.
+### 2. Add Scroll-to-Top Button on Landing Page
 
-### 2. Add New Features to Nav Dropdown
+**Problem**: `ScrollToTop` component exists but only used in `AppLayout` (authenticated pages). Landing page scrolls `window`, not `<main>`.
 
-Add the 3 new feature links to the Features dropdown menu in the navbar (both desktop and mobile).
+**Fix**:
+- Update `ScrollToTop` component to also listen to `window` scroll (fallback when no `<main>` element or when `<main>` scrollTop is 0)
+- Add `<ScrollToTop />` to `LandingPage.tsx` before `<LandingFooter />`
 
-**Files:** 
-- `src/components/PublicNavbar.tsx` — add to `featureLinks` array:
-  - `{ slug: "tolet", icon: Home, titleKey: ... }`
-  - `{ slug: "buy-sell", icon: ShoppingBag, titleKey: ... }`
-  - `{ slug: "lease-management", icon: FileText, titleKey: ... }`
-- `src/components/LandingFooter.tsx` — add same 3 links to footer `featureLinks` array
+### 3. Make ALL Home Page Sections Editable from Admin
 
-### 3. Remove "কিভাবে কাজ করে" from Nav, Add to Footer
+**Problem**: Several sections use hardcoded `t()` translation keys instead of `lc()` (database-backed content): `WhySection`, `WhoUsesSection`, `BenefitsSection`, `PaymentMethodsSection`, `InstallSection`, `ToLetHighlight`, `HeroSection`.
 
-- **PublicNavbar.tsx**: Remove the `scrollToSection("how")` button from both desktop nav (line 113-116) and mobile menu (line 190-193)
-- **LandingFooter.tsx**: Add a "কিভাবে কাজ করে / How It Works" link to the Quick Links section pointing to `/#how`
+**Approach**: Convert these sections to use `useLandingContent()` hook with `lc(dbKey, fallbackTranslationKey)` pattern, so they keep working with existing translations but can be overridden from admin.
 
-### 4. Add Small Pop-up Install Notification
+**Changes**:
 
-Replace the current full-width bottom banner (`PWAInstallBanner`) with a small, compact pop-up notification style (toast-like, bottom-right corner on desktop, bottom-center on mobile). Small card with app icon, "Install App" text, Install button, and dismiss X. Auto-dismisses after 10 seconds. Shows once per session.
+**a) Add new admin groups** in `AdminLanding.tsx` GROUPS array:
+- `{ key: "hero", label: "Hero" }` — already exists
+- `{ key: "why", label: "Why VIP Bari" }`
+- `{ key: "tolet_hl", label: "To-Let Highlight" }`
+- `{ key: "who", label: "Who Uses" }`
+- `{ key: "benefits", label: "Benefits" }`
+- `{ key: "payment", label: "Payment Methods" }`
+- `{ key: "install", label: "Install" }`
 
-**Files:** `src/components/PWAInstallBanner.tsx` — redesign to a small floating pop notification instead of full-width banner.
+**b) Update each section component** to import and use `useLandingContent`:
 
-### Technical Details
+- **WhySection.tsx**: Replace `t("landing.why_badge")` → `lc("why_badge", "landing.why_badge")`, etc. for all 4 items
+- **WhoUsesSection.tsx**: Same pattern for badge, title, 4 items
+- **BenefitsSection.tsx**: Same pattern for badge, title, 4 items  
+- **PaymentMethodsSection.tsx**: Same pattern for title, subtitle, 3 methods
+- **InstallSection.tsx**: Same pattern for badge, title, subtitle, step descriptions
+- **ToLetHighlight.tsx**: Same pattern for badge, title, desc, bullets, button labels
+- **HeroSection.tsx**: Same pattern for hero_title, hero_sub, badges
 
-- All new feature page content will use plain readable Bangla/English text (per memory preference), not translation keys
-- The `FeatureDetailPage` already handles unknown slugs with a "not found" state, so the 3 new slugs just need data entries
-- For the install pop notification, use `fixed bottom-4 right-4` positioning with `max-w-[280px]`, rounded card with shadow, animate-in from bottom
+Each section keeps its current text as fallback via the translation key, so nothing breaks if no DB entry exists.
+
+### Files Modified
+1. `src/pages/LandingPage.tsx` — fix comparison icons, add ScrollToTop
+2. `src/components/ScrollToTop.tsx` — support window scroll (for landing page)
+3. `src/components/landing/WhySection.tsx` — use `lc()` 
+4. `src/components/landing/WhoUsesSection.tsx` — use `lc()`
+5. `src/components/landing/BenefitsSection.tsx` — use `lc()`
+6. `src/components/landing/PaymentMethodsSection.tsx` — use `lc()`
+7. `src/components/landing/InstallSection.tsx` — use `lc()`
+8. `src/components/landing/ToLetHighlight.tsx` — use `lc()`
+9. `src/components/landing/HeroSection.tsx` — use `lc()`
+10. `src/pages/admin/AdminLanding.tsx` — add new section groups
 

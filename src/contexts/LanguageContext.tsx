@@ -322,7 +322,7 @@ const translations: Record<string, Record<Language, string>> = {
   "landing.feat_send": { bn: "বিল পাঠান", en: "Send Bills" },
   "landing.feat_send_desc": { bn: "বিল তৈরি হলে অটো পেমেন্ট লিংকসহ SMS ও WhatsApp এ বিল পাঠান।", en: "Auto-send bills with payment links via SMS and WhatsApp." },
   "landing.feat_payment": { bn: "অনলাইন পেমেন্ট", en: "Online Payment" },
-  "landing.feat_payment_desc": { bn: "বিকাশ, নগদ, ব্যাংক ট্রান্সফারে পেমেন্ট নিন", en: "Accept payments via bKash, Nagad, bank transfer" },
+  "landing.feat_payment_desc": { bn: "ভাড়াটিয়ারা সরাসরি বিকাশ/নগদে পেমেন্ট করতে পারে।", en: "Tenants can pay directly via bKash/Nagad." },
   "landing.feat_report": { bn: "রিপোর্ট ও এনালিটিক্স", en: "Reports & Analytics" },
   "landing.feat_report_desc": { bn: "মাসিক আয়, বকেয়া, অকুপেন্সি — সব ড্যাশবোর্ডে", en: "Monthly income, dues, occupancy — all on your dashboard" },
 

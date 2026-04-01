@@ -12,6 +12,7 @@ import PaymentMethodsSection from "@/components/landing/PaymentMethodsSection";
 import InstallSection from "@/components/landing/InstallSection";
 import ToLetHighlight from "@/components/landing/ToLetHighlight";
 import AppIcon from "@/components/landing/AppIcon";
+import { ScrollToTop } from "@/components/ScrollToTop";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {

@@ -38,6 +38,9 @@ const featureIcons: Record<string, LucideIcon[]> = {
   "smart-automation": [RefreshCw, MessageSquare, Bell, Settings, FileText, Zap],
   "analytics-insights": [PieChart, TrendingUp, FileText, Activity, FileText, BarChart3],
   "security-protection": [Lock, Database, RefreshCw, Lock, Activity, Shield],
+  "tolet": [Smartphone, Building2, MessageSquare, FileText, Activity, RefreshCw],
+  "buy-sell": [Building2, Smartphone, Database, CreditCard, CheckCircle2, RefreshCw],
+  "lease-management": [FileText, Clock, Bell, CreditCard, Building2, Settings],
 };
 
 const featureColors: Record<string, string> = {
@@ -48,6 +51,9 @@ const featureColors: Record<string, string> = {
   "smart-automation": "from-purple-400 to-violet-500",
   "analytics-insights": "from-indigo-400 to-blue-500",
   "security-protection": "from-emerald-400 to-green-500",
+  "tolet": "from-cyan-400 to-sky-500",
+  "buy-sell": "from-orange-400 to-red-500",
+  "lease-management": "from-violet-400 to-purple-500",
 };
 
 const featureBorderColors: Record<string, string> = {
@@ -58,6 +64,9 @@ const featureBorderColors: Record<string, string> = {
   "smart-automation": "border-t-purple-400",
   "analytics-insights": "border-t-indigo-400",
   "security-protection": "border-t-emerald-400",
+  "tolet": "border-t-cyan-400",
+  "buy-sell": "border-t-orange-400",
+  "lease-management": "border-t-violet-400",
 };
 
 const mainIcons: Record<string, LucideIcon> = {
@@ -68,11 +77,15 @@ const mainIcons: Record<string, LucideIcon> = {
   "smart-automation": Zap,
   "analytics-insights": BarChart3,
   "security-protection": Shield,
+  "tolet": Building2,
+  "buy-sell": TrendingUp,
+  "lease-management": FileText,
 };
 
 const slugs = [
   "bill-calculation", "payment-link", "sms-notification",
   "room-management", "smart-automation", "analytics-insights", "security-protection",
+  "tolet", "buy-sell", "lease-management",
 ];
 
 const FeatureDetailPage = () => {

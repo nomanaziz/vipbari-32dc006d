@@ -5,7 +5,7 @@ import { useTheme } from "@/contexts/ThemeContext";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
-import { Building2, Calculator, LinkIcon, MessageSquare, DoorOpen, Zap, BarChart3, ShieldCheck, LayoutDashboard, Home, Settings2, Tag, Download, Menu, ShoppingBag } from "lucide-react";
+import { Building2, Calculator, LinkIcon, MessageSquare, DoorOpen, Zap, BarChart3, ShieldCheck, LayoutDashboard, Home, Settings2, Tag, Download, Menu, ShoppingBag, FileText } from "lucide-react";
 import { usePWAInstall } from "@/hooks/usePWAInstall";
 import { navbarGradients, dashboardButtonText } from "@/lib/presetColors";
 import {
@@ -33,6 +33,9 @@ const featureLinks = [
   { slug: "smart-automation", icon: Zap, titleKey: "feat_smart_automation.title" },
   { slug: "analytics-insights", icon: BarChart3, titleKey: "feat_analytics_insights.title" },
   { slug: "security-protection", icon: ShieldCheck, titleKey: "feat_security_protection.title" },
+  { slug: "tolet", icon: Home, titleKey: "feat_tolet.title" },
+  { slug: "buy-sell", icon: ShoppingBag, titleKey: "feat_buy_sell.title" },
+  { slug: "lease-management", icon: FileText, titleKey: "feat_lease_management.title" },
 ] as const;
 
 export const PublicNavbar = () => {
@@ -110,10 +113,6 @@ export const PublicNavbar = () => {
             <Tag className="h-4 w-4" />
             {language === "bn" ? "কেনা - বেচা" : "Buy & Sell"}
           </Link>
-          <button onClick={() => scrollToSection("how")} className="hover:text-white transition-colors flex items-center gap-1.5">
-            <Zap className="h-4 w-4" />
-            {t("landing.nav_how")}
-          </button>
           <button onClick={() => scrollToSection("pricing")} className="hover:text-white transition-colors flex items-center gap-1.5">
             <Tag className="h-4 w-4" />
             {t("landing.nav_pricing")}
@@ -187,10 +186,6 @@ export const PublicNavbar = () => {
                   <ShoppingBag className="h-4 w-4" />
                   {language === "bn" ? "কেনা - বেচা" : "Buy & Sell"}
                 </Link>
-                <button onClick={() => scrollToSection("how")} className="flex items-center gap-3 rounded-md p-3 text-sm hover:bg-accent transition-colors text-left">
-                  <Zap className="h-4 w-4" />
-                  {t("landing.nav_how")}
-                </button>
                 <button onClick={() => scrollToSection("pricing")} className="flex items-center gap-3 rounded-md p-3 text-sm hover:bg-accent transition-colors text-left">
                   <Tag className="h-4 w-4" />
                   {t("landing.nav_pricing")}

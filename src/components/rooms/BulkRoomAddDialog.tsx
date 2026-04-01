@@ -449,7 +449,8 @@ const BulkRoomAddDialog = ({ properties, onSuccess }: Props) => {
       onSuccess();
       setOpen(false);
       setUnits([defaultUnit()]);
-      setFloorUnits({});
+      setDiffUnits([defaultUnit()]);
+      setDiffUnitsPerFloor("1");
       setFloorFrom("1");
       setFloorTo("5");
       setUnitMode("same");

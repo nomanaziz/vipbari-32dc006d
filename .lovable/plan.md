@@ -1,58 +1,85 @@
 
 
-# "Different Units" Mode — Redesign
+# Staff Full Details & Salary Management
 
-## Current Problem
-The "Different units per floor" mode currently shows separate accordion per floor, implying each floor can have completely different units. But the user's actual need is different: **units differ by position (A, B, C, D), NOT by floor**. All "A" units across all floors are identical, all "B" units are identical, etc.
+## Summary
+Enhance the staff system with detailed personal info (addresses, NID, DOB, photo, salary) and a salary payment feature that auto-records to accounting. Merge the separate "Position" and "Role/Preset" fields into one since they serve the same purpose.
 
-## New Logic
-"Different units" means: define unit **types** (A, B, C, D) where each type has its own configuration, then apply ALL types to every floor. This is essentially the "Same" mode's symmetry feature but as the default behavior.
+## Database Changes
 
-**Example**: 4 units per floor → Unit A (2-bed flat), Unit B (3-bed flat), Unit C (shop), Unit D (2-bed flat). Every floor gets all 4, with A identical across floors, B identical across floors, etc.
+### 1. New table: `staff_details`
+Stores extended staff info linked to `staff_assignments`.
 
-## Changes to `BulkRoomAddDialog.tsx`
+| Column | Type | Notes |
+|--------|------|-------|
+| id | uuid PK | |
+| staff_assignment_id | uuid FK → staff_assignments | unique |
+| permanent_address | text | |
+| present_address | text | |
+| nid_number | text | NID / Birth cert number |
+| doc_type | text | 'nid' / 'birth_certificate' / 'passport' |
+| date_of_birth | date | |
+| photo_url | text | Avatar/photo |
+| salary | numeric | Monthly salary amount |
+| joining_date | date | |
+| created_at / updated_at | timestamptz | |
 
-### Different Mode UI Rebuild
-1. **Remove** the per-floor accordion UI in different mode
-2. **Add** "প্রতি তলায় ইউনিট সংখ্যা" (Units per floor) input — same as in Same mode
-3. Show unit template cards (Unit A, Unit B, Unit C, Unit D) — each independently configurable
-4. Wrap in `ScrollArea` with `max-h-[45vh]`
-5. Each unit type is applied to ALL floors — the room number generated as `{floor}{label}` (e.g., 1A, 2A, 3A...)
+RLS: owner can manage (via staff_assignments.assigned_by), admin full access.
 
-### Same Mode Stays As-Is
-Same mode already works: one template repeated across all floors. Keep it.
+### 2. New table: `salary_payments`
+Tracks paid salaries per staff per month.
 
-### Remove Redundant Different Mode State
-- `floorUnits` state and per-floor helpers (`addFloorUnit`, `removeFloorUnit`, `updateFloorUnit`, `copyFromFloor`) become unused in the new different mode
-- Different mode now uses the same `units` array but WITHOUT symmetry grouping — each unit is independently editable
+| Column | Type | Notes |
+|--------|------|-------|
+| id | uuid PK | |
+| staff_assignment_id | uuid FK | |
+| owner_id | uuid | Landlord who pays |
+| amount | numeric | |
+| month | text | e.g. "2026-04" |
+| payment_date | date | |
+| notes | text | |
+| created_at | timestamptz | |
 
-### Key Difference Between Modes
-- **Same**: All units share identical config (one template × N units × M floors)
-- **Different**: Each unit position (A, B, C, D) has its own config, applied to every floor
+RLS: owner manages own records. On insert, auto-create an accounting_entry (type: expense, category: staff_salary).
 
-### Submit Logic
-Both modes generate the same way: for each floor, for each unit template → create room. The `buildRow` function remains unchanged.
+### 3. Remove `staff_type` from `staff_assignments`
+Merge Position into Role — the preset already serves as the role/position. Remove `staff_type` column usage from UI. The preset name (Manager, Caretaker, Guard, etc.) IS the position.
 
-## UI Flow (Different Mode)
+## UI Changes
 
-```text
-┌─ Different units per position ──────────────┐
-│ প্রতি তলায় ইউনিট সংখ্যা: [4]              │
-│                                              │
-│ ┌─ ScrollArea ─────────────────────────────┐ │
-│ │ ইউনিট A: [flat, ৳8000, 2-bed, 1-bath]  │ │
-│ │ ইউনিট B: [flat, ৳10000, 3-bed, 2-bath] │ │
-│ │ ইউনিট C: [shop, ৳15000, 0-bed, 1-bath] │ │
-│ │ ইউনিট D: [flat, ৳8000, 2-bed, 1-bath]  │ │
-│ └──────────────────────────────────────────┘ │
-│ [+ ইউনিট যোগ করুন]                          │
-│                                              │
-│ প্রতিটি ইউনিট টাইপ সকল তলায় প্রযোজ্য হবে  │
-└──────────────────────────────────────────────┘
-```
+### StaffInviteDialog — Enhanced Form
+- Remove separate "Position" dropdown (staff_type)
+- Keep Role/Preset as the single combined "Position / Role" selector
+- Add new fields: Permanent Address, Present Address, NID/Birth Cert number, Doc Type selector, Date of Birth, Salary (monthly), Photo upload
+- Scrollable dialog with sections
 
-### Label Update
-- Radio label: "Different units per floor" → "আলাদা আলাদা ইউনিট / Different unit types" (to clarify it's per-position, not per-floor)
+### StaffEditDialog — Enhanced Form
+- Same additional fields as invite
+- Load/save from `staff_details` table
 
-No database changes needed.
+### StaffCard — Show More Info
+- Show salary amount, DOB/age, photo (in Avatar)
+- Add "Pay Salary" button
+
+### New: SalaryPayDialog
+- Select month, enter amount (pre-filled from salary), notes
+- On submit: insert into `salary_payments` + insert into `accounting_entries` as expense
+- Show salary payment history
+
+### Staff Page
+- Add salary payment history section or tab
+- Show total salary expense stats
+
+## Edge Function Update
+- `invite-staff`: accept new fields (addresses, nid, dob, salary, doc_type) and insert into `staff_details` after creating the user
+
+## File Changes
+1. **Migration SQL** — create `staff_details`, `salary_payments` tables with RLS
+2. **`supabase/functions/invite-staff/index.ts`** — insert staff_details row
+3. **`src/components/staff/StaffInviteDialog.tsx`** — add full detail fields, merge position/role
+4. **`src/components/staff/StaffEditDialog.tsx`** — add full detail fields, load staff_details
+5. **`src/components/staff/StaffCard.tsx`** — show photo, salary, age, pay salary button
+6. **`src/components/staff/SalaryPayDialog.tsx`** — new dialog for paying salary
+7. **`src/pages/Staff.tsx`** — fetch staff_details, salary_payments; wire new dialogs
+8. **`src/contexts/LanguageContext.tsx`** — add translation keys for new fields
 

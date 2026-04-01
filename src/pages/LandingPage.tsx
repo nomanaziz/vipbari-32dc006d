@@ -144,15 +144,12 @@ const LandingPage = () => {
           <p className="text-muted-foreground text-center mb-12 max-w-xl mx-auto">{lc("feat_sub", "landing.feat_sub")}</p>
 
           {/* Main Features */}
-          <h3 className="text-xl font-semibold text-center mb-6">{lc("feat_main_title", "landing.feat_main_title") || t("landing.feat_main_title")}</h3>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
             {mainFeatures.map((f) => (
               <Link key={f.dbTitle} to={`/features/${f.slug}`}>
                 <Card className="hover:shadow-md transition-shadow h-full">
-                  <CardContent className="p-6 flex flex-col items-center text-center">
-                    <AppIcon icon={f.icon} color={f.color} />
-                    <h3 className="font-semibold mt-4 mb-2">{lc(f.dbTitle, f.fallbackTitle)}</h3>
-                    <p className="text-sm text-muted-foreground">{lc(f.dbDesc, f.fallbackDesc)}</p>
+                  <CardContent className="p-8 flex flex-col items-center justify-center text-center">
+                    <AppIcon icon={f.icon} color={f.color} size="lg" />
                   </CardContent>
                 </Card>
               </Link>

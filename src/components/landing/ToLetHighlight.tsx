@@ -1,38 +1,38 @@
 import { Link } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useLandingContent } from "@/hooks/useLandingContent";
 import { Button } from "@/components/ui/button";
 import { DoorOpen, Search, MapPin, Bell, ArrowRight, Sparkles } from "lucide-react";
 
 const ToLetHighlight = () => {
   const { t } = useLanguage();
+  const { lc } = useLandingContent();
 
   const bullets = [
-    { icon: Sparkles, text: t("landing.tolet_hl_auto") || "Auto-publish vacant rooms instantly" },
-    { icon: Bell, text: t("landing.tolet_hl_request") || "Receive tenant requests directly" },
-    { icon: MapPin, text: t("landing.tolet_hl_location") || "Division, District & Thana filters" },
-    { icon: Search, text: t("landing.tolet_hl_free") || "Tenants browse for free" },
+    { icon: Sparkles, text: lc("tolet_hl_auto", "landing.tolet_hl_auto") || "Auto-publish vacant rooms instantly" },
+    { icon: Bell, text: lc("tolet_hl_request", "landing.tolet_hl_request") || "Receive tenant requests directly" },
+    { icon: MapPin, text: lc("tolet_hl_location", "landing.tolet_hl_location") || "Division, District & Thana filters" },
+    { icon: Search, text: lc("tolet_hl_free", "landing.tolet_hl_free") || "Tenants browse for free" },
   ];
 
   return (
     <section className="py-20 px-4 relative overflow-hidden">
-      {/* Gradient background accent */}
       <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/10 dark:from-primary/10 dark:to-primary/5" />
       
       <div className="max-w-5xl mx-auto relative">
         <div className="grid md:grid-cols-2 gap-10 items-center">
-          {/* Left — content */}
           <div className="space-y-6">
             <div className="inline-flex items-center gap-2 bg-primary/10 text-primary text-sm font-semibold px-4 py-1.5 rounded-full">
               <DoorOpen className="h-4 w-4" />
-              {t("landing.tolet_hl_badge") || "⭐ Best Feature"}
+              {lc("tolet_hl_badge", "landing.tolet_hl_badge") || "⭐ Best Feature"}
             </div>
 
             <h2 className="text-3xl sm:text-4xl font-bold leading-tight">
-              {t("landing.tolet_hl_title") || "Find Tenants Fast with To-Let"}
+              {lc("tolet_hl_title", "landing.tolet_hl_title") || "Find Tenants Fast with To-Let"}
             </h2>
 
             <p className="text-muted-foreground text-lg">
-              {t("landing.tolet_hl_desc") || "Publish your vacant rooms online. Tenants search by location and send rental requests — no middleman, no hassle."}
+              {lc("tolet_hl_desc", "landing.tolet_hl_desc") || "Publish your vacant rooms online. Tenants search by location and send rental requests — no middleman, no hassle."}
             </p>
 
             <ul className="space-y-3">
@@ -49,19 +49,18 @@ const ToLetHighlight = () => {
             <div className="flex flex-wrap gap-3 pt-2">
               <Button size="lg" asChild>
                 <Link to="/tolet" className="gap-2">
-                  {t("landing.tolet_hl_browse") || "Browse Listings"}
+                  {lc("tolet_hl_browse", "landing.tolet_hl_browse") || "Browse Listings"}
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
               <Button size="lg" variant="outline" asChild>
                 <Link to="/register">
-                  {t("landing.tolet_hl_publish") || "Publish Your Room"}
+                  {lc("tolet_hl_publish", "landing.tolet_hl_publish") || "Publish Your Room"}
                 </Link>
               </Button>
             </div>
           </div>
 
-          {/* Right — visual card */}
           <div className="relative">
             <div className="rounded-2xl border bg-card p-6 shadow-lg space-y-4">
               <div className="flex items-center gap-3 mb-2">
@@ -69,12 +68,11 @@ const ToLetHighlight = () => {
                   <DoorOpen className="h-6 w-6 text-primary-foreground" />
                 </div>
                 <div>
-                  <p className="font-bold text-lg">{t("landing.tolet_hl_card_title") || "To-Let Listings"}</p>
-                  <p className="text-sm text-muted-foreground">{t("landing.tolet_hl_card_sub") || "Live vacancy board"}</p>
+                  <p className="font-bold text-lg">{lc("tolet_hl_card_title", "landing.tolet_hl_card_title") || "To-Let Listings"}</p>
+                  <p className="text-sm text-muted-foreground">{lc("tolet_hl_card_sub", "landing.tolet_hl_card_sub") || "Live vacancy board"}</p>
                 </div>
               </div>
 
-              {/* Fake listing cards */}
               {[
                 { room: "3A", type: "Flat", rent: "১২,০০০", loc: "Mirpur, Dhaka" },
                 { room: "B2", type: "Room", rent: "৫,০০০", loc: "Uttara, Dhaka" },
@@ -91,13 +89,12 @@ const ToLetHighlight = () => {
                     </div>
                   </div>
                   <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">
-                    {t("dashboard.vacant") || "Vacant"}
+                    {lc("tolet_hl_vacant", "dashboard.vacant") || "Vacant"}
                   </span>
                 </div>
               ))}
             </div>
 
-            {/* Decorative dots */}
             <div className="absolute -z-10 -top-4 -right-4 w-24 h-24 bg-primary/5 rounded-full blur-2xl" />
             <div className="absolute -z-10 -bottom-6 -left-6 w-32 h-32 bg-primary/10 rounded-full blur-3xl" />
           </div>

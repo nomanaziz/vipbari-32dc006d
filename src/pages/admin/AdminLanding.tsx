@@ -25,15 +25,21 @@ interface LandingSection {
 const GROUPS = [
   { key: "hero", label: "Hero" },
   { key: "stats", label: "Stats" },
+  { key: "why", label: "Why VIP Bari" },
+  { key: "tolet_hl", label: "To-Let Highlight" },
+  { key: "who", label: "Who Uses" },
+  { key: "benefits", label: "Benefits" },
   { key: "features", label: "Features" },
   { key: "mini_features", label: "Mini Features" },
   { key: "problems", label: "Problems" },
-  { key: "benefits_list", label: "Benefits" },
+  { key: "benefits_list", label: "Landlord/Tenant Benefits" },
   { key: "how", label: "How it Works" },
   { key: "pricing", label: "Pricing" },
+  { key: "payment", label: "Payment Methods" },
   { key: "comparison", label: "Comparison" },
   { key: "testimonials", label: "Testimonials" },
   { key: "faq", label: "FAQ" },
+  { key: "install", label: "Install" },
   { key: "cta", label: "CTA" },
 ];
 

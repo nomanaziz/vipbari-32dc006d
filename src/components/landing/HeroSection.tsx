@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useLandingContent } from "@/hooks/useLandingContent";
 import { useTheme } from "@/contexts/ThemeContext";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,7 +12,6 @@ import { heroGradients, heroGlowColors, ctaGradients, accentIconColor, phoneShad
 const BuildingSkyline = () => (
   <div className="absolute bottom-0 left-0 right-0 overflow-hidden pointer-events-none" aria-hidden="true">
     <svg viewBox="0 0 1440 200" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-auto">
-      {/* Buildings silhouette */}
       <rect x="0" y="60" width="80" height="140" fill="rgba(255,255,255,0.04)" />
       <rect x="85" y="30" width="60" height="170" fill="rgba(255,255,255,0.06)" />
       <rect x="150" y="80" width="90" height="120" fill="rgba(255,255,255,0.03)" />
@@ -29,7 +29,6 @@ const BuildingSkyline = () => (
       <rect x="1160" y="45" width="80" height="155" fill="rgba(255,255,255,0.03)" />
       <rect x="1250" y="65" width="60" height="135" fill="rgba(255,255,255,0.05)" />
       <rect x="1320" y="30" width="120" height="170" fill="rgba(255,255,255,0.04)" />
-      {/* Windows - small dots on buildings */}
       {[100, 290, 420, 750, 1110].map((x, i) => (
         <g key={i}>
           <rect x={x} y={60 + i * 8} width="4" height="4" rx="1" fill="rgba(255,200,100,0.3)" />
@@ -44,62 +43,55 @@ const BuildingSkyline = () => (
 
 const HeroSection = () => {
   const { t } = useLanguage();
+  const { lc } = useLandingContent();
   const { colorPreset } = useTheme();
   const glows = heroGlowColors[colorPreset];
   const iconColor = accentIconColor[colorPreset];
 
   return (
     <section className={`relative py-16 sm:py-24 px-4 overflow-hidden bg-gradient-to-br ${heroGradients[colorPreset]}`}>
-      {/* Subtle glow effects */}
       <div className={`absolute top-20 left-1/4 w-96 h-96 ${glows.glow1} rounded-full blur-3xl pointer-events-none`} />
       <div className={`absolute bottom-20 right-1/4 w-80 h-80 ${glows.glow2} rounded-full blur-3xl pointer-events-none`} />
 
       <BuildingSkyline />
 
       <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-12 items-center relative z-10">
-        {/* Left — Text */}
         <div className="text-center lg:text-left">
           <h1 className="text-4xl sm:text-5xl lg:text-[3.25rem] font-bold text-white leading-tight mb-6 animate-fade-in-up">
-            {t("landing.hero_title")}
+            {lc("hero_title", "landing.hero_title")}
           </h1>
           <p className="text-lg sm:text-xl text-white/70 max-w-xl mx-auto lg:mx-0 mb-8 opacity-0 animate-fade-in-up" style={{ animationDelay: "0.15s" }}>
-            {t("landing.hero_sub")}
+            {lc("hero_sub", "landing.hero_sub")}
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-10 opacity-0 animate-fade-in-up" style={{ animationDelay: "0.3s" }}>
             <Button size="lg" className={`text-base px-8 bg-gradient-to-r ${ctaGradients[colorPreset]} text-white shadow-lg`} asChild>
-              <Link to="/register">{t("landing.cta_trial")}</Link>
+              <Link to="/register">{lc("cta_trial", "landing.cta_trial")}</Link>
             </Button>
             <Button size="lg" variant="outline" className="text-base px-8 border-white/30 text-white bg-transparent hover:bg-white/10" asChild>
-              <Link to="/login">{t("auth.login")}</Link>
+              <Link to="/login">{lc("hero_login", "auth.login")}</Link>
             </Button>
           </div>
 
           <div className="flex flex-wrap justify-center lg:justify-start gap-6 text-sm text-white/60 opacity-0 animate-fade-in-up" style={{ animationDelay: "0.45s" }}>
-            <span className="flex items-center gap-1.5"><Clock className={`h-4 w-4 ${iconColor}`} />{t("landing.badge_time")}</span>
-            <span className="flex items-center gap-1.5"><TrendingDown className={`h-4 w-4 ${iconColor}`} />{t("landing.badge_cost")}</span>
-            <span className="flex items-center gap-1.5"><Smartphone className={`h-4 w-4 ${iconColor}`} />{t("landing.badge_digital")}</span>
+            <span className="flex items-center gap-1.5"><Clock className={`h-4 w-4 ${iconColor}`} />{lc("badge_time", "landing.badge_time")}</span>
+            <span className="flex items-center gap-1.5"><TrendingDown className={`h-4 w-4 ${iconColor}`} />{lc("badge_cost", "landing.badge_cost")}</span>
+            <span className="flex items-center gap-1.5"><Smartphone className={`h-4 w-4 ${iconColor}`} />{lc("badge_digital", "landing.badge_digital")}</span>
           </div>
         </div>
 
         {/* Right — Animated Phone Mockup */}
         <div className="hidden lg:flex justify-center relative" aria-hidden="true">
-          {/* Floating cards */}
           <FloatingCard className="-top-2 -left-8" delay="0.4s" icon={<Users className="h-4 w-4 text-emerald-500" />} label="ভাড়াটিয়া ৩৬ জন" />
           <FloatingCard className="top-8 -right-6" delay="0.7s" icon={<TrendingUp className="h-4 w-4 text-amber-500" />} label="আদায় ৳১.২L" />
           <FloatingCard className="bottom-28 -left-10" delay="1s" icon={<MessageSquare className="h-4 w-4 text-purple-500" />} label="WhatsApp ১-ক্লিক" />
           <FloatingCard className="bottom-36 -right-8" delay="1.2s" icon={<Receipt className="h-4 w-4 text-rose-500" />} label="বিল অটো" />
           <FloatingCard className="-bottom-2 left-1/2 -translate-x-1/2" delay="1.4s" icon={<Home className="h-4 w-4 text-sky-500" />} label="১৫০০+ বাড়িওয়ালা" />
 
-          {/* Phone */}
           <div className="animate-float">
             <div className={`w-[220px] h-[430px] rounded-[2rem] border-[5px] border-gray-300 bg-white shadow-2xl ${phoneShadow[colorPreset]} overflow-hidden relative`}>
-              {/* Notch */}
               <div className="absolute top-0 left-1/2 -translate-x-1/2 w-20 h-5 bg-gray-200 rounded-b-xl z-10" />
-
-              {/* Screen content */}
               <div className="pt-7 px-3 pb-3 h-full flex flex-col gap-2">
-                {/* Header */}
                 <div className="flex items-center justify-between mb-0.5">
                   <div className="flex items-center gap-1.5">
                     <div className="h-6 w-6 rounded-md bg-emerald-500 flex items-center justify-center">
@@ -109,8 +101,6 @@ const HeroSection = () => {
                   </div>
                   <span className="text-[7px] px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-600 font-medium">অনলাইন</span>
                 </div>
-
-                {/* Stat cards row */}
                 <div className="grid grid-cols-3 gap-1.5">
                   <div className="bg-emerald-50 rounded-lg p-1.5 flex flex-col items-center">
                     <Users className="h-3 w-3 text-emerald-600" />
@@ -128,8 +118,6 @@ const HeroSection = () => {
                     <span className="text-[7px] text-gray-500">রুম</span>
                   </div>
                 </div>
-
-                {/* Chart area */}
                 <div className="flex-1 bg-gray-50 rounded-xl p-2 flex flex-col justify-end">
                   <div className="flex items-center justify-between mb-1">
                     <p className="text-[8px] text-gray-500 font-medium">মাসিক আদায়</p>
@@ -146,8 +134,6 @@ const HeroSection = () => {
                     ))}
                   </div>
                 </div>
-
-                {/* Quick actions */}
                 <div className="grid grid-cols-4 gap-1.5 pt-0.5">
                   {[
                     { icon: <CreditCard className="h-3 w-3" />, label: "পে বিলস", bg: "bg-rose-50", color: "text-rose-500" },
@@ -169,8 +155,6 @@ const HeroSection = () => {
     </section>
   );
 };
-
-/* ---------- sub-components ---------- */
 
 const FloatingCard = ({ className, delay, icon, label }: { className: string; delay: string; icon: React.ReactNode; label: string }) => (
   <div

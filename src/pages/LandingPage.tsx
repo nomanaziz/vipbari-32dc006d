@@ -23,7 +23,6 @@ import {
   Zap, Droplets, Flame, Wifi, Bell, Shield, FileText, Database,
   Share2, History, CheckCircle2, XCircle, Star, ArrowRight,
   Smartphone, Link as LinkIcon, Warehouse, Rocket, Eye, ParkingCircle,
-  Check, X,
 } from "lucide-react";
 
 const LandingPage = () => {

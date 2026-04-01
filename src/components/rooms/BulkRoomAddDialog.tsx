@@ -326,34 +326,6 @@ const BulkRoomAddDialog = ({ properties, onSuccess }: Props) => {
     }
   }, [symmetryEnabled, unitGroups]);
 
-  // --- Different mode helpers ---
-  const addFloorUnit = (floor: number) => {
-    setFloorUnits(prev => {
-      const arr = prev[floor] || [];
-      const nextLabel = String.fromCharCode(65 + arr.length);
-      return { ...prev, [floor]: [...arr, { ...defaultUnit(nextLabel), id: crypto.randomUUID() }] };
-    });
-  };
-  const removeFloorUnit = (floor: number, id: string) => {
-    setFloorUnits(prev => {
-      const arr = prev[floor] || [];
-      if (arr.length <= 1) return prev;
-      return { ...prev, [floor]: arr.filter(u => u.id !== id) };
-    });
-  };
-  const updateFloorUnit = (floor: number, id: string, patch: Partial<UnitTemplate>) => {
-    setFloorUnits(prev => ({
-      ...prev,
-      [floor]: (prev[floor] || []).map(u => u.id === id ? { ...u, ...patch } : u),
-    }));
-  };
-  const copyFromFloor = (targetFloor: number, sourceFloor: number) => {
-    setFloorUnits(prev => ({
-      ...prev,
-      [targetFloor]: (prev[sourceFloor] || []).map(u => ({ ...u, id: crypto.randomUUID() })),
-    }));
-  };
-
   const handleSubmit = async () => {
     if (!propertyId) { toast.error(t("room.select_property") || "Select a property"); return; }
     if (fromFloor > toFloor) { toast.error(t("bulk.invalid_floor_range") || "Invalid floor range"); return; }

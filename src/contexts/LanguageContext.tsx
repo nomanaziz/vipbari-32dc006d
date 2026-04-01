@@ -141,6 +141,7 @@ const translations: Record<string, Record<Language, string>> = {
   "common.actions": { bn: "অ্যাকশন", en: "Actions" },
   "common.status": { bn: "অবস্থা", en: "Status" },
   "common.loading": { bn: "লোড হচ্ছে...", en: "Loading..." },
+  "common.saving": { bn: "তৈরি হচ্ছে...", en: "Creating..." },
   "common.logout": { bn: "লগআউট", en: "Logout" },
   "common.profile": { bn: "প্রোফাইল", en: "Profile" },
   "common.taka": { bn: "৳", en: "৳" },

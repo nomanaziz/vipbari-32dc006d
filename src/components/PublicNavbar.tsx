@@ -33,6 +33,9 @@ const featureLinks = [
   { slug: "smart-automation", icon: Zap, titleKey: "feat_smart_automation.title" },
   { slug: "analytics-insights", icon: BarChart3, titleKey: "feat_analytics_insights.title" },
   { slug: "security-protection", icon: ShieldCheck, titleKey: "feat_security_protection.title" },
+  { slug: "tolet", icon: Home, titleKey: "feat_tolet.title" },
+  { slug: "buy-sell", icon: ShoppingBag, titleKey: "feat_buy_sell.title" },
+  { slug: "lease-management", icon: FileText, titleKey: "feat_lease_management.title" },
 ] as const;
 
 export const PublicNavbar = () => {

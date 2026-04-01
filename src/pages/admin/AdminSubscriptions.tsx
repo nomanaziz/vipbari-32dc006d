@@ -226,17 +226,23 @@ const AdminSubscriptions = () => {
     if (!discountUserId) { toast.error(t("admin.select_landlord")); return; }
     setDiscountSubmitting(true);
     try {
+      // First deactivate any existing active discount for this user
+      await supabase
+        .from("landlord_discounts")
+        .update({ is_active: false, updated_at: new Date().toISOString() })
+        .eq("user_id", discountUserId)
+        .eq("is_active", true);
+
       const { error } = await supabase
         .from("landlord_discounts")
-        .upsert({
+        .insert({
           user_id: discountUserId,
           discount_type: discountType,
           discount_percent: discountType === "free_forever" ? 100 : discountPercent,
           applied_by: (await supabase.auth.getUser()).data.user?.id || "",
           notes: discountNotes,
           is_active: true,
-          updated_at: new Date().toISOString(),
-        }, { onConflict: "user_id" });
+        });
       if (error) throw error;
       toast.success(t("admin.discount_saved"));
       setDiscountOpen(false);

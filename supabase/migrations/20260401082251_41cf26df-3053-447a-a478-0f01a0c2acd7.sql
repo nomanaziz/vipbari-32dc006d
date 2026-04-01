@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX landlord_discounts_user_id_unique ON public.landlord_discounts (user_id) WHERE (is_active = true);

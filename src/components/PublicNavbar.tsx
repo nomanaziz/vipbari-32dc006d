@@ -5,7 +5,7 @@ import { useTheme } from "@/contexts/ThemeContext";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
-import { Building2, Calculator, LinkIcon, MessageSquare, DoorOpen, Zap, BarChart3, ShieldCheck, LayoutDashboard, Home, Settings2, Tag, Download, Menu, ShoppingBag } from "lucide-react";
+import { Building2, Calculator, LinkIcon, MessageSquare, DoorOpen, Zap, BarChart3, ShieldCheck, LayoutDashboard, Home, Settings2, Tag, Download, Menu, ShoppingBag, FileText } from "lucide-react";
 import { usePWAInstall } from "@/hooks/usePWAInstall";
 import { navbarGradients, dashboardButtonText } from "@/lib/presetColors";
 import {

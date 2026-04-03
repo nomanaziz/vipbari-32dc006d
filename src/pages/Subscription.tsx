@@ -137,6 +137,10 @@ const Subscription = () => {
   // Sale listing used count
   const [saleUsedCount, setSaleUsedCount] = useState(0);
 
+  // SMS state
+  const [smsCount, setSmsCount] = useState(100);
+  const [smsBalance, setSmsBalance] = useState({ total: 0, used: 0 });
+
   const hasAnyToletSub = useMemo(
     () => history.some((h) => h.product_type === "tolet"),
     [history]

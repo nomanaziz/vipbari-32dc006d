@@ -1267,6 +1267,93 @@ const Subscription = () => {
                 </p>
               </div>
             </TabsContent>
+
+            {/* SMS Tab */}
+            <TabsContent value="sms" className="space-y-6 mt-6">
+              {/* SMS Balance */}
+              <div className="bg-muted/50 rounded-lg p-4 text-center">
+                <MessageSquare className="h-5 w-5 mx-auto mb-1 text-blue-500" />
+                <p className="text-2xl font-bold text-foreground">{smsRemaining}</p>
+                <p className="text-xs text-muted-foreground">
+                  {language === "bn" ? "SMS ব্যালেন্স বাকি" : "SMS Balance Remaining"}
+                </p>
+              </div>
+
+              {/* SMS Package Selector */}
+              <div className="space-y-3">
+                <label className="text-sm font-medium text-foreground">
+                  {language === "bn" ? "SMS প্যাকেজ নির্বাচন করুন" : "Select SMS Package"}
+                </label>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {SMS_PACKAGES.map((pkg) => (
+                    <Button
+                      key={pkg}
+                      variant={smsCount === pkg ? "default" : "outline"}
+                      className="h-auto py-4 flex-col gap-1"
+                      onClick={() => setSmsCount(pkg)}
+                    >
+                      <span className="font-bold">{pkg}</span>
+                      <span className="text-xs opacity-80">৳{Math.round(pkg * PRICE_PER_SMS)}</span>
+                    </Button>
+                  ))}
+                </div>
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Info className="h-3 w-3" />
+                  {language === "bn" ? `৳${PRICE_PER_SMS}/SMS — সর্বনিম্ন ১০০ SMS` : `৳${PRICE_PER_SMS}/SMS — Minimum 100 SMS`}
+                </p>
+              </div>
+
+              {/* Custom count */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">
+                  {language === "bn" ? "অথবা কাস্টম সংখ্যা লিখুন" : "Or enter custom amount"}
+                </label>
+                <div className="flex gap-2">
+                  <Input
+                    type="number"
+                    min={100}
+                    step={10}
+                    value={smsCount}
+                    onChange={(e) => setSmsCount(Math.max(100, parseInt(e.target.value) || 100))}
+                    className="flex-1"
+                  />
+                  <span className="flex items-center text-sm text-muted-foreground">SMS</span>
+                </div>
+              </div>
+
+              {/* Price Summary */}
+              <div className="bg-muted/50 rounded-lg p-4 space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">
+                    {language === "bn" ? `${smsCount} SMS × ৳${PRICE_PER_SMS}` : `${smsCount} SMS × ৳${PRICE_PER_SMS}`}
+                  </span>
+                  <span className="text-foreground font-medium">৳{smsTotalPrice}</span>
+                </div>
+                <div className="border-t border-border pt-2 flex justify-between">
+                  <span className="font-semibold text-foreground">
+                    {language === "bn" ? "মোট" : "Total"}
+                  </span>
+                  <span className="text-xl font-bold text-primary">৳{smsTotalPrice}</span>
+                </div>
+              </div>
+
+              <Button
+                className="w-full h-12 text-base gap-2 bg-primary hover:bg-primary/90 text-primary-foreground"
+                onClick={() => handleAddToCart("sms", "SMS Package", "SMS প্যাকেজ", smsCount, 0, PRICE_PER_SMS, 0, "", smsTotalPrice)}
+              >
+                <ShoppingCart className="h-5 w-5" />
+                {language === "bn" ? `৳${smsTotalPrice} — কার্টে যোগ করুন` : `৳${smsTotalPrice} — Add to Cart`}
+              </Button>
+
+              <div className="bg-amber-500/5 border border-amber-500/20 rounded-lg p-3">
+                <p className="text-xs text-muted-foreground flex items-start gap-1.5">
+                  <Info className="h-3.5 w-3.5 mt-0.5 shrink-0 text-amber-500" />
+                  {language === "bn"
+                    ? "SMS ক্রেডিট মেয়াদহীন। বিল, নোটিশ, রিমাইন্ডার পাঠাতে ব্যবহার করতে পারবেন।"
+                    : "SMS credits never expire. Use them to send bills, notices, and reminders."}
+                </p>
+              </div>
+            </TabsContent>
           </Tabs>
         </CardContent>
       </Card>

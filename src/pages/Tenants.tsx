@@ -129,19 +129,21 @@ const Tenants = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-4">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-2xl font-bold">{t("nav.tenants")}</h1>
-          <p className="text-sm text-muted-foreground">{t("tenant.total")}: {totalTenants}</p>
+          <h1 className="text-xl sm:text-2xl font-bold">{t("nav.tenants")}</h1>
+          <p className="text-xs sm:text-sm text-muted-foreground">{t("tenant.total")}: {totalTenants}</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" className="gap-2" onClick={() => setLinkDialogOpen(true)}>
-            <Link className="h-4 w-4" />
-            {t("tenant.link_existing") || "Link Tenant"}
+          <Button variant="outline" size="sm" className="gap-1.5 text-xs sm:text-sm" onClick={() => setLinkDialogOpen(true)}>
+            <Link className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">{t("tenant.link_existing") || "Link Tenant"}</span>
+            <span className="sm:hidden">Link</span>
           </Button>
-          <Button className="gap-2" onClick={() => { setEditing(null); setOpen(true); }}>
-            <Plus className="h-4 w-4" />
-            {t("tenant.add")}
+          <Button size="sm" className="gap-1.5 text-xs sm:text-sm" onClick={() => { setEditing(null); setOpen(true); }}>
+            <Plus className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">{t("tenant.add")}</span>
+            <span className="sm:hidden">{t("tenant.add")}</span>
           </Button>
         </div>
       </div>

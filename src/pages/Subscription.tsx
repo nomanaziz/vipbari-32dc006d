@@ -89,6 +89,7 @@ const getDurationLabel = (months: number, language: string): string => {
 const Subscription = () => {
   const { language } = useLanguage();
   const { user } = useAuth();
+  const { addItem, cartCount, setIsCartOpen } = useCart();
   const [searchParams, setSearchParams] = useSearchParams();
   const [activeRoomSub, setActiveRoomSub] = useState<ActiveSub | null>(null);
   const [activeToletSub, setActiveToletSub] = useState<ActiveSub | null>(null);

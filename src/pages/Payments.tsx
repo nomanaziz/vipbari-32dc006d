@@ -46,17 +46,19 @@ const Payments = () => {
   const { data: tenants } = useQuery({
     queryKey: ["rent-tenants", effectiveOwnerId],
     queryFn: async () => {
-      const { data: owned } = await supabase
+      const { data: owned, error: ownedError } = await supabase
         .from("tenants")
-        .select("id, full_name, phone, user_id, room_id, rooms(room_number, rent_amount, property_id, properties(name))")
+        .select("id, full_name, phone, user_id, room_id, rooms!tenants_room_id_fkey(room_number, rent_amount, property_id, properties(name))")
         .eq("owner_id", effectiveOwnerId!)
         .eq("status", "active");
+      if (ownedError) throw ownedError;
 
-      const { data: requests } = await supabase
+      const { data: requests, error: requestsError } = await supabase
         .from("tolet_requests")
-        .select("tenant_user_id, room_id, rooms(room_number, rent_amount, property_id, properties(name))")
+        .select("tenant_user_id, room_id, rooms(id, room_number, rent_amount, property_id, properties(name))")
         .eq("landlord_user_id", effectiveOwnerId!)
         .eq("status", "accepted");
+      if (requestsError) throw requestsError;
 
       const tenantMap = new Map<string, any>();
       (owned || []).forEach((t: any) => tenantMap.set(t.id, t));
@@ -67,11 +69,12 @@ const Payments = () => {
           .filter((uid: string) => ![...tenantMap.values()].some((t: any) => t.user_id === uid));
 
         if (requestUserIds.length > 0) {
-          const { data: reqTenants } = await supabase
+          const { data: reqTenants, error: reqTenantsError } = await supabase
             .from("tenants")
-            .select("id, full_name, phone, user_id, room_id, rooms(room_number, rent_amount, property_id, properties(name))")
+            .select("id, full_name, phone, user_id, room_id, rooms!tenants_room_id_fkey(room_number, rent_amount, property_id, properties(name))")
             .in("user_id", requestUserIds)
             .eq("status", "active");
+          if (reqTenantsError) throw reqTenantsError;
 
           (reqTenants || []).forEach((t: any) => {
             if (!tenantMap.has(t.id)) {

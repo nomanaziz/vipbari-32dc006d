@@ -103,6 +103,7 @@ const Subscription = () => {
     if (tab === "tolet") return "tolet";
     if (tab === "boosting") return "boosting";
     if (tab === "sale_listing") return "sale_listing";
+    if (tab === "sms") return "sms";
     return "room_management";
   });
   const [verifying, setVerifying] = useState(false);

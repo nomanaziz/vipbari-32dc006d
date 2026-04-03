@@ -77,7 +77,7 @@ export function BillGenerateDialog({ open, onOpenChange, onSubmit, isPending, ef
         if (requestUserIds.length > 0) {
           const { data: reqTenants } = await supabase
             .from("tenants")
-            .select("id, full_name, phone, room_id, user_id, rooms(id, room_number, rent_amount)")
+            .select("id, full_name, phone, room_id, user_id, rooms!tenants_room_id_fkey(id, room_number, rent_amount)")
             .in("user_id", requestUserIds)
             .eq("status", "active");
 

@@ -274,7 +274,7 @@ const Bills = () => {
         const userIds = requests.map((r: any) => r.tenant_user_id);
         const { data: reqTenants } = await supabase
           .from("tenants")
-          .select("id, owner_id, room_id, user_id, billing_type, rooms(id, rent_amount)")
+          .select("id, owner_id, room_id, user_id, billing_type, rooms!tenants_room_id_fkey(id, rent_amount)")
           .in("user_id", userIds)
           .eq("status", "active")
           .eq("billing_type", "billing");

@@ -1,42 +1,120 @@
 
 
-# Fix Dark Mode Brightness & Tenants Mobile Layout
+# Add-to-Cart Shopping System for Subscription Page
 
-## Issue 1: Dark mode too dark — add brightness
+## Summary
 
-The dark mode background is `270 20% 6%` (very dark). Cards are `270 20% 8%`. These need lightening for better readability.
+Replace the current "buy each item separately" flow with a unified cart system. Users configure items (Room, To-Let, Sale Listing, Boosting, SMS) → add to cart → review cart → single checkout → one payment for everything.
 
-**Fix in `src/index.css`** — Increase lightness values in `.dark` block:
-- `--background`: `270 20% 6%` → `270 15% 12%`
-- `--card`: `270 20% 8%` → `270 15% 15%`
-- `--popover`: same as card → `270 15% 15%`
-- `--secondary`: `270 15% 15%` → `270 12% 20%`
-- `--muted`: `270 15% 15%` → `270 12% 20%`
-- `--accent`: `270 30% 20%` → `270 20% 24%`
-- `--border`: `270 15% 18%` → `270 12% 22%`
-- `--input`: same → `270 12% 22%`
-- `--sidebar-background`: `270 40% 11%` → `270 25% 16%`
-- `--sidebar-accent`: `270 40% 16%` → `270 25% 22%`
-- `--sidebar-border`: `270 40% 18%` → `270 20% 24%`
+## Current State
 
-Also update dark variants in green/blue/yellow presets similarly.
+- `Subscription.tsx` (1330 lines) has 4 tabs: Room/Flat, To-Let, Sale Listing, Boosting
+- Each tab has its own "Buy Now" and "Manual Payment" buttons → separate payment per item
+- Payment goes through `create-subscription-payment` or `create-boost-payment` edge functions
+- Verification via `verify-subscription-payment` edge function
+- No SMS feature exists yet
 
-## Issue 2: Tenants page not fitting mobile (390px)
+## Database Changes
 
-From the screenshot, the header buttons overflow and the "ভাড়াটিয়া যোগ করুন" button text gets cut off. Filter dropdowns also overflow.
+1. **New table: `sms_balances`** — Track SMS credits per user
+   - `id`, `user_id`, `total_count`, `used_count`, `created_at`
+   - RLS: owner can read own, admin can manage all
 
-**Fix in `src/pages/Tenants.tsx`**:
-- Header buttons: On mobile, stack them or use icon-only buttons. Change `<div className="flex gap-2">` to `<div className="flex gap-2 flex-wrap">`
-- Shorten button text on mobile or use `text-xs` and smaller padding
-- Filter row: Change fixed widths `w-[160px]` and `w-[180px]` to responsive `w-full sm:w-[160px]` etc., and make the row stack on mobile
-- Search input: Remove `max-w-sm` on mobile
+2. **No other schema changes needed** — Cart is client-side state (localStorage). The existing `subscription_payments` table already supports `metadata` JSONB for storing multi-item order details. The edge function will process the combined order.
 
-**Fix in `src/components/tenants/TenantStatsCards.tsx`**:
-- The stats cards gradient backgrounds use hardcoded light colors (`from-pink-50`) that don't adapt to dark mode. Add dark mode variants.
+## New Edge Function
 
-## Files to Change
+**`create-cart-payment`** — Accepts an array of cart items, calculates server-side total, creates one payment request, inserts one `subscription_payments` row with all items in `metadata`.
 
-1. **`src/index.css`** — Lighten all dark mode CSS variables
-2. **`src/pages/Tenants.tsx`** — Make header buttons, filters responsive for 390px
-3. **`src/components/tenants/TenantStatsCards.tsx`** — Add dark mode gradient support
+Request body:
+```json
+{
+  "items": [
+    { "type": "room_management", "count": 5, "duration_months": 6 },
+    { "type": "tolet", "count": 2, "duration_months": 6 },
+    { "type": "boost_3_day", "count": 3 },
+    { "type": "sms", "count": 200 }
+  ],
+  "coupon_code": null,
+  "success_url": "...",
+  "cancel_url": "..."
+}
+```
+
+## Updated Edge Function
+
+**`verify-subscription-payment`** — After payment verified, loop through `metadata.items` array and activate each item type (create subscriptions, add boost balances, add SMS credits).
+
+## Frontend Components
+
+### 1. Cart Context (`src/contexts/CartContext.tsx`)
+- React context with `useCart()` hook
+- State: `items[]`, each with `type`, `count`, `duration`, `unitPrice`, `total`
+- Actions: `addItem`, `removeItem`, `updateQuantity`, `clearCart`
+- Persisted in `localStorage`
+
+### 2. Cart Icon in Sidebar (`AppSidebar.tsx`)
+- Shopping cart icon with badge count next to Subscription menu item
+- Or floating cart button on subscription page
+
+### 3. Redesigned Subscription Page (`Subscription.tsx`)
+- Keep the same tabs (Room, To-Let, Sale, Boosting) + add new **SMS** tab
+- Replace "Buy Now" buttons with **"Add to Cart"** buttons
+- Each tab still has configurator (count, duration sliders)
+- After adding, show toast "Added to cart"
+- "Manual Payment" buttons remain per-item (unchanged)
+
+### 4. New SMS Tab
+- SMS packages: 100, 200, 500, 1000 SMS
+- Price: ৳0.50/SMS (configurable)
+- Minimum 100 SMS purchase
+- Show current SMS balance
+
+### 5. Cart Drawer/Page (`src/components/subscription/CartDrawer.tsx`)
+- Slide-out drawer or section at bottom of subscription page
+- Shows all cart items: name, qty, unit price, line total
+- Edit quantity / remove items
+- Subtotal + Grand Total
+- "Checkout — ৳X" button → calls `create-cart-payment`
+- "Manual Payment" option for the whole cart
+
+## Flow
+
+```text
+[Tab: Room] → Configure → "Add to Cart" →
+[Tab: To-Let] → Configure → "Add to Cart" →
+[Tab: Boost] → Configure → "Add to Cart" →
+[Tab: SMS] → Select package → "Add to Cart" →
+                    ↓
+         [Cart Drawer opens]
+     Item list + quantities + totals
+                    ↓
+          [Checkout ৳Total]
+                    ↓
+       → create-cart-payment edge fn
+       → Recharge Server payment URL
+       → User pays once
+                    ↓
+       → Redirect back with txn ID
+       → verify-subscription-payment
+       → Activate all items at once
+```
+
+## Files to Create/Modify
+
+1. **Create** `src/contexts/CartContext.tsx` — Cart state management
+2. **Create** `src/components/subscription/CartDrawer.tsx` — Cart UI component
+3. **Create** `supabase/functions/create-cart-payment/index.ts` — Combined payment edge function
+4. **Modify** `src/pages/Subscription.tsx` — Replace "Buy Now" with "Add to Cart", add SMS tab, add cart drawer trigger
+5. **Modify** `supabase/functions/verify-subscription-payment/index.ts` — Handle multi-item activation from cart metadata
+6. **Modify** `src/components/subscription/ManualPaymentDialog.tsx` — Support cart-based manual payment
+7. **Modify** `src/App.tsx` — Wrap with CartProvider
+8. **DB Migration** — Create `sms_balances` table with RLS
+
+## SMS Pricing
+
+- ৳0.50 per SMS (PRICE_PER_SMS = 0.5)
+- Packages: 100 (৳50), 200 (৳100), 500 (৳250), 1000 (৳500)
+- Minimum: 100 SMS
+- No duration — SMS credits don't expire
 

@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -261,10 +261,21 @@ const BulkRoomAddDialog = ({ properties, onSuccess }: Props) => {
     });
   }, []);
 
+  const lastUnitRef = useRef<HTMLDivElement>(null);
+  const [shouldScroll, setShouldScroll] = useState(false);
+
+  useEffect(() => {
+    if (shouldScroll && lastUnitRef.current) {
+      lastUnitRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
+      setShouldScroll(false);
+    }
+  }, [shouldScroll, diffUnits.length]);
+
   const addDiffUnit = () => {
     const nextLabel = String.fromCharCode(65 + diffUnits.length);
     setDiffUnits(prev => [...prev, { ...defaultUnit(nextLabel), id: crypto.randomUUID() }]);
     setDiffUnitsPerFloor(String(diffUnits.length + 1));
+    setShouldScroll(true);
   };
   const removeDiffUnit = (id: string) => {
     if (diffUnits.length <= 1) return;
@@ -620,16 +631,17 @@ const BulkRoomAddDialog = ({ properties, onSuccess }: Props) => {
                 <ScrollArea className="max-h-[45vh]">
                   <div className="space-y-3 pr-2">
                     {diffUnits.map((unit, idx) => (
-                      <UnitCard
-                        key={unit.id}
-                        unit={unit}
-                        idx={idx}
-                        canRemove={diffUnits.length > 1}
-                        onUpdate={(patch) => updateDiffUnit(unit.id, patch)}
-                        onRemove={() => removeDiffUnit(unit.id)}
-                        t={t}
-                        roomTypeLabels={roomTypeLabels}
-                      />
+                      <div key={unit.id} ref={idx === diffUnits.length - 1 ? lastUnitRef : undefined}>
+                        <UnitCard
+                          unit={unit}
+                          idx={idx}
+                          canRemove={diffUnits.length > 1}
+                          onUpdate={(patch) => updateDiffUnit(unit.id, patch)}
+                          onRemove={() => removeDiffUnit(unit.id)}
+                          t={t}
+                          roomTypeLabels={roomTypeLabels}
+                        />
+                      </div>
                     ))}
                   </div>
                 </ScrollArea>

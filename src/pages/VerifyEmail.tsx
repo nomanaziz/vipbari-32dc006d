@@ -1,6 +1,7 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { PublicNavbar } from "@/components/PublicNavbar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,8 +12,16 @@ import { toast } from "sonner";
 
 const VerifyEmail = () => {
   const { t } = useLanguage();
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
   const [resending, setResending] = useState(false);
   const [email, setEmail] = useState(() => localStorage.getItem("pending_verification_email") || "");
+
+  useEffect(() => {
+    if (!loading && user) {
+      navigate("/dashboard", { replace: true });
+    }
+  }, [loading, user, navigate]);
 
   const handleResend = async () => {
     if (!email) {

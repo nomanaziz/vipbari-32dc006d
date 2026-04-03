@@ -107,6 +107,8 @@ const AdminTenants = () => {
           <TableBody>
             {isLoading ? (
               <TableRow><TableCell colSpan={8} className="text-center py-8">{t("common.loading")}</TableCell></TableRow>
+            ) : !filtered?.length ? (
+              <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">{language === "bn" ? "কোনো ভাড়াটিয়া পাওয়া যায়নি" : "No tenants found"}</TableCell></TableRow>
             ) : filtered?.map((tenant: any) => (
               <TableRow key={tenant.id}>
                 <TableCell><Checkbox checked={selectedIds.has(tenant.id)} onCheckedChange={() => toggleSelect(tenant.id)} /></TableCell>

@@ -167,8 +167,8 @@ const AdminDashboard = () => {
                   </span>
                 )}
               </div>
-              <p className="text-xl font-bold text-foreground">{card.value}</p>
-              <p className="text-[11px] text-muted-foreground mt-0.5">{card.label}</p>
+              <p className="text-xl font-bold text-foreground dark:text-white">{card.value}</p>
+              <p className="text-[11px] text-muted-foreground dark:text-gray-300 mt-0.5">{card.label}</p>
             </CardContent>
           </Card>
         ))}

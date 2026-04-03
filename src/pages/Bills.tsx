@@ -584,6 +584,7 @@ const Bills = () => {
             onOpenChange={setShowGenerate}
             onSubmit={(data) => createBill.mutate(data)}
             isPending={createBill.isPending}
+            effectiveOwnerId={effectiveOwnerId}
           />
 
           <QuickPaymentDialog

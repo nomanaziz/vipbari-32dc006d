@@ -17,9 +17,10 @@ interface BillGenerateDialogProps {
   effectiveOwnerId?: string | null;
 }
 
-export function BillGenerateDialog({ open, onOpenChange, onSubmit, isPending }: BillGenerateDialogProps) {
+export function BillGenerateDialog({ open, onOpenChange, onSubmit, isPending, effectiveOwnerId }: BillGenerateDialogProps) {
   const { language } = useLanguage();
   const { user } = useAuth();
+  const ownerId = effectiveOwnerId || user?.id;
   const [tenantId, setTenantId] = useState("");
   const [month, setMonth] = useState(() => {
     const d = new Date();

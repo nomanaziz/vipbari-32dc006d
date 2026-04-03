@@ -35,12 +35,12 @@ export function BillGenerateDialog({ open, onOpenChange, onSubmit, isPending, ef
 
   // Fetch utility config from landlord_settings
   const { data: utilityConfig } = useQuery({
-    queryKey: ["utility-config", user?.id],
+    queryKey: ["utility-config", ownerId],
     queryFn: async () => {
       const { data } = await supabase
         .from("landlord_settings")
         .select("value")
-        .eq("owner_id", user!.id)
+        .eq("owner_id", ownerId!)
         .eq("key", "utility_config")
         .maybeSingle();
       if (data?.value && typeof data.value === "object" && !Array.isArray(data.value)) {
@@ -48,7 +48,7 @@ export function BillGenerateDialog({ open, onOpenChange, onSubmit, isPending, ef
       }
       return null;
     },
-    enabled: !!user && open,
+    enabled: !!ownerId && open,
   });
 
   const { data: tenants } = useQuery({

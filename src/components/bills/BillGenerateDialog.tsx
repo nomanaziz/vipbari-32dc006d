@@ -52,18 +52,18 @@ export function BillGenerateDialog({ open, onOpenChange, onSubmit, isPending, ef
   });
 
   const { data: tenants } = useQuery({
-    queryKey: ["landlord-tenants-for-bill", user?.id],
+    queryKey: ["landlord-tenants-for-bill", ownerId],
     queryFn: async () => {
       const { data: owned } = await supabase
         .from("tenants")
         .select("id, full_name, phone, room_id, rooms(id, room_number, rent_amount)")
-        .eq("owner_id", user!.id)
+        .eq("owner_id", ownerId!)
         .eq("status", "active");
 
       const { data: requests } = await supabase
         .from("tolet_requests")
         .select("tenant_user_id, room_id, rooms(id, room_number, rent_amount)")
-        .eq("landlord_user_id", user!.id)
+        .eq("landlord_user_id", ownerId!)
         .eq("status", "accepted");
 
       const tenantMap = new Map<string, any>();
@@ -96,7 +96,7 @@ export function BillGenerateDialog({ open, onOpenChange, onSubmit, isPending, ef
 
       return Array.from(tenantMap.values());
     },
-    enabled: !!user && open,
+    enabled: !!ownerId && open,
   });
 
   const selectedTenant = tenants?.find((t: any) => t.id === tenantId);

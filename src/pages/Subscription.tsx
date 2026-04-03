@@ -980,22 +980,26 @@ const Subscription = () => {
       <Card>
         <CardContent className="p-6 space-y-6">
           <Tabs value={productTab} onValueChange={setProductTab}>
-            <TabsList className="w-full grid grid-cols-4">
-              <TabsTrigger value="room_management" className="gap-1.5 text-xs sm:text-sm">
+            <TabsList className="w-full grid grid-cols-5">
+              <TabsTrigger value="room_management" className="gap-1 text-xs sm:text-sm">
                 <Home className="h-4 w-4" />
-                <span className="hidden sm:inline">{language === "bn" ? "রুম/ফ্ল্যাট" : "Room/Flat"}</span>
+                <span className="hidden sm:inline">{language === "bn" ? "রুম" : "Room"}</span>
               </TabsTrigger>
-              <TabsTrigger value="tolet" className="gap-1.5 text-xs sm:text-sm">
+              <TabsTrigger value="tolet" className="gap-1 text-xs sm:text-sm">
                 <Megaphone className="h-4 w-4" />
                 <span className="hidden sm:inline">{language === "bn" ? "টু-লেট" : "To-Let"}</span>
               </TabsTrigger>
-              <TabsTrigger value="sale_listing" className="gap-1.5 text-xs sm:text-sm">
+              <TabsTrigger value="sale_listing" className="gap-1 text-xs sm:text-sm">
                 <ShoppingBag className="h-4 w-4" />
                 <span className="hidden sm:inline">{language === "bn" ? "বিক্রয়" : "Sale"}</span>
               </TabsTrigger>
-              <TabsTrigger value="boosting" className="gap-1.5 text-xs sm:text-sm">
+              <TabsTrigger value="boosting" className="gap-1 text-xs sm:text-sm">
                 <Flame className="h-4 w-4" />
-                <span className="hidden sm:inline">{language === "bn" ? "বুস্টিং" : "Boosting"}</span>
+                <span className="hidden sm:inline">{language === "bn" ? "বুস্ট" : "Boost"}</span>
+              </TabsTrigger>
+              <TabsTrigger value="sms" className="gap-1 text-xs sm:text-sm">
+                <MessageSquare className="h-4 w-4" />
+                <span className="hidden sm:inline">SMS</span>
               </TabsTrigger>
             </TabsList>
 

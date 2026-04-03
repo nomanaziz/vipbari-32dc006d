@@ -184,7 +184,7 @@ export function QuickPaymentDialog({ open, onOpenChange, bill }: Props) {
             <Select value={method} onValueChange={setMethod}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="cash">{L("Cash", "নগদ")}</SelectItem>
+                <SelectItem value="cash">{L("Cash", "ক্যাশ")}</SelectItem>
                 <SelectItem value="bkash">{L("bKash", "বিকাশ")}</SelectItem>
                 <SelectItem value="nagad">{L("Nagad", "নগদ")}</SelectItem>
                 <SelectItem value="bank">{L("Bank Transfer", "ব্যাংক ট্রান্সফার")}</SelectItem>

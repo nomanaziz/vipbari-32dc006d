@@ -260,6 +260,7 @@ const Subscription = () => {
     setIsCartOpen(true);
   };
 
+  useEffect(() => {
     fetchData();
   }, [user]);
 

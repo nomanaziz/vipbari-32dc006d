@@ -142,7 +142,7 @@ const Bills = () => {
 
       return Array.from(tenantMap.values());
     },
-    enabled: !!user,
+    enabled: !!effectiveOwnerId,
   });
 
   const { data: rentPayments } = useQuery({
@@ -584,6 +584,7 @@ const Bills = () => {
             onOpenChange={setShowGenerate}
             onSubmit={(data) => createBill.mutate(data)}
             isPending={createBill.isPending}
+            effectiveOwnerId={effectiveOwnerId}
           />
 
           <QuickPaymentDialog

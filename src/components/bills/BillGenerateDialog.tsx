@@ -14,11 +14,13 @@ interface BillGenerateDialogProps {
   onOpenChange: (open: boolean) => void;
   onSubmit: (data: any) => void;
   isPending: boolean;
+  effectiveOwnerId?: string | null;
 }
 
-export function BillGenerateDialog({ open, onOpenChange, onSubmit, isPending }: BillGenerateDialogProps) {
+export function BillGenerateDialog({ open, onOpenChange, onSubmit, isPending, effectiveOwnerId }: BillGenerateDialogProps) {
   const { language } = useLanguage();
   const { user } = useAuth();
+  const ownerId = effectiveOwnerId || user?.id;
   const [tenantId, setTenantId] = useState("");
   const [month, setMonth] = useState(() => {
     const d = new Date();
@@ -33,12 +35,12 @@ export function BillGenerateDialog({ open, onOpenChange, onSubmit, isPending }: 
 
   // Fetch utility config from landlord_settings
   const { data: utilityConfig } = useQuery({
-    queryKey: ["utility-config", user?.id],
+    queryKey: ["utility-config", ownerId],
     queryFn: async () => {
       const { data } = await supabase
         .from("landlord_settings")
         .select("value")
-        .eq("owner_id", user!.id)
+        .eq("owner_id", ownerId!)
         .eq("key", "utility_config")
         .maybeSingle();
       if (data?.value && typeof data.value === "object" && !Array.isArray(data.value)) {
@@ -46,22 +48,22 @@ export function BillGenerateDialog({ open, onOpenChange, onSubmit, isPending }: 
       }
       return null;
     },
-    enabled: !!user && open,
+    enabled: !!ownerId && open,
   });
 
   const { data: tenants } = useQuery({
-    queryKey: ["landlord-tenants-for-bill", user?.id],
+    queryKey: ["landlord-tenants-for-bill", ownerId],
     queryFn: async () => {
       const { data: owned } = await supabase
         .from("tenants")
         .select("id, full_name, phone, room_id, rooms(id, room_number, rent_amount)")
-        .eq("owner_id", user!.id)
+        .eq("owner_id", ownerId!)
         .eq("status", "active");
 
       const { data: requests } = await supabase
         .from("tolet_requests")
         .select("tenant_user_id, room_id, rooms(id, room_number, rent_amount)")
-        .eq("landlord_user_id", user!.id)
+        .eq("landlord_user_id", ownerId!)
         .eq("status", "accepted");
 
       const tenantMap = new Map<string, any>();
@@ -94,7 +96,7 @@ export function BillGenerateDialog({ open, onOpenChange, onSubmit, isPending }: 
 
       return Array.from(tenantMap.values());
     },
-    enabled: !!user && open,
+    enabled: !!ownerId && open,
   });
 
   const selectedTenant = tenants?.find((t: any) => t.id === tenantId);
@@ -127,7 +129,7 @@ export function BillGenerateDialog({ open, onOpenChange, onSubmit, isPending }: 
     onSubmit({
       tenant_id: tenantId,
       room_id: selectedTenant?.room_id || selectedTenant?.rooms?.id,
-      owner_id: user!.id,
+      owner_id: ownerId,
       month,
       due_date: dueDate || null,
       ...charges,

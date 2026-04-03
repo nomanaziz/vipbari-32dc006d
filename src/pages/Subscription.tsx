@@ -171,6 +171,10 @@ const Subscription = () => {
         .from("boost_balances")
         .select("*")
         .eq("user_id", user.id),
+      supabase
+        .from("sms_balances")
+        .select("*")
+        .eq("user_id", user.id),
     ]);
 
     const allSubs = subsRes.data;

@@ -115,12 +115,12 @@
   .dark[data-color-preset="green"] {
     --primary: 152 65% 50%;
     --primary-foreground: 0 0% 100%;
-    --accent: 160 30% 20%;
+    --accent: 160 20% 24%;
     --accent-foreground: 160 15% 92%;
     --ring: 152 60% 50%;
     --sidebar-primary: 152 55% 55%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 160 40% 16%;
+    --sidebar-accent: 160 25% 22%;
     --sidebar-accent-foreground: 160 20% 91%;
     --sidebar-ring: 152 55% 55%;
   }

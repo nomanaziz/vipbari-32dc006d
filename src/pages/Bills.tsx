@@ -255,7 +255,7 @@ const Bills = () => {
 
       const { data: tenantsList } = await supabase
         .from("tenants")
-        .select("id, owner_id, room_id, rooms(id, rent_amount)")
+        .select("id, owner_id, room_id, rooms!tenants_room_id_fkey(id, rent_amount)")
         .eq("owner_id", effectiveOwnerId!)
         .eq("status", "active")
         .eq("billing_type", "billing")

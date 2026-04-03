@@ -150,7 +150,7 @@ const Subscription = () => {
     if (!user) return;
     setLoading(true);
 
-    const [subsRes, payRes, discountRes, boostRes] = await Promise.all([
+    const [subsRes, payRes, discountRes, boostRes, smsRes] = await Promise.all([
       supabase
         .from("user_subscriptions")
         .select("*")

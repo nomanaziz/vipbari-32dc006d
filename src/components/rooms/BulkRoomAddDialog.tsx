@@ -261,10 +261,21 @@ const BulkRoomAddDialog = ({ properties, onSuccess }: Props) => {
     });
   }, []);
 
+  const lastUnitRef = useRef<HTMLDivElement>(null);
+  const [shouldScroll, setShouldScroll] = useState(false);
+
+  useEffect(() => {
+    if (shouldScroll && lastUnitRef.current) {
+      lastUnitRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
+      setShouldScroll(false);
+    }
+  }, [shouldScroll, diffUnits.length]);
+
   const addDiffUnit = () => {
     const nextLabel = String.fromCharCode(65 + diffUnits.length);
     setDiffUnits(prev => [...prev, { ...defaultUnit(nextLabel), id: crypto.randomUUID() }]);
     setDiffUnitsPerFloor(String(diffUnits.length + 1));
+    setShouldScroll(true);
   };
   const removeDiffUnit = (id: string) => {
     if (diffUnits.length <= 1) return;

@@ -155,8 +155,8 @@ const Tenants = () => {
       <PendingRequestsSection />
 
       {/* Filters */}
-      <div className="flex items-center gap-3 flex-wrap">
-        <div className="relative flex-1 min-w-[200px] max-w-sm">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
+        <div className="relative flex-1 min-w-0">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder={t("common.search") + "..."}
@@ -165,27 +165,29 @@ const Tenants = () => {
             className="pl-9"
           />
         </div>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[160px]">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">{t("tenant.all_tenants")}</SelectItem>
-            <SelectItem value="active">{t("tenant.active")}</SelectItem>
-            <SelectItem value="inactive">{t("tenant.inactive")}</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select value={propertyFilter} onValueChange={setPropertyFilter}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">{t("tenant.all_properties")}</SelectItem>
-            {properties?.map((p: any) => (
-              <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="flex gap-2">
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="flex-1 sm:w-[140px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{t("tenant.all_tenants")}</SelectItem>
+              <SelectItem value="active">{t("tenant.active")}</SelectItem>
+              <SelectItem value="inactive">{t("tenant.inactive")}</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={propertyFilter} onValueChange={setPropertyFilter}>
+            <SelectTrigger className="flex-1 sm:w-[160px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{t("tenant.all_properties")}</SelectItem>
+              {properties?.map((p: any) => (
+                <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {/* Tenant Cards Grid */}

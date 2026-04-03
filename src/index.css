@@ -183,12 +183,12 @@
   .dark[data-color-preset="yellow"] {
     --primary: 45 85% 55%;
     --primary-foreground: 0 0% 10%;
-    --accent: 40 30% 20%;
+    --accent: 40 20% 24%;
     --accent-foreground: 40 15% 92%;
     --ring: 45 75% 55%;
     --sidebar-primary: 35 65% 55%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 40 40% 16%;
+    --sidebar-accent: 40 25% 22%;
     --sidebar-accent-foreground: 40 20% 91%;
     --sidebar-ring: 35 65% 55%;
   }

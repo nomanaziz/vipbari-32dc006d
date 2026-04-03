@@ -1435,6 +1435,24 @@ const Subscription = () => {
         boostType={boostType}
         boostCount={boostCount}
       />
+
+      {/* Floating Cart Button */}
+      {cartCount > 0 && (
+        <div className="fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-40">
+          <Button
+            size="lg"
+            className="rounded-full h-14 w-14 shadow-lg relative"
+            onClick={() => setIsCartOpen(true)}
+          >
+            <ShoppingCart className="h-6 w-6" />
+            <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
+              {cartCount}
+            </span>
+          </Button>
+        </div>
+      )}
+
+      <CartDrawer />
     </div>
   );
 };

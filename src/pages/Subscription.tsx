@@ -718,7 +718,16 @@ const Subscription = () => {
             {language === "bn" ? "সাবস্ক্রিপশন" : "Subscription"}
           </h1>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
+          {cartCount > 0 && (
+            <Button variant="outline" size="sm" className="gap-2 relative" onClick={() => setIsCartOpen(true)}>
+              <ShoppingCart className="h-4 w-4" />
+              {language === "bn" ? "কার্ট" : "Cart"}
+              <Badge variant="destructive" className="ml-1 h-5 w-5 p-0 flex items-center justify-center text-[10px]">
+                {cartCount}
+              </Badge>
+            </Button>
+          )}
           <Dialog open={paymentStatusOpen} onOpenChange={setPaymentStatusOpen}>
             <DialogTrigger asChild>
               <Button variant="outline" size="sm" className="gap-2">

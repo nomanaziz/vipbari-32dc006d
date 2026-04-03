@@ -123,7 +123,7 @@ const Bills = () => {
         if (requestUserIds.length > 0) {
           const { data: reqTenants } = await supabase
             .from("tenants")
-            .select("id, full_name, phone, user_id, room_id, rooms(room_number, rent_amount, property_id, properties(name))")
+            .select("id, full_name, phone, user_id, room_id, rooms!tenants_room_id_fkey(room_number, rent_amount, property_id, properties(name))")
             .in("user_id", requestUserIds)
             .eq("status", "active");
 

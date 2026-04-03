@@ -1,31 +1,42 @@
 
 
-# Fix 4 Issues: Mobile Design, Unit Scroll, Email Verify 404, Sidebar Scroll
+# Fix Dark Mode Brightness & Tenants Mobile Layout
 
-## Issue 1: `common.saving` still showing as raw key in Bulk Room dialog
-The button at line 669 of `BulkRoomAddDialog.tsx` uses `t("common.saving")`. The translation was added previously but may not have been saved correctly, or the dialog was cached. Will verify the translation exists and ensure it renders plain text.
+## Issue 1: Dark mode too dark — add brightness
 
-**Fix**: Check `LanguageContext.tsx` for `common.saving` key. If missing, add it. The screenshot shows it still displaying raw — likely needs the exact key added.
+The dark mode background is `270 20% 6%` (very dark). Cards are `270 20% 8%`. These need lightening for better readability.
 
-## Issue 2: Adding second unit doesn't auto-scroll and copies first unit values
-When clicking "+ ইউনিট যোগ করুন" in different mode, `addDiffUnit()` creates a new unit with `defaultUnit(nextLabel)` which has default values (not copied from first). The issue is the `ScrollArea` doesn't auto-scroll to the newly added unit.
+**Fix in `src/index.css`** — Increase lightness values in `.dark` block:
+- `--background`: `270 20% 6%` → `270 15% 12%`
+- `--card`: `270 20% 8%` → `270 15% 15%`
+- `--popover`: same as card → `270 15% 15%`
+- `--secondary`: `270 15% 15%` → `270 12% 20%`
+- `--muted`: `270 15% 15%` → `270 12% 20%`
+- `--accent`: `270 30% 20%` → `270 20% 24%`
+- `--border`: `270 15% 18%` → `270 12% 22%`
+- `--input`: same → `270 12% 22%`
+- `--sidebar-background`: `270 40% 11%` → `270 25% 16%`
+- `--sidebar-accent`: `270 40% 16%` → `270 25% 22%`
+- `--sidebar-border`: `270 40% 18%` → `270 20% 24%`
 
-**Fix**: After adding a unit, scroll the ScrollArea to the bottom. Use a `ref` on the last unit and call `scrollIntoView` after state update.
+Also update dark variants in green/blue/yellow presets similarly.
 
-## Issue 3: `/verify-email` page shows 404 on published site
-The route `/verify-email` exists in `App.tsx` (line 125). The 404 shown is from Supabase/hosting, not React Router — the URL in screenshot shows `vipbari.com/verify-email` which is the published custom domain. This is a SPA routing issue on the custom domain. However per Lovable docs, SPA routing is handled automatically. The real issue may be that after email confirmation, the hash callback isn't redirecting properly.
+## Issue 2: Tenants page not fitting mobile (390px)
 
-**Fix**: The `OAuthCallbackHandler` handles `type=signup` hash redirects. But if the user lands on `/verify-email` and reloads after confirmation, they should be redirected to dashboard/login. Add logic in `VerifyEmail.tsx` to check if user is already authenticated and redirect to dashboard.
+From the screenshot, the header buttons overflow and the "ভাড়াটিয়া যোগ করুন" button text gets cut off. Filter dropdowns also overflow.
 
-## Issue 4: Mobile side menu (PublicNavbar Sheet) not scrollable
-The `SheetContent` in `PublicNavbar.tsx` (line 171) has no scroll mechanism. When feature links fill the menu, it overflows without scrolling.
+**Fix in `src/pages/Tenants.tsx`**:
+- Header buttons: On mobile, stack them or use icon-only buttons. Change `<div className="flex gap-2">` to `<div className="flex gap-2 flex-wrap">`
+- Shorten button text on mobile or use `text-xs` and smaller padding
+- Filter row: Change fixed widths `w-[160px]` and `w-[180px]` to responsive `w-full sm:w-[160px]` etc., and make the row stack on mobile
+- Search input: Remove `max-w-sm` on mobile
 
-**Fix**: Wrap the sheet content body in a `ScrollArea` or add `overflow-y-auto` to make the content scrollable on mobile.
+**Fix in `src/components/tenants/TenantStatsCards.tsx`**:
+- The stats cards gradient backgrounds use hardcoded light colors (`from-pink-50`) that don't adapt to dark mode. Add dark mode variants.
 
-## File Changes
+## Files to Change
 
-1. **`src/contexts/LanguageContext.tsx`** — Verify/fix `common.saving` translation key
-2. **`src/components/rooms/BulkRoomAddDialog.tsx`** — Add auto-scroll to new unit after adding; ensure new units get fresh defaults (not copies)
-3. **`src/pages/VerifyEmail.tsx`** — Add auth check: if user is logged in, redirect to `/dashboard`
-4. **`src/components/PublicNavbar.tsx`** — Add `overflow-y-auto` and proper height constraint to SheetContent body for mobile scrollability
+1. **`src/index.css`** — Lighten all dark mode CSS variables
+2. **`src/pages/Tenants.tsx`** — Make header buttons, filters responsive for 390px
+3. **`src/components/tenants/TenantStatsCards.tsx`** — Add dark mode gradient support
 

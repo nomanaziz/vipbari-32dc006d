@@ -1244,15 +1244,10 @@ const Subscription = () => {
 
               <Button
                 className="w-full h-12 text-base gap-2 bg-primary hover:bg-primary/90 text-primary-foreground"
-                onClick={handleBoostPurchase}
-                disabled={subscribing}
+                onClick={() => handleAddToCart(boostType === "3_day" ? "boost_3_day" : "boost_7_day", `${boostType === "3_day" ? "3" : "7"}-Day Boost`, `${boostType === "3_day" ? "৩" : "৭"} দিন বুস্ট`, boostCount, 0, BOOST_PRICES[boostType], 0, "", boostTotalPrice)}
               >
                 <ShoppingCart className="h-5 w-5" />
-                {subscribing
-                  ? language === "bn" ? "প্রসেসিং..." : "Processing..."
-                  : language === "bn"
-                  ? `৳${boostTotalPrice} — এখনই কিনুন`
-                  : `৳${boostTotalPrice} — Buy Now`}
+                {language === "bn" ? `৳${boostTotalPrice} — কার্টে যোগ করুন` : `৳${boostTotalPrice} — Add to Cart`}
               </Button>
               <Button
                 variant="outline"

@@ -115,6 +115,7 @@ const App = () => (
         <PWAInstallBanner />
         <BrowserRouter>
           <AuthProvider>
+            <CartProvider>
             <OAuthCallbackHandler />
             <Routes>
               <Route path="/login" element={<Login />} />

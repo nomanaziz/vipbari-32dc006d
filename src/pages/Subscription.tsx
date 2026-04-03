@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useCart } from "@/contexts/CartContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -36,9 +37,11 @@ import {
   Banknote,
   Flame,
   ShoppingBag,
+  MessageSquare,
 } from "lucide-react";
 import { toast } from "sonner";
 import ManualPaymentDialog from "@/components/subscription/ManualPaymentDialog";
+import CartDrawer from "@/components/subscription/CartDrawer";
 
 interface ActiveSub {
   id: string;

@@ -129,7 +129,7 @@ export function BillGenerateDialog({ open, onOpenChange, onSubmit, isPending, ef
     onSubmit({
       tenant_id: tenantId,
       room_id: selectedTenant?.room_id || selectedTenant?.rooms?.id,
-      owner_id: user!.id,
+      owner_id: ownerId,
       month,
       due_date: dueDate || null,
       ...charges,

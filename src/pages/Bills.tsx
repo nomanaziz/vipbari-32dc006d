@@ -100,17 +100,19 @@ const Bills = () => {
   const { data: tenants } = useQuery({
     queryKey: ["rent-tenants", effectiveOwnerId],
     queryFn: async () => {
-      const { data: owned } = await supabase
+      const { data: owned, error: ownedError } = await supabase
         .from("tenants")
-        .select("id, full_name, phone, user_id, room_id, rooms(room_number, rent_amount, property_id, properties(name))")
+        .select("id, full_name, phone, user_id, room_id, rooms!tenants_room_id_fkey(room_number, rent_amount, property_id, properties(name))")
         .eq("owner_id", effectiveOwnerId!)
         .eq("status", "active");
+      if (ownedError) throw ownedError;
 
-      const { data: requests } = await supabase
+      const { data: requests, error: requestsError } = await supabase
         .from("tolet_requests")
-        .select("tenant_user_id, room_id, rooms(room_number, rent_amount, property_id, properties(name))")
+        .select("tenant_user_id, room_id, rooms(id, room_number, rent_amount, property_id, properties(name))")
         .eq("landlord_user_id", effectiveOwnerId!)
         .eq("status", "accepted");
+      if (requestsError) throw requestsError;
 
       const tenantMap = new Map<string, any>();
       (owned || []).forEach((t: any) => tenantMap.set(t.id, t));
@@ -121,11 +123,12 @@ const Bills = () => {
           .filter((uid: string) => ![...tenantMap.values()].some((t: any) => t.user_id === uid));
 
         if (requestUserIds.length > 0) {
-          const { data: reqTenants } = await supabase
+          const { data: reqTenants, error: reqTenantsError } = await supabase
             .from("tenants")
-            .select("id, full_name, phone, user_id, room_id, rooms(room_number, rent_amount, property_id, properties(name))")
+            .select("id, full_name, phone, user_id, room_id, rooms!tenants_room_id_fkey(room_number, rent_amount, property_id, properties(name))")
             .in("user_id", requestUserIds)
             .eq("status", "active");
+          if (reqTenantsError) throw reqTenantsError;
 
           (reqTenants || []).forEach((t: any) => {
             if (!tenantMap.has(t.id)) {
@@ -243,41 +246,46 @@ const Bills = () => {
       const month = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
       const dueDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-10`;
 
-      const { data: utilCfgData } = await supabase
+      const { data: utilCfgData, error: utilCfgError } = await supabase
         .from("landlord_settings")
         .select("value")
         .eq("owner_id", effectiveOwnerId!)
         .eq("key", "utility_config")
         .maybeSingle();
+      if (utilCfgError) throw utilCfgError;
+
       const cfg = (utilCfgData?.value && typeof utilCfgData.value === "object" && !Array.isArray(utilCfgData.value))
         ? utilCfgData.value as Record<string, { enabled: boolean; rate: string }>
         : null;
 
-      const { data: tenantsList } = await supabase
+      const { data: tenantsList, error: tenantsListError } = await supabase
         .from("tenants")
-        .select("id, owner_id, room_id, rooms(id, rent_amount)")
+        .select("id, owner_id, room_id, rooms!tenants_room_id_fkey(id, rent_amount)")
         .eq("owner_id", effectiveOwnerId!)
         .eq("status", "active")
         .eq("billing_type", "billing")
         .not("room_id", "is", null);
+      if (tenantsListError) throw tenantsListError;
 
-      const { data: requests } = await supabase
+      const { data: requests, error: requestsError } = await supabase
         .from("tolet_requests")
         .select("tenant_user_id, room_id, rooms(id, rent_amount)")
         .eq("landlord_user_id", effectiveOwnerId!)
         .eq("status", "accepted");
+      if (requestsError) throw requestsError;
 
       const tenantMap = new Map<string, any>();
       (tenantsList || []).forEach((t: any) => tenantMap.set(t.id, t));
 
       if (requests?.length) {
         const userIds = requests.map((r: any) => r.tenant_user_id);
-        const { data: reqTenants } = await supabase
+        const { data: reqTenants, error: reqTenantsError } = await supabase
           .from("tenants")
-          .select("id, owner_id, room_id, user_id, billing_type, rooms(id, rent_amount)")
+          .select("id, owner_id, room_id, user_id, billing_type, rooms!tenants_room_id_fkey(id, rent_amount)")
           .in("user_id", userIds)
           .eq("status", "active")
           .eq("billing_type", "billing");
+        if (reqTenantsError) throw reqTenantsError;
 
         (reqTenants || []).forEach((t: any) => {
           if (!tenantMap.has(t.id)) {
@@ -291,11 +299,12 @@ const Bills = () => {
         });
       }
 
-      const { data: existing } = await supabase
+      const { data: existing, error: existingError } = await supabase
         .from("bills")
         .select("tenant_id")
         .eq("month", month)
         .eq("owner_id", effectiveOwnerId!);
+      if (existingError) throw existingError;
 
       const existingIds = new Set((existing || []).map((b: any) => b.tenant_id));
 

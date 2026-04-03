@@ -1032,15 +1032,10 @@ const Subscription = () => {
 
               <Button
                 className="w-full h-12 text-base gap-2 bg-primary hover:bg-primary/90 text-primary-foreground"
-                onClick={() => handleSubscribe("room_management")}
-                disabled={subscribing}
+                onClick={() => handleAddToCart("room_management", "Room/Flat", "রুম/ফ্ল্যাট", roomCount, roomDuration, PRICE_PER_ROOM, roomDiscountPct, roomCoupon, roomTotalPrice)}
               >
                 <ShoppingCart className="h-5 w-5" />
-                {subscribing
-                  ? language === "bn" ? "প্রসেসিং..." : "Processing..."
-                  : language === "bn"
-                  ? `৳${roomTotalPrice} — এখনই কিনুন`
-                  : `৳${roomTotalPrice} — Buy Now`}
+                {language === "bn" ? `৳${roomTotalPrice} — কার্টে যোগ করুন` : `৳${roomTotalPrice} — Add to Cart`}
               </Button>
               <Button
                 variant="outline"

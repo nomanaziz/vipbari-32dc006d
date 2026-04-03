@@ -214,6 +214,12 @@ const Subscription = () => {
 
     setPaymentHistory(payRes.data || []);
     setBoostBalances(boostRes.data || []);
+
+    // SMS balance
+    const smsData = smsRes.data || [];
+    const totalSms = smsData.reduce((s: number, b: any) => s + b.total_count, 0);
+    const usedSms = smsData.reduce((s: number, b: any) => s + b.used_count, 0);
+    setSmsBalance({ total: totalSms, used: usedSms });
     
     // Set landlord discount
     if (discountRes.data && discountRes.data.length > 0) {

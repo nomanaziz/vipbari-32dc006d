@@ -129,19 +129,21 @@ const Tenants = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-4">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-2xl font-bold">{t("nav.tenants")}</h1>
-          <p className="text-sm text-muted-foreground">{t("tenant.total")}: {totalTenants}</p>
+          <h1 className="text-xl sm:text-2xl font-bold">{t("nav.tenants")}</h1>
+          <p className="text-xs sm:text-sm text-muted-foreground">{t("tenant.total")}: {totalTenants}</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" className="gap-2" onClick={() => setLinkDialogOpen(true)}>
-            <Link className="h-4 w-4" />
-            {t("tenant.link_existing") || "Link Tenant"}
+          <Button variant="outline" size="sm" className="gap-1.5 text-xs sm:text-sm" onClick={() => setLinkDialogOpen(true)}>
+            <Link className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">{t("tenant.link_existing") || "Link Tenant"}</span>
+            <span className="sm:hidden">Link</span>
           </Button>
-          <Button className="gap-2" onClick={() => { setEditing(null); setOpen(true); }}>
-            <Plus className="h-4 w-4" />
-            {t("tenant.add")}
+          <Button size="sm" className="gap-1.5 text-xs sm:text-sm" onClick={() => { setEditing(null); setOpen(true); }}>
+            <Plus className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">{t("tenant.add")}</span>
+            <span className="sm:hidden">{t("tenant.add")}</span>
           </Button>
         </div>
       </div>
@@ -153,8 +155,8 @@ const Tenants = () => {
       <PendingRequestsSection />
 
       {/* Filters */}
-      <div className="flex items-center gap-3 flex-wrap">
-        <div className="relative flex-1 min-w-[200px] max-w-sm">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
+        <div className="relative flex-1 min-w-0">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder={t("common.search") + "..."}
@@ -163,27 +165,29 @@ const Tenants = () => {
             className="pl-9"
           />
         </div>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[160px]">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">{t("tenant.all_tenants")}</SelectItem>
-            <SelectItem value="active">{t("tenant.active")}</SelectItem>
-            <SelectItem value="inactive">{t("tenant.inactive")}</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select value={propertyFilter} onValueChange={setPropertyFilter}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">{t("tenant.all_properties")}</SelectItem>
-            {properties?.map((p: any) => (
-              <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="flex gap-2">
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="flex-1 sm:w-[140px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{t("tenant.all_tenants")}</SelectItem>
+              <SelectItem value="active">{t("tenant.active")}</SelectItem>
+              <SelectItem value="inactive">{t("tenant.inactive")}</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={propertyFilter} onValueChange={setPropertyFilter}>
+            <SelectTrigger className="flex-1 sm:w-[160px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{t("tenant.all_properties")}</SelectItem>
+              {properties?.map((p: any) => (
+                <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {/* Tenant Cards Grid */}

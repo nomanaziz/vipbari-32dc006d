@@ -12,9 +12,9 @@ const TenantStatsCards = ({ total, occupied, noRoom }: Props) => {
   const { t } = useLanguage();
 
   const stats = [
-    { label: t("tenant.total"), value: total, icon: Users, iconBg: "bg-pink-500", bg: "from-pink-50 to-pink-100" },
-    { label: t("tenant.occupied"), value: occupied, icon: Home, iconBg: "bg-emerald-500", bg: "from-emerald-50 to-emerald-100" },
-    { label: t("tenant.no_room"), value: noRoom, icon: AlertCircle, iconBg: "bg-orange-500", bg: "from-orange-50 to-orange-100" },
+    { label: t("tenant.total"), value: total, icon: Users, iconBg: "bg-pink-500", bg: "from-pink-50 to-pink-100 dark:from-pink-950/30 dark:to-pink-900/20" },
+    { label: t("tenant.occupied"), value: occupied, icon: Home, iconBg: "bg-emerald-500", bg: "from-emerald-50 to-emerald-100 dark:from-emerald-950/30 dark:to-emerald-900/20" },
+    { label: t("tenant.no_room"), value: noRoom, icon: AlertCircle, iconBg: "bg-orange-500", bg: "from-orange-50 to-orange-100 dark:from-orange-950/30 dark:to-orange-900/20" },
   ];
 
   return (

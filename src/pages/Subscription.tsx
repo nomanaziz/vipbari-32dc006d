@@ -67,6 +67,8 @@ const PRICE_PER_ROOM = 10;
 const PRICE_PER_TOLET = 50;
 const PRICE_PER_SALE_LISTING = 200;
 const BOOST_PRICES: Record<string, number> = { "3_day": 30, "7_day": 50 };
+const PRICE_PER_SMS = 0.5;
+const SMS_PACKAGES = [100, 200, 500, 1000];
 
 const getDurationDiscount = (months: number): number =>
   months < 6 ? 0 : Math.min(35, Math.round(5 + (months - 6)));

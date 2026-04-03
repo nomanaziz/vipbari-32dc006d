@@ -14,6 +14,7 @@ interface BillGenerateDialogProps {
   onOpenChange: (open: boolean) => void;
   onSubmit: (data: any) => void;
   isPending: boolean;
+  effectiveOwnerId?: string | null;
 }
 
 export function BillGenerateDialog({ open, onOpenChange, onSubmit, isPending }: BillGenerateDialogProps) {

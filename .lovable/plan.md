@@ -1,85 +1,31 @@
 
 
-# Staff Full Details & Salary Management
+# Fix 4 Issues: Mobile Design, Unit Scroll, Email Verify 404, Sidebar Scroll
 
-## Summary
-Enhance the staff system with detailed personal info (addresses, NID, DOB, photo, salary) and a salary payment feature that auto-records to accounting. Merge the separate "Position" and "Role/Preset" fields into one since they serve the same purpose.
+## Issue 1: `common.saving` still showing as raw key in Bulk Room dialog
+The button at line 669 of `BulkRoomAddDialog.tsx` uses `t("common.saving")`. The translation was added previously but may not have been saved correctly, or the dialog was cached. Will verify the translation exists and ensure it renders plain text.
 
-## Database Changes
+**Fix**: Check `LanguageContext.tsx` for `common.saving` key. If missing, add it. The screenshot shows it still displaying raw — likely needs the exact key added.
 
-### 1. New table: `staff_details`
-Stores extended staff info linked to `staff_assignments`.
+## Issue 2: Adding second unit doesn't auto-scroll and copies first unit values
+When clicking "+ ইউনিট যোগ করুন" in different mode, `addDiffUnit()` creates a new unit with `defaultUnit(nextLabel)` which has default values (not copied from first). The issue is the `ScrollArea` doesn't auto-scroll to the newly added unit.
 
-| Column | Type | Notes |
-|--------|------|-------|
-| id | uuid PK | |
-| staff_assignment_id | uuid FK → staff_assignments | unique |
-| permanent_address | text | |
-| present_address | text | |
-| nid_number | text | NID / Birth cert number |
-| doc_type | text | 'nid' / 'birth_certificate' / 'passport' |
-| date_of_birth | date | |
-| photo_url | text | Avatar/photo |
-| salary | numeric | Monthly salary amount |
-| joining_date | date | |
-| created_at / updated_at | timestamptz | |
+**Fix**: After adding a unit, scroll the ScrollArea to the bottom. Use a `ref` on the last unit and call `scrollIntoView` after state update.
 
-RLS: owner can manage (via staff_assignments.assigned_by), admin full access.
+## Issue 3: `/verify-email` page shows 404 on published site
+The route `/verify-email` exists in `App.tsx` (line 125). The 404 shown is from Supabase/hosting, not React Router — the URL in screenshot shows `vipbari.com/verify-email` which is the published custom domain. This is a SPA routing issue on the custom domain. However per Lovable docs, SPA routing is handled automatically. The real issue may be that after email confirmation, the hash callback isn't redirecting properly.
 
-### 2. New table: `salary_payments`
-Tracks paid salaries per staff per month.
+**Fix**: The `OAuthCallbackHandler` handles `type=signup` hash redirects. But if the user lands on `/verify-email` and reloads after confirmation, they should be redirected to dashboard/login. Add logic in `VerifyEmail.tsx` to check if user is already authenticated and redirect to dashboard.
 
-| Column | Type | Notes |
-|--------|------|-------|
-| id | uuid PK | |
-| staff_assignment_id | uuid FK | |
-| owner_id | uuid | Landlord who pays |
-| amount | numeric | |
-| month | text | e.g. "2026-04" |
-| payment_date | date | |
-| notes | text | |
-| created_at | timestamptz | |
+## Issue 4: Mobile side menu (PublicNavbar Sheet) not scrollable
+The `SheetContent` in `PublicNavbar.tsx` (line 171) has no scroll mechanism. When feature links fill the menu, it overflows without scrolling.
 
-RLS: owner manages own records. On insert, auto-create an accounting_entry (type: expense, category: staff_salary).
-
-### 3. Remove `staff_type` from `staff_assignments`
-Merge Position into Role — the preset already serves as the role/position. Remove `staff_type` column usage from UI. The preset name (Manager, Caretaker, Guard, etc.) IS the position.
-
-## UI Changes
-
-### StaffInviteDialog — Enhanced Form
-- Remove separate "Position" dropdown (staff_type)
-- Keep Role/Preset as the single combined "Position / Role" selector
-- Add new fields: Permanent Address, Present Address, NID/Birth Cert number, Doc Type selector, Date of Birth, Salary (monthly), Photo upload
-- Scrollable dialog with sections
-
-### StaffEditDialog — Enhanced Form
-- Same additional fields as invite
-- Load/save from `staff_details` table
-
-### StaffCard — Show More Info
-- Show salary amount, DOB/age, photo (in Avatar)
-- Add "Pay Salary" button
-
-### New: SalaryPayDialog
-- Select month, enter amount (pre-filled from salary), notes
-- On submit: insert into `salary_payments` + insert into `accounting_entries` as expense
-- Show salary payment history
-
-### Staff Page
-- Add salary payment history section or tab
-- Show total salary expense stats
-
-## Edge Function Update
-- `invite-staff`: accept new fields (addresses, nid, dob, salary, doc_type) and insert into `staff_details` after creating the user
+**Fix**: Wrap the sheet content body in a `ScrollArea` or add `overflow-y-auto` to make the content scrollable on mobile.
 
 ## File Changes
-1. **Migration SQL** — create `staff_details`, `salary_payments` tables with RLS
-2. **`supabase/functions/invite-staff/index.ts`** — insert staff_details row
-3. **`src/components/staff/StaffInviteDialog.tsx`** — add full detail fields, merge position/role
-4. **`src/components/staff/StaffEditDialog.tsx`** — add full detail fields, load staff_details
-5. **`src/components/staff/StaffCard.tsx`** — show photo, salary, age, pay salary button
-6. **`src/components/staff/SalaryPayDialog.tsx`** — new dialog for paying salary
-7. **`src/pages/Staff.tsx`** — fetch staff_details, salary_payments; wire new dialogs
-8. **`src/contexts/LanguageContext.tsx`** — add translation keys for new fields
+
+1. **`src/contexts/LanguageContext.tsx`** — Verify/fix `common.saving` translation key
+2. **`src/components/rooms/BulkRoomAddDialog.tsx`** — Add auto-scroll to new unit after adding; ensure new units get fresh defaults (not copies)
+3. **`src/pages/VerifyEmail.tsx`** — Add auth check: if user is logged in, redirect to `/dashboard`
+4. **`src/components/PublicNavbar.tsx`** — Add `overflow-y-auto` and proper height constraint to SheetContent body for mobile scrollability
 

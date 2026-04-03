@@ -1095,15 +1095,10 @@ const Subscription = () => {
 
               <Button
                 className="w-full h-12 text-base gap-2 bg-primary hover:bg-primary/90 text-primary-foreground"
-                onClick={() => handleSubscribe("tolet")}
-                disabled={subscribing}
+                onClick={() => handleAddToCart("tolet", "To-Let", "টু-লেট", toletCount, toletDuration, PRICE_PER_TOLET, toletDiscountPct, toletCoupon, toletTotalPrice)}
               >
                 <ShoppingCart className="h-5 w-5" />
-                {subscribing
-                  ? language === "bn" ? "প্রসেসিং..." : "Processing..."
-                  : language === "bn"
-                  ? `৳${toletTotalPrice} — এখনই কিনুন`
-                  : `৳${toletTotalPrice} — Buy Now`}
+                {language === "bn" ? `৳${toletTotalPrice} — কার্টে যোগ করুন` : `৳${toletTotalPrice} — Add to Cart`}
               </Button>
               <Button
                 variant="outline"

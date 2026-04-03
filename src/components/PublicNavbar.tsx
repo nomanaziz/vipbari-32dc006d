@@ -246,6 +246,7 @@ export const PublicNavbar = () => {
                   </>
                 )}
               </div>
+              </div>
             </SheetContent>
           </Sheet>
         </div>

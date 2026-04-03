@@ -631,16 +631,17 @@ const BulkRoomAddDialog = ({ properties, onSuccess }: Props) => {
                 <ScrollArea className="max-h-[45vh]">
                   <div className="space-y-3 pr-2">
                     {diffUnits.map((unit, idx) => (
-                      <UnitCard
-                        key={unit.id}
-                        unit={unit}
-                        idx={idx}
-                        canRemove={diffUnits.length > 1}
-                        onUpdate={(patch) => updateDiffUnit(unit.id, patch)}
-                        onRemove={() => removeDiffUnit(unit.id)}
-                        t={t}
-                        roomTypeLabels={roomTypeLabels}
-                      />
+                      <div key={unit.id} ref={idx === diffUnits.length - 1 ? lastUnitRef : undefined}>
+                        <UnitCard
+                          unit={unit}
+                          idx={idx}
+                          canRemove={diffUnits.length > 1}
+                          onUpdate={(patch) => updateDiffUnit(unit.id, patch)}
+                          onRemove={() => removeDiffUnit(unit.id)}
+                          t={t}
+                          roomTypeLabels={roomTypeLabels}
+                        />
+                      </div>
                     ))}
                   </div>
                 </ScrollArea>

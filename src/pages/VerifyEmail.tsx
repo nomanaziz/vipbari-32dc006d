@@ -12,8 +12,16 @@ import { toast } from "sonner";
 
 const VerifyEmail = () => {
   const { t } = useLanguage();
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
   const [resending, setResending] = useState(false);
   const [email, setEmail] = useState(() => localStorage.getItem("pending_verification_email") || "");
+
+  useEffect(() => {
+    if (!loading && user) {
+      navigate("/dashboard", { replace: true });
+    }
+  }, [loading, user, navigate]);
 
   const handleResend = async () => {
     if (!email) {

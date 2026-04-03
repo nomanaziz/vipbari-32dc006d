@@ -1959,6 +1959,30 @@ export type Database = {
         }
         Relationships: []
       }
+      sms_balances: {
+        Row: {
+          created_at: string
+          id: string
+          total_count: number
+          used_count: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          total_count?: number
+          used_count?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          total_count?: number
+          used_count?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       staff_assignments: {
         Row: {
           assigned_by: string

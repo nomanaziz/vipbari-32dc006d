@@ -24,7 +24,8 @@ const AdminTenants = () => {
   const { data: tenants, isLoading } = useQuery({
     queryKey: ["admin-tenants"],
     queryFn: async () => {
-      const { data } = await supabase.from("tenants").select("*, rooms(room_number, properties(name))").order("created_at", { ascending: false });
+      const { data, error } = await supabase.from("tenants").select("*, rooms(room_number, properties(name))").order("created_at", { ascending: false }).limit(500);
+      if (error) console.error("Admin tenants fetch error:", error);
       return data || [];
     },
   });

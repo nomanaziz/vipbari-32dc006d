@@ -182,7 +182,7 @@ const Payments = () => {
 
   const paymentMethods = [
     { value: "all", label: L("All Methods", "সব মাধ্যম") },
-    { value: "cash", label: L("Cash", "নগদ (Cash)") },
+    { value: "cash", label: L("Cash", "ক্যাশ") },
     { value: "bkash", label: "bKash" },
     { value: "nagad", label: "Nagad" },
     { value: "bank", label: L("Bank", "ব্যাংক") },

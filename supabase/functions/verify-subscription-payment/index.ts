@@ -69,18 +69,11 @@ Deno.serve(async (req) => {
     );
 
     if (verifyData.status === "COMPLETED") {
-      // Extract metadata from verification response (handle both field names)
+      // Extract metadata
       let meta = verifyData.meta_data || verifyData.metadata || {};
       if (typeof meta === "string") {
         try { meta = JSON.parse(meta); } catch { meta = {}; }
       }
-      const productType = meta.product_type || "room_management";
-      const roomCount = parseInt(meta.room_count) || 0;
-      const toletCount = parseInt(meta.tolet_count) || 0;
-      const saleListingCount = parseInt(meta.sale_listing_count) || 0;
-      const durationMonths = parseInt(meta.duration_months) || 2;
-      const discountPercent = parseFloat(meta.discount_percent) || 0;
-      const couponCode = meta.coupon_code || null;
 
       // Update payment record
       await adminClient
@@ -96,81 +89,14 @@ Deno.serve(async (req) => {
         .order("created_at", { ascending: false })
         .limit(1);
 
-      // Get a plan_id
-      const { data: plans } = await adminClient
-        .from("subscription_plans")
-        .select("id")
-        .eq("is_active", true)
-        .order("sort_order")
-        .limit(1);
+      // Check if this is a cart payment (multi-item)
+      const isCart = meta.is_cart === true && Array.isArray(meta.cart_items);
 
-      const planId = plans?.[0]?.id;
-      if (!planId) {
-        return new Response(JSON.stringify({ error: "No plan found" }), {
-          status: 500, headers: corsHeaders,
-        });
+      if (isCart) {
+        await activateCartItems(adminClient, userId, meta.cart_items);
+      } else {
+        await activateSingleItem(adminClient, userId, meta);
       }
-
-      // Check existing active subscription for extension
-      const { data: existingSubs } = await adminClient
-        .from("user_subscriptions")
-        .select("expires_at")
-        .eq("user_id", userId)
-        .eq("product_type", productType)
-        .eq("status", "active")
-        .order("expires_at", { ascending: false })
-        .limit(1);
-
-      const currentExpiry = existingSubs?.[0]?.expires_at
-        ? new Date(existingSubs[0].expires_at)
-        : new Date();
-      const startsAt = currentExpiry > new Date() ? currentExpiry : new Date();
-      const expiresAt = new Date(startsAt.getTime() + durationMonths * 30 * 24 * 60 * 60 * 1000);
-
-      // Handle first-time to-let free slots
-      if (productType === "tolet") {
-        const { data: prevTolet } = await adminClient
-          .from("user_subscriptions")
-          .select("id")
-          .eq("user_id", userId)
-          .eq("product_type", "tolet")
-          .limit(1);
-
-        if (!prevTolet || prevTolet.length === 0) {
-          const freeExpiry = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
-          await adminClient.from("user_subscriptions").insert({
-            user_id: userId,
-            plan_id: planId,
-            starts_at: new Date().toISOString(),
-            expires_at: freeExpiry.toISOString(),
-            status: "active",
-            product_type: "tolet",
-            tolet_count: 2,
-            tolet_price_per_unit: 0,
-            room_count: 0,
-            duration_months: 1,
-            discount_percent: 0,
-            coupon_code: null,
-          });
-        }
-      }
-
-      // Insert the paid subscription
-      await adminClient.from("user_subscriptions").insert({
-        user_id: userId,
-        plan_id: planId,
-        starts_at: startsAt.toISOString(),
-        expires_at: expiresAt.toISOString(),
-        status: "active",
-        product_type: productType,
-        room_count: productType === "room_management" ? roomCount : 0,
-        tolet_count: productType === "tolet" ? toletCount : 0,
-        tolet_price_per_unit: productType === "tolet" ? 50 : 0,
-        sale_listing_count: productType === "sale_listing" ? saleListingCount : 0,
-        duration_months: durationMonths,
-        discount_percent: discountPercent,
-        coupon_code: couponCode,
-      });
 
       return new Response(
         JSON.stringify({ status: "completed", message: "Subscription activated" }),
@@ -182,7 +108,6 @@ Deno.serve(async (req) => {
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     } else {
-      // Update payment as failed
       await adminClient
         .from("subscription_payments")
         .update({ status: "failed", transaction_id, metadata: verifyData })
@@ -203,3 +128,182 @@ Deno.serve(async (req) => {
     );
   }
 });
+
+// Activate a single item (legacy flow)
+async function activateSingleItem(adminClient: any, userId: string, meta: any) {
+  const productType = meta.product_type || "room_management";
+  const roomCount = parseInt(meta.room_count) || 0;
+  const toletCount = parseInt(meta.tolet_count) || 0;
+  const saleListingCount = parseInt(meta.sale_listing_count) || 0;
+  const durationMonths = parseInt(meta.duration_months) || 2;
+  const discountPercent = parseFloat(meta.discount_percent) || 0;
+  const couponCode = meta.coupon_code || null;
+
+  const planId = await getDefaultPlanId(adminClient);
+  if (!planId) return;
+
+  await createSubscription(adminClient, userId, planId, {
+    productType, roomCount, toletCount, saleListingCount, durationMonths, discountPercent, couponCode,
+  });
+
+  // Handle first-time to-let free slots
+  if (productType === "tolet") {
+    await handleFreeTolet(adminClient, userId, planId);
+  }
+}
+
+// Activate multiple cart items
+async function activateCartItems(adminClient: any, userId: string, cartItems: any[]) {
+  const planId = await getDefaultPlanId(adminClient);
+  if (!planId) return;
+
+  for (const item of cartItems) {
+    const { type, count, duration_months, discount_percent, coupon_code } = item;
+
+    if (type === "room_management" || type === "tolet" || type === "sale_listing") {
+      await createSubscription(adminClient, userId, planId, {
+        productType: type,
+        roomCount: type === "room_management" ? count : 0,
+        toletCount: type === "tolet" ? count : 0,
+        saleListingCount: type === "sale_listing" ? count : 0,
+        durationMonths: duration_months,
+        discountPercent: discount_percent || 0,
+        couponCode: coupon_code || null,
+      });
+
+      if (type === "tolet") {
+        await handleFreeTolet(adminClient, userId, planId);
+      }
+    } else if (type === "boost_3_day" || type === "boost_7_day") {
+      const boostType = type === "boost_3_day" ? "3_day" : "7_day";
+      // Check existing balance
+      const { data: existing } = await adminClient
+        .from("boost_balances")
+        .select("id, total_count")
+        .eq("user_id", userId)
+        .eq("boost_type", boostType)
+        .limit(1);
+
+      if (existing && existing.length > 0) {
+        await adminClient
+          .from("boost_balances")
+          .update({ total_count: existing[0].total_count + count })
+          .eq("id", existing[0].id);
+      } else {
+        await adminClient.from("boost_balances").insert({
+          user_id: userId,
+          boost_type: boostType,
+          total_count: count,
+          used_count: 0,
+        });
+      }
+    } else if (type === "sms") {
+      // Add SMS credits
+      const { data: existingSms } = await adminClient
+        .from("sms_balances")
+        .select("id, total_count")
+        .eq("user_id", userId)
+        .limit(1);
+
+      if (existingSms && existingSms.length > 0) {
+        await adminClient
+          .from("sms_balances")
+          .update({ total_count: existingSms[0].total_count + count })
+          .eq("id", existingSms[0].id);
+      } else {
+        await adminClient.from("sms_balances").insert({
+          user_id: userId,
+          total_count: count,
+          used_count: 0,
+        });
+      }
+    }
+  }
+}
+
+async function getDefaultPlanId(adminClient: any): Promise<string | null> {
+  const { data: plans } = await adminClient
+    .from("subscription_plans")
+    .select("id")
+    .eq("is_active", true)
+    .order("sort_order")
+    .limit(1);
+  return plans?.[0]?.id || null;
+}
+
+async function createSubscription(
+  adminClient: any,
+  userId: string,
+  planId: string,
+  opts: {
+    productType: string;
+    roomCount: number;
+    toletCount: number;
+    saleListingCount: number;
+    durationMonths: number;
+    discountPercent: number;
+    couponCode: string | null;
+  }
+) {
+  const { productType, roomCount, toletCount, saleListingCount, durationMonths, discountPercent, couponCode } = opts;
+
+  // Check existing active subscription for extension
+  const { data: existingSubs } = await adminClient
+    .from("user_subscriptions")
+    .select("expires_at")
+    .eq("user_id", userId)
+    .eq("product_type", productType)
+    .eq("status", "active")
+    .order("expires_at", { ascending: false })
+    .limit(1);
+
+  const currentExpiry = existingSubs?.[0]?.expires_at
+    ? new Date(existingSubs[0].expires_at)
+    : new Date();
+  const startsAt = currentExpiry > new Date() ? currentExpiry : new Date();
+  const expiresAt = new Date(startsAt.getTime() + durationMonths * 30 * 24 * 60 * 60 * 1000);
+
+  await adminClient.from("user_subscriptions").insert({
+    user_id: userId,
+    plan_id: planId,
+    starts_at: startsAt.toISOString(),
+    expires_at: expiresAt.toISOString(),
+    status: "active",
+    product_type: productType,
+    room_count: productType === "room_management" ? roomCount : 0,
+    tolet_count: productType === "tolet" ? toletCount : 0,
+    tolet_price_per_unit: productType === "tolet" ? 50 : 0,
+    sale_listing_count: productType === "sale_listing" ? saleListingCount : 0,
+    duration_months: durationMonths,
+    discount_percent: discountPercent,
+    coupon_code: couponCode,
+  });
+}
+
+async function handleFreeTolet(adminClient: any, userId: string, planId: string) {
+  const { data: prevTolet } = await adminClient
+    .from("user_subscriptions")
+    .select("id")
+    .eq("user_id", userId)
+    .eq("product_type", "tolet")
+    .limit(1);
+
+  // Only give free slots if this is the very first tolet subscription (the one we just inserted)
+  if (prevTolet && prevTolet.length <= 1) {
+    const freeExpiry = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+    await adminClient.from("user_subscriptions").insert({
+      user_id: userId,
+      plan_id: planId,
+      starts_at: new Date().toISOString(),
+      expires_at: freeExpiry.toISOString(),
+      status: "active",
+      product_type: "tolet",
+      tolet_count: 2,
+      tolet_price_per_unit: 0,
+      room_count: 0,
+      duration_months: 1,
+      discount_percent: 0,
+      coupon_code: null,
+    });
+  }
+}

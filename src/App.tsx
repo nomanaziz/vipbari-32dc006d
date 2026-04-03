@@ -8,6 +8,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { CartProvider } from "@/contexts/CartContext";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
@@ -114,6 +115,7 @@ const App = () => (
         <PWAInstallBanner />
         <BrowserRouter>
           <AuthProvider>
+            <CartProvider>
             <OAuthCallbackHandler />
             <Routes>
               <Route path="/login" element={<Login />} />
@@ -180,6 +182,7 @@ const App = () => (
               <Route path="/page/:slug" element={<Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>}><CMSPage /></Suspense>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
+          </CartProvider>
           </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>

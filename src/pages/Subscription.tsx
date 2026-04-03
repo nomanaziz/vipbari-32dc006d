@@ -239,8 +239,27 @@ const Subscription = () => {
   const boost3DayRemaining = boost3DayTotal - boost3DayUsed;
   const boost7DayRemaining = boost7DayTotal - boost7DayUsed;
   const boostTotalPrice = BOOST_PRICES[boostType] * boostCount;
+  // SMS pricing
+  const smsTotalPrice = Math.round(smsCount * PRICE_PER_SMS);
+  const smsRemaining = smsBalance.total - smsBalance.used;
 
-  useEffect(() => {
+  // Add to cart handlers
+  const handleAddToCart = (
+    type: "room_management" | "tolet" | "sale_listing" | "boost_3_day" | "boost_7_day" | "sms",
+    label: string,
+    labelBn: string,
+    count: number,
+    durationMonths: number,
+    unitPrice: number,
+    discountPercent: number,
+    couponCode: string,
+    lineTotal: number,
+  ) => {
+    addItem({ type, label, labelBn, count, durationMonths, unitPrice, discountPercent, couponCode, lineTotal });
+    toast.success(language === "bn" ? "কার্টে যোগ হয়েছে!" : "Added to cart!");
+    setIsCartOpen(true);
+  };
+
     fetchData();
   }, [user]);
 

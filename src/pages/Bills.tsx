@@ -142,7 +142,7 @@ const Bills = () => {
 
       return Array.from(tenantMap.values());
     },
-    enabled: !!user,
+    enabled: !!effectiveOwnerId,
   });
 
   const { data: rentPayments } = useQuery({

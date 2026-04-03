@@ -182,6 +182,7 @@ const App = () => (
               <Route path="/page/:slug" element={<Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>}><CMSPage /></Suspense>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
+          </CartProvider>
           </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>

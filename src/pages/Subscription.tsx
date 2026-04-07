@@ -178,12 +178,30 @@ const Subscription = () => {
     const allSubs = subsRes.data;
     if (allSubs) {
       const now = new Date();
-      const activeRoom = allSubs.find((s: any) => s.product_type === "room_management" && s.status === "active" && (!s.expires_at || new Date(s.expires_at) > now));
-      const activeTolet = allSubs.find((s: any) => s.product_type === "tolet" && s.status === "active" && (!s.expires_at || new Date(s.expires_at) > now));
-      const activeSale = allSubs.find((s: any) => s.product_type === "sale_listing" && s.status === "active" && (!s.expires_at || new Date(s.expires_at) > now));
-      setActiveRoomSub((activeRoom as ActiveSub) || null);
-      setActiveToletSub((activeTolet as ActiveSub) || null);
-      setActiveSaleSub((activeSale as ActiveSub) || null);
+      const isActive = (s: any) => s.status === "active" && (!s.expires_at || new Date(s.expires_at) > now);
+
+      // Aggregate all active subs per product type
+      const aggregateSubs = (productType: string): ActiveSub | null => {
+        const activeSubs = allSubs.filter((s: any) => s.product_type === productType && isActive(s));
+        if (activeSubs.length === 0) return null;
+        // Use the first sub as base, then aggregate counts and find latest expiry
+        const base = { ...activeSubs[0] } as ActiveSub;
+        base.room_count = activeSubs.reduce((sum: number, s: any) => sum + (s.room_count || 0), 0);
+        base.tolet_count = activeSubs.reduce((sum: number, s: any) => sum + (s.tolet_count || 0), 0);
+        base.sale_listing_count = activeSubs.reduce((sum: number, s: any) => sum + (s.sale_listing_count || 0), 0);
+        // Use the latest expires_at
+        const latestExpiry = activeSubs.reduce((latest: string | null, s: any) => {
+          if (!s.expires_at) return latest;
+          if (!latest) return s.expires_at;
+          return new Date(s.expires_at) > new Date(latest) ? s.expires_at : latest;
+        }, null as string | null);
+        base.expires_at = latestExpiry;
+        return base;
+      };
+
+      setActiveRoomSub(aggregateSubs("room_management"));
+      setActiveToletSub(aggregateSubs("tolet"));
+      setActiveSaleSub(aggregateSubs("sale_listing"));
       setHistory(allSubs as HistorySub[]);
     }
 

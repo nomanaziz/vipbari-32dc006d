@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Heart, MapPin, BedDouble, Bath, Maximize, Building2 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useNavigate } from "react-router-dom";
+import { getDefaultImage } from "@/lib/defaultImages";
 
 interface SaleListingCardProps {
   listing: {

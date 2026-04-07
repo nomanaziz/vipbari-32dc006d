@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { getDefaultImage } from "@/lib/defaultImages";
 import { format } from "date-fns";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";

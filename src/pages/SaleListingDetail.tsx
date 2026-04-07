@@ -15,6 +15,7 @@ import { Heart, MapPin, BedDouble, Bath, Maximize, Building2, Phone, MessageSqua
 import { TransferPropertyDialog } from "@/components/sale/TransferPropertyDialog";
 import { toast } from "sonner";
 import { useState } from "react";
+import { getDefaultImage } from "@/lib/defaultImages";
 
 export default function SaleListingDetail() {
   const { id } = useParams();

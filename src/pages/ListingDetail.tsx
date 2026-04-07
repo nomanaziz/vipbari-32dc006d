@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { getDefaultImage } from "@/lib/defaultImages";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";

@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { getDefaultImage } from "@/lib/defaultImages";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";

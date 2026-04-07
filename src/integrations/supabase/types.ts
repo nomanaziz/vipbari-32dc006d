@@ -1145,6 +1145,10 @@ export type Database = {
           address: string
           area: string
           block: string
+          common_bathrooms: number
+          common_kitchens: number
+          common_stoves: number
+          common_washrooms: number
           created_at: string
           district: string
           division: string
@@ -1175,11 +1179,16 @@ export type Database = {
           tolet_phone: string
           total_rooms: number
           updated_at: string
+          utilities_included: boolean
         }
         Insert: {
           address?: string
           area?: string
           block?: string
+          common_bathrooms?: number
+          common_kitchens?: number
+          common_stoves?: number
+          common_washrooms?: number
           created_at?: string
           district?: string
           division?: string
@@ -1210,11 +1219,16 @@ export type Database = {
           tolet_phone?: string
           total_rooms?: number
           updated_at?: string
+          utilities_included?: boolean
         }
         Update: {
           address?: string
           area?: string
           block?: string
+          common_bathrooms?: number
+          common_kitchens?: number
+          common_stoves?: number
+          common_washrooms?: number
           created_at?: string
           district?: string
           division?: string
@@ -1245,6 +1259,7 @@ export type Database = {
           tolet_phone?: string
           total_rooms?: number
           updated_at?: string
+          utilities_included?: boolean
         }
         Relationships: []
       }

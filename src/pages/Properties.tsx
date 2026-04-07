@@ -446,11 +446,12 @@ const Properties = () => {
                 <Label>{t("property.type")}</Label>
                 <Select value={form.property_type} onValueChange={v => setForm(f => ({ ...f, property_type: v }))}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
+                <SelectContent>
                     <SelectItem value="building">{typeLabels.building}</SelectItem>
                     <SelectItem value="house">{typeLabels.house}</SelectItem>
                     <SelectItem value="apartment">{typeLabels.apartment}</SelectItem>
                     <SelectItem value="shop">{typeLabels.shop}</SelectItem>
+                    <SelectItem value="tin_shed">{typeLabels.tin_shed}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

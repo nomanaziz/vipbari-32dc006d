@@ -80,12 +80,7 @@ Deno.serve(async (req) => {
         }
       }
 
-      // Filter to only unassigned (owner_id = user_id) tenants
-      const unassigned = (tenants || []).filter(
-        (t: any) => t.user_id && t.owner_id === t.user_id
-      );
-
-      return new Response(JSON.stringify({ tenants: unassigned }), {
+      return new Response(JSON.stringify({ tenants: validTenants }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }

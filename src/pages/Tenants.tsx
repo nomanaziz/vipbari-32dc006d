@@ -21,6 +21,7 @@ import PendingRequestsSection from "@/components/tenants/PendingRequestsSection"
 import TenantStatsCards from "@/components/tenants/TenantStatsCards";
 import LinkTenantDialog from "@/components/tenants/LinkTenantDialog";
 import TenantReleaseDialog from "@/components/tenants/TenantReleaseDialog";
+import RoomShiftDialog from "@/components/tenants/RoomShiftDialog";
 
 const Tenants = () => {
   const { language, t } = useLanguage();

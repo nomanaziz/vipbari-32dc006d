@@ -2,6 +2,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Building2, DoorOpen, Users, CreditCard, TrendingUp, AlertCircle, Home, Send, CheckCircle2, Clock, XCircle, AlertTriangle, Bell, Wallet, Car } from "lucide-react";
+import TenantInvitationBanner from "@/components/tenants/TenantInvitationBanner";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";

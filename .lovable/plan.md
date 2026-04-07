@@ -1,86 +1,62 @@
 
 
-# Flexiplan-Style Single-Page Subscription Configurator
+# Remove 4 Free Rooms & Add 1-Month Full Trial on Registration
 
-## Concept
+## Current State
+- Landlords get **4 free room slots** hardcoded in `Rooms.tsx` (lines 172, 326) and `BulkRoomAddDialog.tsx` (line 369)
+- First-time tolet buyers get **2 free tolet slots** in `verify-subscription-payment` and `approve-manual-payment`
+- No trial subscription is created on user registration
+- `handle_new_user` trigger only creates profile + role
 
-Replace the current 5-tab system with a **single-page configurator** inspired by Grameenphone Flexiplan / Robi Easy Plan. All product categories (Room, To-Let, Sale, Boost, SMS) appear as sections on one page. Each section has **pill/chip selectors** for quantities. A sticky **Purchase Summary** sidebar (or bottom bar on mobile) shows the running total and Buy button.
+## What Changes
 
-## Layout
+### 1. Remove all "4 free rooms" logic
+- **`src/pages/Rooms.tsx`** — Change `freeSlots = 4` → `0` and `freeRoomSlots = 4` → `0` (lines 172, 326)
+- **`src/components/rooms/BulkRoomAddDialog.tsx`** — Change `freeSlots = 4` → `0` (line 369)
+- Update display text that shows "(4+paid)" breakdown
 
-```text
-┌─────────────────────────────────────┬──────────────────────┐
-│  🏠 রুম/ফ্ল্যাট                     │  Purchase Summary    │
-│  [0] [5] [10] [15] [20] [30] [50]   │                      │
-│                                     │  ✓ 10 রুম × 6 মাস   │
-│  📢 টু-লেট                          │  ✓ 2 টু-লেট × 1 মাস │
-│  [0] [1] [2] [3] [5] [10]          │  ✓ 100 SMS           │
-│                                     │                      │
-│  🛒 বিক্রয় লিস্টিং                  │  মোট: ৳1,150        │
-│  [0] [1] [2] [3] [5]               │                      │
-│                                     │  [কিনুন]             │
-│  ⏱ মেয়াদ                           │                      │
-│  [1] [3] [6] [12] [24] [36] মাস    │  ── Payment History  │
-│                                     │  ── Manual Payment   │
-│  🔥 বুস্ট                           │                      │
-│  3 দিন: [0] [1] [3] [5] [10]       │                      │
-│  7 দিন: [0] [1] [3] [5] [10]       │                      │
-│                                     │                      │
-│  💬 SMS                              │                      │
-│  [0] [100] [200] [500] [1000]       │                      │
-│                                     │                      │
-│  🎟 কুপন কোড                        │                      │
-│  [____________] [প্রয়োগ]            │                      │
-└─────────────────────────────────────┴──────────────────────┘
+### 2. Remove "2 free tolet on first purchase" logic
+- **`supabase/functions/verify-subscription-payment/index.ts`** — Remove `handleFreeTolet()` function and its call
+- **`supabase/functions/approve-manual-payment/index.ts`** — Remove the similar free tolet insertion block
+
+### 3. Add 1-Month Full Trial on Landlord Registration
+Create a **database trigger** (or modify `handle_new_user`) that automatically inserts a trial subscription when a **landlord** registers:
+
+**Trial includes:**
+- 1 property (max)
+- 20 rooms
+- 5 to-let slots
+- All features unlocked
+- Duration: 30 days from registration
+- Product type: `trial` (new) or insert multiple `user_subscriptions` rows
+
+**Approach**: Modify the `handle_new_user` trigger to insert a trial `user_subscriptions` row for landlords:
+```sql
+IF NEW.raw_user_meta_data->>'role' = 'landlord' THEN
+  INSERT INTO user_subscriptions (user_id, plan_id, starts_at, expires_at, status,
+    product_type, room_count, tolet_count, duration_months)
+  VALUES (NEW.id, <default_plan_id>, now(), now() + interval '30 days', 'active',
+    'room_management', 20, 0, 1);
+  -- Plus tolet trial row
+  INSERT INTO user_subscriptions (...)
+  VALUES (NEW.id, ..., 'tolet', 0, 5, 1);
+END IF;
 ```
 
-**Mobile**: Summary becomes a sticky bottom bar showing total price + "কিনুন" button. Tap to expand full summary.
+### 4. Property limit enforcement (max 1 during trial)
+- **`src/pages/Properties.tsx`** — Add a check: if user only has trial subscription, limit to 1 property. After trial expires or they buy a plan, no property limit (property count is not a subscription item currently — it's unlimited for paid users).
 
-## Key Design Decisions
+### 5. Update Landing Page text
+- **`src/contexts/LanguageContext.tsx`** — Update `landing.free_1` from "৫টি রুম" to "২০টি রুম", `landing.free_2` keep "সব ফিচার", add "৫টি টু-লেট", update FAQ answer
 
-1. **Pill/Chip Selectors** (like GP Flexiplan): Predefined value chips in a flex-wrap grid. Selected chip is highlighted (primary color). User taps to select quantity.
-2. **Duration is shared**: One duration selector applies to Room, To-Let, and Sale (since they all use monthly billing). Boost and SMS have no duration.
-3. **Zero means "not selected"**: Each category starts at 0. Only non-zero items appear in the summary.
-4. **Sticky Summary Panel**: Right side on desktop (like GP/Robi), bottom sticky bar on mobile.
-5. **Discount auto-calculated**: Duration discount (6+ months) shown in summary with strikethrough.
-
-## Files to Modify
-
-### 1. `src/pages/Subscription.tsx` — Complete rewrite
-- Remove Tabs, replace with single-page vertical layout
-- Each product section: label + chip grid
-- Duration section with chips: 1, 3, 6, 12, 24, 36
-- Sticky summary panel (desktop: right column, mobile: bottom bar)
-- Keep existing: payment verification, history dialog, active subscriptions card, manual payment
-- Remove: slider+buttons UI, per-tab coupon inputs, per-tab buy buttons
-- Single "Buy" button in summary that adds all selected items to cart or goes to checkout
-
-### 2. No backend changes needed
-- Cart system already supports multi-item checkout
-- Edge functions already handle cart payments
-
-## Chip Values Per Section
-
-| Section | Chips |
-|---------|-------|
-| Room/Flat | 0, 5, 10, 15, 20, 30, 50 |
-| To-Let | 0, 1, 2, 3, 5, 10 |
-| Sale Listing | 0, 1, 2, 3, 5 |
-| Duration (months) | 1, 3, 6, 12, 24, 36 |
-| 3-Day Boost | 0, 1, 3, 5, 10 |
-| 7-Day Boost | 0, 1, 3, 5, 10 |
-| SMS | 0, 100, 200, 500, 1000 |
-
-## Summary Panel Contents
-- Line items for each non-zero selection with price
-- Duration discount badge (if applicable)
-- Special landlord discount (if applicable)
-- Total price (bold, large)
-- "কার্টে যোগ করুন" button
-- "ম্যানুয়াল পেমেন্ট" link
-- Links: Payment Status, Purchase History
-
-## Active Subscriptions
-- Keep the existing active subscription display at the top (compact)
-- Show remaining balance for boost and SMS
+### Files to Modify
+| File | Change |
+|------|--------|
+| `src/pages/Rooms.tsx` | `freeSlots = 0`, `freeRoomSlots = 0` |
+| `src/components/rooms/BulkRoomAddDialog.tsx` | `freeSlots = 0` |
+| `supabase/functions/verify-subscription-payment/index.ts` | Remove `handleFreeTolet` |
+| `supabase/functions/approve-manual-payment/index.ts` | Remove free tolet block |
+| DB migration | Update `handle_new_user` to insert trial subscriptions for landlords |
+| `src/contexts/LanguageContext.tsx` | Update trial-related landing text |
+| `src/pages/Properties.tsx` | Add max-1-property check during trial |
 

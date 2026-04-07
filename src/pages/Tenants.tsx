@@ -515,6 +515,14 @@ const Tenants = () => {
         onConfirm={() => { if (deleteTenant) { deleteMutation.mutate(deleteTenant); setDeleteTenant(null); } }}
         isPending={deleteMutation.isPending}
       />
+
+      {/* Room Shift Dialog */}
+      <RoomShiftDialog
+        open={!!shiftTenant}
+        onOpenChange={(v) => { if (!v) setShiftTenant(null); }}
+        tenant={shiftTenant}
+        availableRooms={vacantRooms}
+      />
     </div>
   );
 };

@@ -140,7 +140,7 @@ const LinkTenantDialog = ({ open, onOpenChange, availableRooms }: LinkTenantDial
           {/* Room assignment (optional) */}
           {selectedTenant && (
             <div className="space-y-2">
-              <Label>{t("tenant.assign_room") || "Assign room (optional)"}</Label>
+              <Label>{language === "bn" ? "রুম নির্ধারণ করুন (ঐচ্ছিক)" : "Assign room (optional)"}</Label>
               <Select value={selectedRoom} onValueChange={setSelectedRoom}>
                 <SelectTrigger>
                   <SelectValue placeholder={t("tenant.no_room") || "No room"} />
@@ -163,7 +163,7 @@ const LinkTenantDialog = ({ open, onOpenChange, availableRooms }: LinkTenantDial
               <Link className="h-4 w-4 mr-2" />
               {linking
                 ? (t("common.loading") || "Loading...")
-                : (t("tenant.link_tenant") || `Link ${selectedTenant.full_name}`)}
+                : (language === "bn" ? `${selectedTenant.full_name} লিংক করুন` : `Link ${selectedTenant.full_name}`)}
             </Button>
           )}
         </div>

@@ -57,7 +57,7 @@ const GROUP_COLORS: Record<string, string> = {
 };
 
 interface Props {
-  properties: { id: string; name: string }[];
+  properties: { id: string; name: string; property_type?: string }[];
   onSuccess: () => void;
 }
 

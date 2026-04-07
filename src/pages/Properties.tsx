@@ -868,131 +868,105 @@ const Properties = () => {
                     <img src={coverImage.image_url} alt={p.name} className="w-full h-full object-cover" />
                   </div>
                 )}
-                <CardContent className="p-5">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-start gap-3 min-w-0">
-                      <div className="p-2 rounded-lg bg-primary/10 text-primary mt-0.5 shrink-0">
-                        <Building2 className="h-5 w-5" />
-                      </div>
-                      <div className="min-w-0">
-                        <h3 className="font-semibold text-lg">{p.name}</h3>
-                        <div className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
-                          <MapPin className="h-3.5 w-3.5 shrink-0" />
-                          <span className="truncate">
-                            {[p.house_number ? `House ${p.house_number}` : "", p.road_number ? `Road ${p.road_number}` : "", p.block ? `Block ${p.block}` : "", p.sector ? `Sector ${p.sector}` : "", p.area, p.thana ? getBnLabel(THANAS_BN, p.thana, language) : "", p.district ? getBnLabel(DISTRICTS_BN, p.district, language) : "", p.division ? getBnLabel(DIVISIONS_BN, p.division, language) : "", p.postal_code || ""].filter(Boolean).join(", ") || p.address || "—"}
-                          </span>
-                        </div>
-                        <div className="flex flex-wrap gap-1 mt-2">
-                          <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
-                            {typeLabels[p.property_type] || p.property_type}
-                          </span>
-                          {p.property_type === "tin_shed" && (
-                            <>
-                              <Badge className="text-[10px] bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 border-amber-300">
-                                🏠 {language === "bn" ? "টিনশেড" : "Tin Shed"}
-                              </Badge>
-                              {(p as any).utilities_included && (
-                                <Badge variant="outline" className="text-[10px] font-normal border-emerald-400 text-emerald-700 dark:text-emerald-400">
-                                  ⚡ {language === "bn" ? "ইউটিলিটি অন্তর্ভুক্ত" : "Utilities Included"}
-                                </Badge>
-                              )}
-                            </>
-                          )}
-                        </div>
-                        {/* Common Facilities for Tin Shed */}
-                        {p.property_type === "tin_shed" && ((p as any).common_bathrooms > 0 || (p as any).common_washrooms > 0 || (p as any).common_kitchens > 0 || (p as any).common_stoves > 0) && (
-                          <div className="flex flex-wrap gap-1 mt-1">
-                            {(p as any).common_bathrooms > 0 && <Badge variant="secondary" className="text-[10px]">🚿 {language === "bn" ? `${(p as any).common_bathrooms}টি বাথরুম` : `${(p as any).common_bathrooms} Bathrooms`}</Badge>}
-                            {(p as any).common_washrooms > 0 && <Badge variant="secondary" className="text-[10px]">🚻 {language === "bn" ? `${(p as any).common_washrooms}টি ওয়াশরুম` : `${(p as any).common_washrooms} Washrooms`}</Badge>}
-                            {(p as any).common_kitchens > 0 && <Badge variant="secondary" className="text-[10px]">🍳 {language === "bn" ? `${(p as any).common_kitchens}টি রান্নাঘর` : `${(p as any).common_kitchens} Kitchens`}</Badge>}
-                            {(p as any).common_stoves > 0 && <Badge variant="secondary" className="text-[10px]">🔥 {language === "bn" ? `${(p as any).common_stoves}টি চুলা` : `${(p as any).common_stoves} Stoves`}</Badge>}
-                          </div>
-                        )}
-                        {/* Nearby Services badges */}
-                        {(p.nearest_police_station || p.nearest_fire_service || p.nearest_electricity_office) && (
-                          <div className="flex flex-wrap gap-1 mt-2">
-                            {p.nearest_police_station && (
-                              <Badge variant="outline" className="text-xs gap-1 font-normal">
-                                <Shield className="h-3 w-3 text-primary" />
-                                {p.nearest_police_station}
-                              </Badge>
-                            )}
-                            {p.nearest_fire_service && (
-                              <Badge variant="outline" className="text-xs gap-1 font-normal">
-                                <Flame className="h-3 w-3 text-destructive" />
-                                {p.nearest_fire_service}
-                              </Badge>
-                            )}
-                            {p.nearest_electricity_office && (
-                              <Badge variant="outline" className="text-xs gap-1 font-normal">
-                                <Zap className="h-3 w-3 text-accent-foreground" />
-                                {p.nearest_electricity_office}
-                              </Badge>
-                            )}
-                          </div>
-                        )}
-                        {/* Facility Badges */}
-                        {(() => {
-                          const facs = [
-                            [p.has_garage, language === "bn" ? "গ্যারেজ" : "Garage"],
-                            [p.has_internet, language === "bn" ? "ইন্টারনেট" : "Internet"],
-                            [p.has_dish, language === "bn" ? "ডিশ" : "Dish"],
-                            [p.has_security, language === "bn" ? "সিকিউরিটি" : "Security"],
-                            [p.has_cctv, "CCTV"],
-                            [p.has_lift, language === "bn" ? "লিফট" : "Lift"],
-                            [p.has_generator, language === "bn" ? "জেনারেটর" : "Generator"],
-                            [p.has_parking, language === "bn" ? "পার্কিং" : "Parking"],
-                            [p.has_gas_supply, language === "bn" ? "গ্যাস" : "Gas"],
-                            [p.has_water_supply, language === "bn" ? "পানি" : "Water"],
-                            [p.has_rooftop_access, language === "bn" ? "ছাদ" : "Roof"],
-                          ].filter(([v]) => v) as [boolean, string][];
-                          return facs.length > 0 ? (
-                            <div className="flex flex-wrap gap-1 mt-2">
-                              {facs.map(([, label]) => (
-                                <Badge key={label} variant="outline" className="text-[10px] font-normal">{label}</Badge>
-                              ))}
-                            </div>
-                          ) : null;
-                        })()}
-                        {assignedStaffNames.length > 0 && (
-                          <div className="flex items-center gap-1 mt-2 text-xs text-muted-foreground">
-                            <Users className="h-3 w-3" />
-                            <span>{assignedStaffNames.join(", ")}</span>
-                          </div>
-                         )}
-                        {/* Sell Button */}
-                        <div className="mt-3">
-                          {propertyHasSaleListing(p.id) ? (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="gap-1.5 text-xs border-emerald-500 text-emerald-600"
-                              onClick={() => handleRemovePropertySale(p.id)}
-                            >
-                              <ShoppingBag className="h-3.5 w-3.5" />
-                              {language === "bn" ? "বিক্রয় সরান" : "Remove Sale"}
-                            </Button>
-                          ) : (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="gap-1.5 text-xs border-primary text-primary"
-                              onClick={() => setSellDialogProperty(p)}
-                            >
-                              <ShoppingBag className="h-3.5 w-3.5" />
-                              {language === "bn" ? "বিক্রয় করুন" : "Sell Property"}
-                            </Button>
-                          )}
-                        </div>
-                      </div>
+                <CardContent className="p-4">
+                  {/* Header: icon + name + type badge */}
+                  <div className="flex items-center gap-2">
+                    <div className="p-1.5 rounded-md bg-primary/10 text-primary shrink-0">
+                      <Building2 className="h-4 w-4" />
                     </div>
-                    <div className="flex gap-1 shrink-0">
-                      <PropertyHistoryDialog propertyId={p.id} propertyName={p.name} />
-                      <Button variant="ghost" size="icon" onClick={() => openEdit(p)}>
-                        <Pencil className="h-4 w-4" />
+                    <h3 className="font-semibold text-base truncate flex-1">{p.name}</h3>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground shrink-0">
+                      {typeLabels[p.property_type] || p.property_type}
+                    </span>
+                  </div>
+
+                  {/* Address */}
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1.5 ml-8">
+                    <MapPin className="h-3 w-3 shrink-0" />
+                    <span className="truncate">
+                      {[p.house_number ? `House ${p.house_number}` : "", p.road_number ? `Road ${p.road_number}` : "", p.block ? `Block ${p.block}` : "", p.sector ? `Sector ${p.sector}` : "", p.area, p.thana ? getBnLabel(THANAS_BN, p.thana, language) : "", p.district ? getBnLabel(DISTRICTS_BN, p.district, language) : "", p.division ? getBnLabel(DIVISIONS_BN, p.division, language) : "", p.postal_code || ""].filter(Boolean).join(", ") || p.address || "—"}
+                    </span>
+                  </div>
+
+                  {/* Tin shed extras */}
+                  {p.property_type === "tin_shed" && (
+                    <div className="flex flex-wrap gap-1 mt-2 ml-8">
+                      <Badge className="text-[10px] bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 border-amber-300">
+                        🏠 {language === "bn" ? "টিনশেড" : "Tin Shed"}
+                      </Badge>
+                      {(p as any).utilities_included && (
+                        <Badge variant="outline" className="text-[10px] font-normal border-emerald-400 text-emerald-700 dark:text-emerald-400">
+                          ⚡ {language === "bn" ? "ইউটিলিটি অন্তর্ভুক্ত" : "Utilities Included"}
+                        </Badge>
+                      )}
+                      {(p as any).common_bathrooms > 0 && <Badge variant="secondary" className="text-[10px]">🚿 {(p as any).common_bathrooms}</Badge>}
+                      {(p as any).common_washrooms > 0 && <Badge variant="secondary" className="text-[10px]">🚻 {(p as any).common_washrooms}</Badge>}
+                      {(p as any).common_kitchens > 0 && <Badge variant="secondary" className="text-[10px]">🍳 {(p as any).common_kitchens}</Badge>}
+                      {(p as any).common_stoves > 0 && <Badge variant="secondary" className="text-[10px]">🔥 {(p as any).common_stoves}</Badge>}
+                    </div>
+                  )}
+
+                  {/* Facilities + Nearby — compact, max 2 lines */}
+                  {(() => {
+                    const facs = [
+                      [p.has_garage, language === "bn" ? "গ্যারেজ" : "Garage"],
+                      [p.has_internet, language === "bn" ? "ইন্টারনেট" : "Internet"],
+                      [p.has_dish, language === "bn" ? "ডিশ" : "Dish"],
+                      [p.has_security, language === "bn" ? "সিকিউরিটি" : "Security"],
+                      [p.has_cctv, "CCTV"],
+                      [p.has_lift, language === "bn" ? "লিফট" : "Lift"],
+                      [p.has_generator, language === "bn" ? "জেনারেটর" : "Generator"],
+                      [p.has_parking, language === "bn" ? "পার্কিং" : "Parking"],
+                      [p.has_gas_supply, language === "bn" ? "গ্যাস" : "Gas"],
+                      [p.has_water_supply, language === "bn" ? "পানি" : "Water"],
+                      [p.has_rooftop_access, language === "bn" ? "ছাদ" : "Roof"],
+                    ].filter(([v]) => v) as [boolean, string][];
+                    const services = [
+                      p.nearest_police_station && `🛡 ${p.nearest_police_station}`,
+                      p.nearest_fire_service && `🔥 ${p.nearest_fire_service}`,
+                      p.nearest_electricity_office && `⚡ ${p.nearest_electricity_office}`,
+                    ].filter(Boolean) as string[];
+                    const all = [...facs.map(([, l]) => l), ...services];
+                    return all.length > 0 ? (
+                      <div className="flex flex-wrap gap-1 mt-2 ml-8 max-h-[3rem] overflow-hidden">
+                        {facs.map(([, label]) => (
+                          <Badge key={label} variant="outline" className="text-[10px] font-normal">{label}</Badge>
+                        ))}
+                        {services.map((s) => (
+                          <Badge key={s} variant="outline" className="text-[10px] font-normal">{s}</Badge>
+                        ))}
+                      </div>
+                    ) : null;
+                  })()}
+
+                  {/* Staff */}
+                  {assignedStaffNames.length > 0 && (
+                    <div className="flex items-center gap-1 mt-2 ml-8 text-xs text-muted-foreground">
+                      <Users className="h-3 w-3" />
+                      <span className="truncate">{assignedStaffNames.join(", ")}</span>
+                    </div>
+                  )}
+
+                  {/* Bottom actions row */}
+                  <div className="flex items-center justify-between mt-3 pt-3 border-t">
+                    {propertyHasSaleListing(p.id) ? (
+                      <Button variant="outline" size="sm" className="gap-1 text-xs h-7 border-emerald-500 text-emerald-600" onClick={() => handleRemovePropertySale(p.id)}>
+                        <ShoppingBag className="h-3 w-3" />
+                        {language === "bn" ? "বিক্রয় সরান" : "Remove Sale"}
                       </Button>
-                      <Button variant="ghost" size="icon" onClick={() => setDeleteId(p.id)} className="text-destructive hover:text-destructive">
-                        <Trash2 className="h-4 w-4" />
+                    ) : (
+                      <Button variant="outline" size="sm" className="gap-1 text-xs h-7 border-primary text-primary" onClick={() => setSellDialogProperty(p)}>
+                        <ShoppingBag className="h-3 w-3" />
+                        {language === "bn" ? "বিক্রয় করুন" : "Sell"}
+                      </Button>
+                    )}
+                    <div className="flex gap-0.5">
+                      <PropertyHistoryDialog propertyId={p.id} propertyName={p.name} />
+                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEdit(p)}>
+                        <Pencil className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => setDeleteId(p.id)}>
+                        <Trash2 className="h-3.5 w-3.5" />
                       </Button>
                     </div>
                   </div>

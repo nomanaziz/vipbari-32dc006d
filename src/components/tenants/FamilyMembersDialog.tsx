@@ -110,7 +110,8 @@ const FamilyMembersDialog = ({ tenant, onClose }: Props) => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tenant-members", tenant?.id] });
       queryClient.invalidateQueries({ queryKey: ["pending-members"] });
-      toast.success(t("tenant.updated") || "Updated");
+      queryClient.invalidateQueries({ queryKey: ["tenant-member-counts"] });
+      toast.success(language === "bn" ? "আপডেট হয়েছে" : "Updated");
     },
     onError: (e) => toast.error(e.message),
   });

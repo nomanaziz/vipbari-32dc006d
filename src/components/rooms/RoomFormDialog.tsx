@@ -49,6 +49,7 @@ interface RoomFormDialogProps {
   onSubmit: (form: RoomFormData) => void;
   isPending: boolean;
   onReset: () => void;
+  propertyType?: string;
 }
 
 export const getDefaultForm = (propertyId?: string): RoomFormData => ({

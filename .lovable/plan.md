@@ -1,45 +1,43 @@
 
 
-# Add Camera Capture for Profile Pictures & Document Uploads
+# Add Image Crop for Profile Pictures
 
 ## Problem
-Currently all file inputs use `accept="image/*"` which on mobile shows both camera and gallery options on some browsers, but doesn't explicitly offer the camera. Adding `capture` attribute ensures the device camera opens directly, giving users a clear "Take Photo" option alongside "Choose from Gallery".
+Profile pictures appear distorted (চেপ্টা/squashed) because images are resized without maintaining a square aspect ratio. A rectangular photo gets squeezed into a circular avatar.
 
-## Approach
-Add a **camera capture button** (separate from the existing gallery upload) to every image upload location. This gives users two clear options:
-1. **Camera icon button** — opens device camera directly (`capture="environment"`)
-2. **Gallery icon button** — opens file picker (existing behavior)
+## Solution
+Add a crop dialog using `react-image-crop` that lets users select a square area before uploading. This ensures the avatar is always a perfect square — no distortion.
 
-## Files to Modify (6 files, ~8 upload locations)
+## How It Works
+1. User selects/captures a photo → instead of uploading immediately, a **crop dialog** opens
+2. The dialog shows the image with a **locked 1:1 square crop area**
+3. User adjusts the crop area, then clicks "Save"
+4. The cropped square image is compressed and uploaded
 
-| File | Upload Type | Change |
-|------|-------------|--------|
-| `src/pages/SettingsPage.tsx` | Avatar upload | Add camera capture option alongside gallery |
-| `src/pages/tenant/TenantProfile.tsx` | Avatar + NID front/back | Add camera option to all 3 upload inputs |
-| `src/pages/tenant/TenantFamily.tsx` | Member photo + document | Add camera option to both uploads |
-| `src/components/bills/TenantPayDialog.tsx` | Payment screenshot | Add camera option |
-| `src/components/ImageUploader.tsx` | Property/room images | Add camera option to the uploader |
+## Changes
 
-## UI Design
-For each upload area, add two small icon buttons:
-- 📷 **Camera** button — hidden file input with `capture="user"` (front camera for selfie/avatar) or `capture="environment"` (back camera for documents)
-- 🖼️ **Gallery** button — existing file input (no capture attribute)
+### 1. Install `react-image-crop` package
+Lightweight, well-maintained crop library (~15KB).
 
-For avatar/profile: use `capture="user"` (front/selfie camera)
-For documents/NID/screenshots: use `capture="environment"` (back camera)
+### 2. Create `src/components/ImageCropDialog.tsx` (new file)
+A reusable dialog component:
+- Takes an image file as input
+- Shows a 1:1 aspect ratio crop UI
+- Returns a cropped `Blob` on confirm
+- Bangla/English labels
 
-### Avatar Example (SettingsPage)
-```
-[Avatar Image]
-[📷 Camera] [🖼️ Gallery]
-```
+### 3. Update `src/pages/SettingsPage.tsx`
+- On file select, open crop dialog instead of uploading directly
+- On crop confirm, upload the cropped blob
 
-Two hidden `<input type="file">` elements per upload — one with `capture` attribute, one without. Both share the same `onChange` handler.
+### 4. Update `src/pages/tenant/TenantProfile.tsx`
+- Same pattern for the avatar upload section
+- Document uploads (NID front/back) remain unchanged — no crop needed there
 
-## Technical Details
-- `capture="user"` → front camera (selfies, profile pics)
-- `capture="environment"` → rear camera (documents, screenshots)
-- Both inputs keep `accept="image/*"` 
-- On desktop, `capture` is ignored gracefully — both buttons open file picker
-- No new dependencies needed
+| File | Change |
+|------|--------|
+| `package.json` | Add `react-image-crop` |
+| `src/components/ImageCropDialog.tsx` | New — reusable crop dialog |
+| `src/pages/SettingsPage.tsx` | Use crop dialog for avatar |
+| `src/pages/tenant/TenantProfile.tsx` | Use crop dialog for avatar |
 

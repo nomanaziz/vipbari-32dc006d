@@ -440,6 +440,10 @@ const Tenants = () => {
                               <UserMinus className="h-3.5 w-3.5 mr-2" />
                               {language === "bn" ? "রিলিজ করুন" : "Release"}
                             </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setShiftTenant(tenant)}>
+                              <ArrowRightLeft className="h-3.5 w-3.5 mr-2" />
+                              {language === "bn" ? "রুম শিফট" : "Room Shift"}
+                            </DropdownMenuItem>
                           </>
                         )}
                         {released && (

@@ -45,7 +45,7 @@ interface RoomFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   editing: any;
-  properties: { id: string; name: string }[];
+  properties: { id: string; name: string; property_type?: string }[];
   onSubmit: (form: RoomFormData) => void;
   isPending: boolean;
   onReset: () => void;
@@ -92,7 +92,9 @@ const RoomFormDialog = ({ open, onOpenChange, editing, properties, onSubmit, isP
     enabled: !!roomId,
   });
 
-  const isTinShed = propertyType === "tin_shed";
+  // Derive property type from form's selected property, falling back to prop
+  const effectivePropertyType = properties.find(p => p.id === form.property_id)?.property_type || propertyType;
+  const isTinShed = effectivePropertyType === "tin_shed";
 
   const roomTypeLabels: Record<string, string> = {
     room: t("room.type_room") || "Room",
@@ -107,7 +109,7 @@ const RoomFormDialog = ({ open, onOpenChange, editing, properties, onSubmit, isP
     tin_shed: { options: ["room"], default: "room" },
   };
 
-  const currentConfig = roomTypeConfig[propertyType || ""] || { options: ["room", "flat", "shop"], default: "room" };
+  const currentConfig = roomTypeConfig[effectivePropertyType || ""] || { options: ["room", "flat", "shop"], default: "room" };
   const availableRoomTypes = currentConfig.options;
   const showRoomTypeSelector = availableRoomTypes.length > 1 && !isTinShed;
 
@@ -177,7 +179,11 @@ const RoomFormDialog = ({ open, onOpenChange, editing, properties, onSubmit, isP
           {/* Property */}
           <div className="space-y-2">
             <Label>{t("room.property") || "Property"}</Label>
-            <Select value={form.property_id} onValueChange={v => setForm(f => ({ ...f, property_id: v }))}>
+            <Select value={form.property_id} onValueChange={v => {
+              const pType = properties.find(p => p.id === v)?.property_type;
+              const config = roomTypeConfig[pType || ""] || { options: ["room", "flat", "shop"], default: "room" };
+              setForm(f => ({ ...f, property_id: v, room_type: config.default }));
+            }}>
               <SelectTrigger><SelectValue placeholder="Select property" /></SelectTrigger>
               <SelectContent>
                 {properties?.map(p => (

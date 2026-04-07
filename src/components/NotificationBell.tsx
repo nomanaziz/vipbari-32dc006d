@@ -34,6 +34,11 @@ export function NotificationBell() {
         return "/complaints";
       case "complaint_update":
         return "/tenant/complaints";
+      case "tenant_invitation":
+        return "/tenant/landlord";
+      case "tenant_invitation_accepted":
+      case "tenant_invitation_rejected":
+        return "/tenants";
       default:
         return "/dashboard";
     }

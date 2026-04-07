@@ -11,10 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Home, Phone, Lock, User, Mail, Building2, Users, CalendarDays } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
-import { format } from "date-fns";
-import { cn } from "@/lib/utils";
+import { parse, isValid, differenceInYears } from "date-fns";
 
 const Register = () => {
   const { signUp, user, loading: authLoading } = useAuth();
@@ -27,7 +24,7 @@ const Register = () => {
   const [pin, setPin] = useState("");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [dateOfBirth, setDateOfBirth] = useState<Date>();
+  const [dateOfBirth, setDateOfBirth] = useState("");
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState(defaultTab);
   const [checking, setChecking] = useState(false);
@@ -69,6 +66,25 @@ const Register = () => {
     }
   };
 
+  const handleDobChange = (value: string) => {
+    // Remove non-digits
+    const digits = value.replace(/\D/g, "").slice(0, 8);
+    let formatted = "";
+    if (digits.length <= 2) formatted = digits;
+    else if (digits.length <= 4) formatted = digits.slice(0, 2) + "-" + digits.slice(2);
+    else formatted = digits.slice(0, 2) + "-" + digits.slice(2, 4) + "-" + digits.slice(4);
+    setDateOfBirth(formatted);
+  };
+
+  const parseDob = (dob: string): Date | null => {
+    if (dob.length !== 10) return null;
+    const parsed = parse(dob, "dd-MM-yyyy", new Date());
+    if (!isValid(parsed)) return null;
+    const year = parsed.getFullYear();
+    if (year < 1920 || parsed > new Date()) return null;
+    return parsed;
+  };
+
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!phone || !pin || !name || !email || !dateOfBirth) {
@@ -80,15 +96,26 @@ const Register = () => {
       return;
     }
 
+    const birthDate = parseDob(dateOfBirth);
+    if (!birthDate) {
+      toast.error("সঠিক জন্ম তারিখ দিন (DD-MM-YYYY)");
+      return;
+    }
+    const age = differenceInYears(new Date(), birthDate);
+    if (age < 14) {
+      toast.error("রেজিস্ট্রেশনের জন্য বয়স কমপক্ষে ১৪ বছর হতে হবে");
+      return;
+    }
+
     setLoading(true);
 
-    // Check for duplicates first
     const canProceed = await checkDuplicate();
     if (!canProceed) {
       setLoading(false);
       return;
     }
 
+    const dobFormatted = `${dateOfBirth.slice(6, 10)}-${dateOfBirth.slice(3, 5)}-${dateOfBirth.slice(0, 2)}`;
     const role = activeTab === "tenant" ? "tenant" : "landlord";
     const { error } = await supabase.auth.signUp({
       email,
@@ -100,7 +127,7 @@ const Register = () => {
           role,
           phone,
           email,
-          date_of_birth: format(dateOfBirth, "yyyy-MM-dd"),
+          date_of_birth: dobFormatted,
         },
       },
     });
@@ -204,43 +231,19 @@ const Register = () => {
               </div>
 
               <div className="space-y-2">
-                <Label>{t("auth.date_of_birth")} <span className="text-destructive">*</span></Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal",
-                        !dateOfBirth && "text-muted-foreground"
-                      )}
-                    >
-                      <CalendarDays className="mr-2 h-4 w-4" />
-                      {dateOfBirth ? format(dateOfBirth, "dd/MM/yyyy") : t("auth.select_dob")}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0 max-w-[calc(100vw-2rem)]" align="center">
-                    <Calendar
-                      mode="single"
-                      selected={dateOfBirth}
-                      onSelect={setDateOfBirth}
-                      disabled={(date) =>
-                        date > new Date() || date < new Date("1920-01-01")
-                      }
-                      initialFocus
-                      className={cn("p-3 pointer-events-auto")}
-                      captionLayout="dropdown-buttons"
-                      fromYear={1920}
-                      toYear={new Date().getFullYear()}
-                      classNames={{
-                        caption: "flex justify-center pt-1 relative items-center gap-1",
-                        caption_dropdowns: "flex gap-1",
-                        dropdown: "text-xs px-1 py-0.5 rounded border bg-background",
-                        dropdown_month: "mr-1",
-                        vhidden: "hidden",
-                      }}
-                    />
-                  </PopoverContent>
-                </Popover>
+                <Label htmlFor="dob">{t("auth.date_of_birth")} <span className="text-destructive">*</span></Label>
+                <div className="relative">
+                  <CalendarDays className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="dob"
+                    placeholder="DD-MM-YYYY"
+                    value={dateOfBirth}
+                    onChange={(e) => handleDobChange(e.target.value)}
+                    className="pl-10"
+                    maxLength={10}
+                    required
+                  />
+                </div>
               </div>
 
               <div className="space-y-2">

@@ -79,6 +79,7 @@ const SaleListingDetail = lazy(() => import("./pages/SaleListingDetail"));
 const MyListings = lazy(() => import("./pages/MyListings"));
 // SaleMessages merged into Messages page
 const AdminSaleListings = lazy(() => import("./pages/admin/AdminSaleListings"));
+const AdminBlocks = lazy(() => import("./pages/admin/AdminBlocks"));
 const Leases = lazy(() => import("./pages/Leases"));
 
 const queryClient = new QueryClient();

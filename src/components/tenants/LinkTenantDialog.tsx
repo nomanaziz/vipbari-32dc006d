@@ -163,7 +163,7 @@ const LinkTenantDialog = ({ open, onOpenChange, availableRooms }: LinkTenantDial
               <Link className="h-4 w-4 mr-2" />
               {linking
                 ? (t("common.loading") || "Loading...")
-                : (t("tenant.link_tenant") || `Link ${selectedTenant.full_name}`)}
+                : (language === "bn" ? `${selectedTenant.full_name} লিংক করুন` : `Link ${selectedTenant.full_name}`)}
             </Button>
           )}
         </div>

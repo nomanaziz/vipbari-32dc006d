@@ -54,6 +54,7 @@ const ImageUploader = ({
   const { t } = useLanguage();
   const [uploading, setUploading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
 
   const remaining = maxImages - existingImages.length;
 

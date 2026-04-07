@@ -1,52 +1,64 @@
 
 
-# Default Images for All Property Types
+# Fix: Landlord Can't See/Approve Pending Family Members + Show Member Count
 
-## Problem
-Currently the app references `/images/default-room.png` and `/images/default-garage.png` which don't exist in the `public` folder. This causes broken/missing images on To-Let, Buy-Sell, Listing Detail, and My Listings pages when users haven't uploaded photos.
+## Problems
+1. **RLS blocks access**: The `tenant_members` RLS policy only checks `tenants.owner_id = auth.uid()`. Self-registered tenants linked via `tolet_requests` have `owner_id = their own user_id`, so the landlord can't read or update their family members at all.
+2. **PendingRequestsSection query** also filters by `tenants.owner_id = user.id` — same gap for linked tenants.
+3. **No family member count** shown on tenant cards.
 
 ## Solution
-Generate beautiful SVG default images for each property type and create a central helper, then update all references.
 
-### Step 1: Create Default Image SVGs
-Generate 5 attractive SVG images in `public/images/`:
-- `default-room.svg` — bedroom/flat illustration (bed, window, warm colors)
-- `default-apartment.svg` — apartment building illustration
-- `default-garage.svg` — parking/garage illustration (car, gate)
-- `default-shop.svg` — shop/store front illustration
-- `default-property.svg` — generic building/house illustration (fallback)
+### Step 1: Update RLS policy for `tenant_members`
+Drop the existing "Owners can manage tenant_members" policy and create a new one that also checks `tolet_requests`:
 
-Each SVG will be a clean, modern illustration with soft gradients — professional-looking placeholders that make the site look polished even without user photos.
-
-### Step 2: Create Helper Utility
-New file `src/lib/defaultImages.ts`:
-```typescript
-export function getDefaultImage(type?: string): string {
-  switch (type) {
-    case "garage": return "/images/default-garage.svg";
-    case "shop": return "/images/default-shop.svg";
-    case "apartment": return "/images/default-apartment.svg";
-    case "flat":
-    case "room":
-    case "tin_shed":
-      return "/images/default-room.svg";
-    default:
-      return "/images/default-property.svg";
-  }
-}
+```sql
+DROP POLICY "Owners can manage tenant_members" ON public.tenant_members;
+CREATE POLICY "Owners can manage tenant_members" ON public.tenant_members
+FOR ALL TO authenticated
+USING (
+  EXISTS (
+    SELECT 1 FROM tenants
+    WHERE tenants.id = tenant_members.tenant_id
+    AND (
+      tenants.owner_id = auth.uid()
+      OR EXISTS (
+        SELECT 1 FROM tolet_requests tr
+        WHERE tr.tenant_user_id = tenants.user_id
+        AND tr.landlord_user_id = auth.uid()
+        AND tr.status = 'accepted'
+      )
+    )
+  )
+)
+WITH CHECK (
+  EXISTS (
+    SELECT 1 FROM tenants
+    WHERE tenants.id = tenant_members.tenant_id
+    AND (
+      tenants.owner_id = auth.uid()
+      OR EXISTS (
+        SELECT 1 FROM tolet_requests tr
+        WHERE tr.tenant_user_id = tenants.user_id
+        AND tr.landlord_user_id = auth.uid()
+        AND tr.status = 'accepted'
+      )
+    )
+  )
+);
 ```
 
-### Step 3: Update All References
+### Step 2: Update `PendingRequestsSection.tsx` query
+Expand the pending members query to also fetch members from tenants linked via `tolet_requests` (same pattern used in Guests fix — fetch linked tenant IDs, then query their members).
 
-| File | Current | Change |
-|------|---------|--------|
-| `src/pages/ToLet.tsx` | `/images/default-room.png`, `/images/default-garage.png` | Use `getDefaultImage()` based on room type |
-| `src/pages/tenant/TenantToLet.tsx` | Same broken paths | Use `getDefaultImage()` |
-| `src/pages/ListingDetail.tsx` | Same broken paths | Use `getDefaultImage()` |
-| `src/pages/MyListings.tsx` | `/images/default-room.png` | Use `getDefaultImage(property_type)` |
-| `src/components/sale/SaleListingCard.tsx` | `/placeholder.svg` | Use `getDefaultImage(property_type)` |
-| `src/pages/SaleListingDetail.tsx` | `/placeholder.svg` | Use `getDefaultImage(property_type)` |
-| `src/pages/BuySell.tsx` | No change needed (uses SaleListingCard) | — |
+### Step 3: Show family member count on tenant cards in `Tenants.tsx`
+- Add a query to fetch member counts per tenant: `SELECT tenant_id, count(*) FROM tenant_members WHERE status='approved' GROUP BY tenant_id`
+- Display a `Users` icon badge on each tenant card showing "Family: 3" / "পরিবার: ৩"
 
-All 6 files with broken or generic fallback images will be updated to show type-appropriate default images.
+### Files Changed
+| File | Change |
+|------|--------|
+| Migration SQL | Update RLS on `tenant_members` |
+| `src/components/tenants/PendingRequestsSection.tsx` | Query linked tenants via `tolet_requests` for pending members |
+| `src/pages/Tenants.tsx` | Add member count query + display on tenant cards |
 

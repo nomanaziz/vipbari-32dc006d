@@ -37,11 +37,35 @@ const Guests = () => {
   const { data: guests, isLoading } = useQuery({
     queryKey: ["landlord-guests", user?.id],
     queryFn: async () => {
-      const { data: tenants } = await supabase
+      // Get directly owned tenants
+      const { data: ownedTenants } = await supabase
         .from("tenants")
         .select("id, full_name, room_id")
         .eq("owner_id", effectiveOwnerId!);
-      if (!tenants?.length) return [];
+
+      // Get tenants linked via accepted tolet_requests
+      const { data: toletRequests } = await supabase
+        .from("tolet_requests")
+        .select("tenant_user_id")
+        .eq("landlord_user_id", effectiveOwnerId!)
+        .eq("status", "accepted");
+
+      const linkedUserIds = (toletRequests || []).map((tr: any) => tr.tenant_user_id).filter(Boolean);
+      let linkedTenants: any[] = [];
+      if (linkedUserIds.length > 0) {
+        const { data } = await supabase
+          .from("tenants")
+          .select("id, full_name, room_id")
+          .in("user_id", linkedUserIds);
+        linkedTenants = data || [];
+      }
+
+      // Merge and deduplicate
+      const allTenants = [...(ownedTenants || []), ...linkedTenants];
+      const uniqueMap = new Map(allTenants.map(t => [t.id, t]));
+      const tenants = Array.from(uniqueMap.values());
+
+      if (!tenants.length) return [];
       const tenantIds = tenants.map(t => t.id);
       const tenantMap = Object.fromEntries(tenants.map(t => [t.id, t.full_name]));
       const { data, error } = await supabase

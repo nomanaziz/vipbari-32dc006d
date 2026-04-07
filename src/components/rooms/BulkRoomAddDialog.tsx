@@ -355,7 +355,7 @@ const BulkRoomAddDialog = ({ properties, onSuccess }: Props) => {
 
   const handleSubmit = async () => {
     if (!propertyId) { toast.error(t("room.select_property") || "Select a property"); return; }
-    if (fromFloor > toFloor) { toast.error(t("bulk.invalid_floor_range") || "Invalid floor range"); return; }
+    if (!isSimpleMode && fromFloor > toFloor) { toast.error(t("bulk.invalid_floor_range") || "Invalid floor range"); return; }
     if (totalRooms > 100) { toast.error(t("bulk.too_many") || "Maximum 100 rooms at once"); return; }
     if (totalRooms === 0) return;
 
@@ -386,27 +386,51 @@ const BulkRoomAddDialog = ({ properties, onSuccess }: Props) => {
       }
 
       const rows: any[] = [];
-      const buildRow = (unit: any, floor: number) => ({
-        property_id: propertyId,
-        room_number: generateRoomNumber(floor, unit.label),
-        room_type: unit.room_type,
-        floor,
-        rent_amount: Number(unit.rent_amount),
-        bedrooms: Number(unit.bedrooms),
-        bathrooms: Number(unit.bathrooms),
-        has_drawing_room: unit.has_drawing_room,
-        has_dining_room: unit.has_dining_room,
-        has_kitchen: unit.has_kitchen,
-        balconies: Number(unit.balconies),
-        has_roof_access: unit.has_roof_access,
-        area_sqft: Number(unit.area_sqft),
-        description: unit.description,
-      });
 
-      const templateUnits = unitMode === "same" ? units : diffUnits;
-      for (let floor = fromFloor; floor <= toFloor; floor++) {
-        for (const unit of templateUnits) {
-          rows.push(buildRow(unit, floor));
+      if (isSimpleMode) {
+        // Simple mode: sequential rooms, no amenities
+        for (let i = 1; i <= simpleCount; i++) {
+          rows.push({
+            property_id: propertyId,
+            room_number: String(i),
+            room_type: simpleRoomType,
+            floor: 0,
+            rent_amount: Number(simpleRent),
+            bedrooms: 0,
+            bathrooms: 0,
+            has_drawing_room: false,
+            has_dining_room: false,
+            has_kitchen: false,
+            balconies: 0,
+            has_roof_access: false,
+            area_sqft: 0,
+            description: "",
+          });
+        }
+      } else {
+        // Building mode: floor-based
+        const buildRow = (unit: any, floor: number) => ({
+          property_id: propertyId,
+          room_number: generateRoomNumber(floor, unit.label),
+          room_type: unit.room_type,
+          floor,
+          rent_amount: Number(unit.rent_amount),
+          bedrooms: Number(unit.bedrooms),
+          bathrooms: Number(unit.bathrooms),
+          has_drawing_room: unit.has_drawing_room,
+          has_dining_room: unit.has_dining_room,
+          has_kitchen: unit.has_kitchen,
+          balconies: Number(unit.balconies),
+          has_roof_access: unit.has_roof_access,
+          area_sqft: Number(unit.area_sqft),
+          description: unit.description,
+        });
+
+        const templateUnits = unitMode === "same" ? units : diffUnits;
+        for (let floor = fromFloor; floor <= toFloor; floor++) {
+          for (const unit of templateUnits) {
+            rows.push(buildRow(unit, floor));
+          }
         }
       }
 

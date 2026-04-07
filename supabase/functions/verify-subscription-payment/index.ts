@@ -146,12 +146,7 @@ async function activateSingleItem(adminClient: any, userId: string, meta: any) {
     productType, roomCount, toletCount, saleListingCount, durationMonths, discountPercent, couponCode,
   });
 
-  // Handle first-time to-let free slots
-  if (productType === "tolet") {
-    await handleFreeTolet(adminClient, userId, planId);
-  }
 }
-
 // Activate multiple cart items
 async function activateCartItems(adminClient: any, userId: string, cartItems: any[]) {
   const planId = await getDefaultPlanId(adminClient);

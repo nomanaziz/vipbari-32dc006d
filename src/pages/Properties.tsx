@@ -217,8 +217,32 @@ const Properties = () => {
   const getImagesForProperty = (propertyId: string) =>
     (allPropertyImages || []).filter((img) => img.property_id === propertyId);
 
+  // Check if user is on trial-only (all subs have discount_percent = 100)
+  const { data: userSubs } = useQuery({
+    queryKey: ["user_subscriptions_for_property_limit", effectiveOwnerId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("user_subscriptions")
+        .select("id, discount_percent, status")
+        .eq("user_id", effectiveOwnerId!)
+        .eq("status", "active")
+        .gte("expires_at", new Date().toISOString());
+      return data || [];
+    },
+    enabled: !!effectiveOwnerId,
+  });
+
+  const isTrialOnly = userSubs && userSubs.length > 0 && userSubs.every(s => Number(s.discount_percent) >= 100);
+  const trialPropertyLimit = 1;
+  const propertyCount = properties?.length || 0;
+  const canAddProperty = !isTrialOnly || propertyCount < trialPropertyLimit;
+
   const createMutation = useMutation({
     mutationFn: async (values: typeof form) => {
+      // Enforce trial property limit
+      if (isTrialOnly && propertyCount >= trialPropertyLimit) {
+        throw new Error(language === "bn" ? "ট্রায়াল পিরিয়ডে সর্বোচ্চ ১টি সম্পত্তি যোগ করা যায়। সাবস্ক্রিপশন কিনুন।" : "Trial allows max 1 property. Please subscribe for more.");
+      }
       const facilityData = Object.fromEntries(facilityKeys.map(k => [k, values[k]]));
       const { data, error } = await supabase.from("properties").insert({
         name: values.name,

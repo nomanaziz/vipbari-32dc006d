@@ -168,9 +168,7 @@ const Rooms = () => {
         .gte("expires_at", new Date().toISOString());
       const paidSlots = (activeSubs || []).reduce((sum, s) => sum + s.room_count, 0);
 
-      // 4 free rooms total per landlord
-      const freeSlots = 4;
-      const totalSlots = paidSlots + freeSlots;
+      const totalSlots = paidSlots;
 
       const isOverLimit = activeCount >= totalSlots;
       const insertPayload = isOverLimit ? { ...payload, status: "inactive" } : payload;
@@ -322,12 +320,9 @@ const Rooms = () => {
   };
 
   // Calculate subscription balances — inactive rooms don't count toward used slots
-  // 4 free rooms total per landlord
-  const freeRoomSlots = 4;
   const roomSub = subscriptions?.filter(s => s.product_type === "room_management") || [];
   const toletSub = subscriptions?.filter(s => s.product_type === "tolet") || [];
-  const paidRoomSlots = roomSub.reduce((sum, s) => sum + s.room_count, 0);
-  const totalRoomSlots = freeRoomSlots + paidRoomSlots;
+  const totalRoomSlots = roomSub.reduce((sum, s) => sum + s.room_count, 0);
   const totalToletSlots = toletSub.reduce((sum, s) => sum + s.tolet_count, 0);
   const activeRooms = rooms?.filter((r: any) => r.status !== "inactive") || [];
   const totalRooms = activeRooms.length;
@@ -551,7 +546,7 @@ const Rooms = () => {
             {hasRoomSub ? (
               <>
                 <div className="text-[10px] sm:text-xs text-muted-foreground mb-1 space-y-0.5">
-                  <div>{t("room.used_of") || "Used"} {totalRooms}/{totalRoomSlots} ({freeRoomSlots}+{paidRoomSlots})</div>
+                  <div>{t("room.used_of") || "Used"} {totalRooms}/{totalRoomSlots}</div>
                   <div className="text-right">
                     {totalRooms > totalRoomSlots ? (
                       <span className="text-destructive font-medium">{t("room.over_limit") || "Over limit"}</span>

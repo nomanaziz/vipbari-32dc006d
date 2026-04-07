@@ -146,12 +146,7 @@ async function activateSingleItem(adminClient: any, userId: string, meta: any) {
     productType, roomCount, toletCount, saleListingCount, durationMonths, discountPercent, couponCode,
   });
 
-  // Handle first-time to-let free slots
-  if (productType === "tolet") {
-    await handleFreeTolet(adminClient, userId, planId);
-  }
 }
-
 // Activate multiple cart items
 async function activateCartItems(adminClient: any, userId: string, cartItems: any[]) {
   const planId = await getDefaultPlanId(adminClient);
@@ -170,9 +165,6 @@ async function activateCartItems(adminClient: any, userId: string, cartItems: an
         discountPercent: discount_percent || 0,
         couponCode: coupon_code || null,
       });
-
-      if (type === "tolet") {
-        await handleFreeTolet(adminClient, userId, planId);
       }
     } else if (type === "boost_3_day" || type === "boost_7_day") {
       const boostType = type === "boost_3_day" ? "3_day" : "7_day";
@@ -278,32 +270,4 @@ async function createSubscription(
     discount_percent: discountPercent,
     coupon_code: couponCode,
   });
-}
-
-async function handleFreeTolet(adminClient: any, userId: string, planId: string) {
-  const { data: prevTolet } = await adminClient
-    .from("user_subscriptions")
-    .select("id")
-    .eq("user_id", userId)
-    .eq("product_type", "tolet")
-    .limit(1);
-
-  // Only give free slots if this is the very first tolet subscription (the one we just inserted)
-  if (prevTolet && prevTolet.length <= 1) {
-    const freeExpiry = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
-    await adminClient.from("user_subscriptions").insert({
-      user_id: userId,
-      plan_id: planId,
-      starts_at: new Date().toISOString(),
-      expires_at: freeExpiry.toISOString(),
-      status: "active",
-      product_type: "tolet",
-      tolet_count: 2,
-      tolet_price_per_unit: 0,
-      room_count: 0,
-      duration_months: 1,
-      discount_percent: 0,
-      coupon_code: null,
-    });
-  }
 }

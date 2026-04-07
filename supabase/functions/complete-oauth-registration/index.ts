@@ -108,6 +108,25 @@ Deno.serve(async (req) => {
       }
     }
 
+    // If landlord, create trial subscription (20 rooms + 5 tolet for 30 days)
+    if (role === "landlord") {
+      const { data: plans } = await admin
+        .from("subscription_plans")
+        .select("id")
+        .eq("is_active", true)
+        .order("sort_order")
+        .limit(1);
+      const planId = plans?.[0]?.id;
+      if (planId) {
+        const now = new Date().toISOString();
+        const expires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+        await admin.from("user_subscriptions").insert([
+          { user_id: user.id, plan_id: planId, product_type: "room_management", room_count: 20, tolet_count: 0, duration_months: 1, starts_at: now, expires_at: expires, status: "active", discount_percent: 100 },
+          { user_id: user.id, plan_id: planId, product_type: "tolet", room_count: 0, tolet_count: 5, duration_months: 1, starts_at: now, expires_at: expires, status: "active", discount_percent: 100, tolet_price_per_unit: 0 },
+        ]);
+      }
+    }
+
     return new Response(JSON.stringify({ success: true }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

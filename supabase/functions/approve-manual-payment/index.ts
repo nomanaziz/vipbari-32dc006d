@@ -122,31 +122,6 @@ Deno.serve(async (req) => {
 
     if (subErr) throw new Error(`Failed to create subscription: ${subErr.message}`);
 
-    // Check if first tolet purchase → give 2 free slots
-    if (productType === "tolet") {
-      const { data: allToletSubs } = await supabase
-        .from("user_subscriptions")
-        .select("id")
-        .eq("user_id", userId)
-        .eq("product_type", "tolet");
-
-      if (allToletSubs && allToletSubs.length === 1) {
-        const freeExpiry = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
-        await supabase.from("user_subscriptions").insert({
-          user_id: userId,
-          plan_id: planId,
-          product_type: "tolet",
-          room_count: 0,
-          tolet_count: 2,
-          duration_months: 1,
-          discount_percent: 100,
-          starts_at: now.toISOString(),
-          expires_at: freeExpiry.toISOString(),
-          status: "active",
-          tolet_price_per_unit: 0,
-        });
-      }
-    }
 
     return new Response(
       JSON.stringify({ success: true, status: "completed" }),

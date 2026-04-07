@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" fill="none">
+  <defs>
+    <linearGradient id="gbg" x1="0" y1="0" x2="400" y2="300" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#E8ECF0"/>
+      <stop offset="100%" stop-color="#D0D8E0"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="300" fill="url(#gbg)"/>
+  <!-- Ground -->
+  <rect x="0" y="240" width="400" height="60" fill="#A0A8B0"/>
+  <!-- Parking lines -->
+  <rect x="100" y="245" width="3" height="50" fill="#E0E4E8"/>
+  <rect x="200" y="245" width="3" height="50" fill="#E0E4E8"/>
+  <rect x="300" y="245" width="3" height="50" fill="#E0E4E8"/>
+  <!-- Garage structure -->
+  <rect x="60" y="80" width="280" height="165" rx="4" fill="#8A9098"/>
+  <!-- Roof -->
+  <path d="M50 85 L200 35 L350 85Z" fill="#6A7078"/>
+  <!-- Garage door -->
+  <rect x="100" y="120" width="200" height="120" rx="3" fill="#505860"/>
+  <!-- Door panels -->
+  <g stroke="#606870" stroke-width="1.5">
+    <line x1="100" y1="150" x2="300" y2="150"/>
+    <line x1="100" y1="180" x2="300" y2="180"/>
+    <line x1="100" y1="210" x2="300" y2="210"/>
+  </g>
+  <!-- Door handle -->
+  <rect x="190" y="225" width="20" height="6" rx="3" fill="#A0A8B0"/>
+  <!-- Car silhouette -->
+  <g opacity="0.3">
+    <path d="M140 235 Q145 210, 175 205 L225 205 Q255 210, 260 235Z" fill="#404850"/>
+    <rect x="135" y="235" width="130" height="20" rx="8" fill="#404850"/>
+    <circle cx="165" cy="255" r="8" fill="#303840"/>
+    <circle cx="235" cy="255" r="8" fill="#303840"/>
+  </g>
+  <!-- Light -->
+  <circle cx="200" cy="100" r="8" fill="#FFE080" opacity="0.8"/>
+  <circle cx="200" cy="100" r="12" fill="#FFE080" opacity="0.2"/>
+  <text x="200" y="290" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" fill="#6A7078" opacity="0.6">Garage</text>
+</svg>

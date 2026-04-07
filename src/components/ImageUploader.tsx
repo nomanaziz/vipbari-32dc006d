@@ -126,24 +126,48 @@ const ImageUploader = ({
         ))}
 
         {remaining > 0 && (
-          <div
-            onDragOver={(e) => e.preventDefault()}
-            onDrop={handleDrop}
-            onClick={() => inputRef.current?.click()}
-            className="w-20 h-20 rounded-md border-2 border-dashed border-muted-foreground/30 flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 transition-colors"
-          >
-            {uploading ? (
-              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-            ) : (
-              <>
-                <ImagePlus className="h-5 w-5 text-muted-foreground" />
-                <span className="text-[10px] text-muted-foreground mt-0.5">{remaining} left</span>
-              </>
-            )}
+          <div className="flex gap-1">
+            <div
+              onClick={() => cameraInputRef.current?.click()}
+              className="w-20 h-20 rounded-md border-2 border-dashed border-muted-foreground/30 flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 transition-colors"
+            >
+              {uploading ? (
+                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+              ) : (
+                <>
+                  <Camera className="h-5 w-5 text-muted-foreground" />
+                  <span className="text-[10px] text-muted-foreground mt-0.5">Camera</span>
+                </>
+              )}
+            </div>
+            <div
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={handleDrop}
+              onClick={() => inputRef.current?.click()}
+              className="w-20 h-20 rounded-md border-2 border-dashed border-muted-foreground/30 flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 transition-colors"
+            >
+              {uploading ? (
+                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+              ) : (
+                <>
+                  <ImagePlus className="h-5 w-5 text-muted-foreground" />
+                  <span className="text-[10px] text-muted-foreground mt-0.5">{remaining} left</span>
+                </>
+              )}
+            </div>
           </div>
         )}
       </div>
 
+      <input
+        ref={cameraInputRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        className="hidden"
+        onChange={(e) => handleFiles(e.target.files)}
+        disabled={disabled || uploading}
+      />
       <input
         ref={inputRef}
         type="file"

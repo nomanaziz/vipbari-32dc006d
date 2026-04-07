@@ -374,11 +374,18 @@ const TenantProfile = () => {
                       </button>
                     </div>
                   ) : (
-                    <Button type="button" variant="outline" size="sm" onClick={() => backRef.current?.click()} disabled={!!uploading}>
-                      {uploading === "doc_back_url" ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Upload className="h-4 w-4 mr-1" />}
-                      {language === "bn" ? "আপলোড" : "Upload"}
-                    </Button>
+                    <div className="flex gap-1">
+                      <Button type="button" variant="outline" size="sm" onClick={() => backCamRef.current?.click()} disabled={!!uploading}>
+                        {uploading === "doc_back_url" ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Camera className="h-4 w-4 mr-1" />}
+                        {language === "bn" ? "ক্যামেরা" : "Camera"}
+                      </Button>
+                      <Button type="button" variant="outline" size="sm" onClick={() => backRef.current?.click()} disabled={!!uploading}>
+                        <ImagePlus className="h-4 w-4 mr-1" />
+                        {language === "bn" ? "গ্যালারি" : "Gallery"}
+                      </Button>
+                    </div>
                   )}
+                  <input ref={backCamRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => e.target.files?.[0] && uploadDoc(e.target.files[0], "doc_back_url")} />
                   <input ref={backRef} type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && uploadDoc(e.target.files[0], "doc_back_url")} />
                 </div>
               </div>

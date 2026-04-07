@@ -185,10 +185,17 @@ export default function TenantPayDialog({
           {/* Screenshot */}
           <div className="space-y-1.5">
             <Label>{t("Payment Screenshot (optional)", "পেমেন্ট স্ক্রিনশট (ঐচ্ছিক)")}</Label>
-            <Button variant="outline" size="sm" onClick={() => fileRef.current?.click()} disabled={uploading}>
-              {uploading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Upload className="h-4 w-4 mr-2" />}
-              {screenshotUrl ? t("Uploaded ✓", "আপলোড হয়েছে ✓") : t("Upload", "আপলোড")}
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={() => camRef.current?.click()} disabled={uploading}>
+                {uploading ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Camera className="h-4 w-4 mr-1" />}
+                {t("Camera", "ক্যামেরা")}
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => fileRef.current?.click()} disabled={uploading}>
+                <ImagePlus className="h-4 w-4 mr-1" />
+                {screenshotUrl ? t("Uploaded ✓", "আপলোড হয়েছে ✓") : t("Gallery", "গ্যালারি")}
+              </Button>
+            </div>
+            <input ref={camRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleUpload} />
             <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleUpload} />
           </div>
         </div>

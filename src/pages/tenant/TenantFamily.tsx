@@ -316,11 +316,18 @@ const TenantFamily = () => {
                         </button>
                       </div>
                     ) : (
-                      <Button type="button" variant="outline" size="sm" onClick={() => docRef.current?.click()} disabled={uploading}>
-                        {uploading ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Upload className="h-4 w-4 mr-1" />}
-                        {language === "bn" ? "আপলোড" : "Upload"}
-                      </Button>
+                      <div className="flex gap-1">
+                        <Button type="button" variant="outline" size="sm" onClick={() => docCamRef.current?.click()} disabled={uploading}>
+                          {uploading ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Camera className="h-4 w-4 mr-1" />}
+                          {language === "bn" ? "ক্যামেরা" : "Camera"}
+                        </Button>
+                        <Button type="button" variant="outline" size="sm" onClick={() => docRef.current?.click()} disabled={uploading}>
+                          <ImagePlus className="h-4 w-4 mr-1" />
+                          {language === "bn" ? "গ্যালারি" : "Gallery"}
+                        </Button>
+                      </div>
                     )}
+                    <input ref={docCamRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => e.target.files?.[0] && uploadDoc(e.target.files[0])} />
                     <input ref={docRef} type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && uploadDoc(e.target.files[0])} />
                   </div>
                 </div>

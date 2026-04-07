@@ -36,11 +36,31 @@ Deno.serve(async (req) => {
     // Don't allow self-delete
     if (user_id === caller.id) throw new Error("Cannot delete yourself");
 
-    // Delete profile and roles first (they reference user_id)
+    const { data: tenantRows } = await supabaseAdmin
+      .from("tenants")
+      .select("id, room_id")
+      .eq("user_id", user_id);
+
+    const tenantIds = (tenantRows || []).map((tenant) => tenant.id);
+    const roomIds = (tenantRows || []).map((tenant) => tenant.room_id).filter(Boolean);
+
+    if (roomIds.length > 0) {
+      await supabaseAdmin
+        .from("rooms")
+        .update({ status: "vacant", tenant_id: null })
+        .in("id", roomIds);
+    }
+
+    if (tenantIds.length > 0) {
+      await supabaseAdmin.from("tenant_invitations").delete().in("tenant_id", tenantIds);
+    }
+
+    await supabaseAdmin.from("tenant_invitations").delete().eq("tenant_user_id", user_id);
+    await supabaseAdmin.from("tenant_invitations").delete().eq("landlord_id", user_id);
+    await supabaseAdmin.from("tenants").delete().eq("user_id", user_id);
     await supabaseAdmin.from("user_roles").delete().eq("user_id", user_id);
     await supabaseAdmin.from("profiles").delete().eq("user_id", user_id);
 
-    // Delete auth user
     const { error } = await supabaseAdmin.auth.admin.deleteUser(user_id);
     if (error) throw error;
 

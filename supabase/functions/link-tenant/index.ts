@@ -63,38 +63,68 @@ Deno.serve(async (req) => {
         });
       }
 
-      const { data: tenants } = await adminClient
-        .from("tenants")
-        .select("id, full_name, phone, user_id, owner_id, status")
+      const { data: matchingProfiles } = await adminClient
+        .from("profiles")
+        .select("user_id, full_name, phone")
         .ilike("phone", `%${phone}%`)
-        .eq("status", "active")
         .limit(10);
 
-      // Filter: only self-owned (unlinked) tenants with valid profiles
       const validTenants: any[] = [];
-      for (const t of (tenants || []).filter((t: any) => t.user_id && t.owner_id === t.user_id)) {
-        // Verify profile exists (skip orphaned tenant records)
-        const { data: profile } = await adminClient
-          .from("profiles")
-          .select("user_id, full_name")
-          .eq("user_id", t.user_id)
+      const seenTenantIds = new Set<string>();
+
+      for (const profile of matchingProfiles || []) {
+        const { data: tenantRole } = await adminClient
+          .from("user_roles")
+          .select("user_id")
+          .eq("user_id", profile.user_id)
+          .eq("role", "tenant")
           .maybeSingle();
 
-        if (!profile) continue; // orphaned record, skip
+        if (!tenantRole) continue;
 
-        // Check if there's an existing invitation from this landlord
+        const { data: tenantRows } = await adminClient
+          .from("tenants")
+          .select("id, full_name, phone, user_id, owner_id, status")
+          .eq("user_id", profile.user_id)
+          .order("created_at", { ascending: false })
+          .limit(1);
+
+        let tenant = tenantRows?.[0] || null;
+
+        if (!tenant) {
+          const { data: createdTenant, error: createTenantError } = await adminClient
+            .from("tenants")
+            .insert({
+              user_id: profile.user_id,
+              owner_id: profile.user_id,
+              full_name: profile.full_name || "",
+              phone: profile.phone || phone,
+              status: "active",
+            })
+            .select("id, full_name, phone, user_id, owner_id, status")
+            .single();
+
+          if (createTenantError || !createdTenant) continue;
+          tenant = createdTenant;
+        }
+
+        if (!tenant.user_id || tenant.owner_id !== tenant.user_id || tenant.status !== "active") continue;
+        if (seenTenantIds.has(tenant.id)) continue;
+
         const { data: existingInvite } = await adminClient
           .from("tenant_invitations")
           .select("status")
           .eq("landlord_id", user.id)
-          .eq("tenant_id", t.id)
+          .eq("tenant_id", tenant.id)
           .maybeSingle();
 
         validTenants.push({
-          ...t,
-          full_name: profile.full_name || t.full_name, // use profile name
+          ...tenant,
+          full_name: profile.full_name || tenant.full_name,
+          phone: profile.phone || tenant.phone,
           invitation_status: existingInvite?.status || null,
         });
+        seenTenantIds.add(tenant.id);
       }
 
       return new Response(JSON.stringify({ tenants: validTenants }), {

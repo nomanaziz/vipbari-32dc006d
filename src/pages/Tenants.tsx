@@ -37,6 +37,7 @@ const Tenants = () => {
   const [deleteTenant, setDeleteTenant] = useState<any>(null);
   const [releaseTenant, setReleaseTenant] = useState<any>(null);
   const [credentials, setCredentials] = useState<{ phone: string; password: string } | null>(null);
+  const [shiftTenant, setShiftTenant] = useState<any>(null);
 
   const { data: rooms } = useQuery({
     queryKey: ["rooms-for-assign", effectiveOwnerId],

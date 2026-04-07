@@ -877,7 +877,28 @@ const Properties = () => {
                           <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
                             {typeLabels[p.property_type] || p.property_type}
                           </span>
+                          {p.property_type === "tin_shed" && (
+                            <>
+                              <Badge className="text-[10px] bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 border-amber-300">
+                                🏠 {language === "bn" ? "টিনশেড" : "Tin Shed"}
+                              </Badge>
+                              {(p as any).utilities_included && (
+                                <Badge variant="outline" className="text-[10px] font-normal border-emerald-400 text-emerald-700 dark:text-emerald-400">
+                                  ⚡ {language === "bn" ? "ইউটিলিটি অন্তর্ভুক্ত" : "Utilities Included"}
+                                </Badge>
+                              )}
+                            </>
+                          )}
                         </div>
+                        {/* Common Facilities for Tin Shed */}
+                        {p.property_type === "tin_shed" && ((p as any).common_bathrooms > 0 || (p as any).common_washrooms > 0 || (p as any).common_kitchens > 0 || (p as any).common_stoves > 0) && (
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {(p as any).common_bathrooms > 0 && <Badge variant="secondary" className="text-[10px]">🚿 {language === "bn" ? `${(p as any).common_bathrooms}টি বাথরুম` : `${(p as any).common_bathrooms} Bathrooms`}</Badge>}
+                            {(p as any).common_washrooms > 0 && <Badge variant="secondary" className="text-[10px]">🚻 {language === "bn" ? `${(p as any).common_washrooms}টি ওয়াশরুম` : `${(p as any).common_washrooms} Washrooms`}</Badge>}
+                            {(p as any).common_kitchens > 0 && <Badge variant="secondary" className="text-[10px]">🍳 {language === "bn" ? `${(p as any).common_kitchens}টি রান্নাঘর` : `${(p as any).common_kitchens} Kitchens`}</Badge>}
+                            {(p as any).common_stoves > 0 && <Badge variant="secondary" className="text-[10px]">🔥 {language === "bn" ? `${(p as any).common_stoves}টি চুলা` : `${(p as any).common_stoves} Stoves`}</Badge>}
+                          </div>
+                        )}
                         {/* Nearby Services badges */}
                         {(p.nearest_police_station || p.nearest_fire_service || p.nearest_electricity_office) && (
                           <div className="flex flex-wrap gap-1 mt-2">

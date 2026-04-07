@@ -52,6 +52,11 @@ type Property = {
   has_water_supply: boolean;
   has_rooftop_access: boolean;
   map_url: string;
+  common_bathrooms: number;
+  common_washrooms: number;
+  common_kitchens: number;
+  common_stoves: number;
+  utilities_included: boolean;
 };
 
 type PropertyImage = { id: string; image_url: string; sort_order: number; property_id: string };

@@ -165,13 +165,13 @@ const FamilyMembersDialog = ({ tenant, onClose }: Props) => {
                 </div>
                 <div className="flex gap-1">
                   {(m.status === "pending" || !m.status) && (
-                    <>
-                      <Button variant="outline" size="sm" className="h-7 text-xs text-emerald-600" onClick={() => verifyMutation.mutate({ id: m.id, status: "approved" })}>
-                        {t("landlord.approve")}
-                      </Button>
-                      <Button variant="outline" size="sm" className="h-7 text-xs text-destructive" onClick={() => verifyMutation.mutate({ id: m.id, status: "rejected" })}>
-                        {t("landlord.reject")}
-                      </Button>
+                     <>
+                       <Button variant="outline" size="sm" className="h-7 text-xs text-emerald-600 border-emerald-200 hover:bg-emerald-50" onClick={() => verifyMutation.mutate({ id: m.id, status: "approved" })}>
+                         <CheckCircle2 className="h-3 w-3 mr-1" />{language === "bn" ? "অনুমোদন" : "Approve"}
+                       </Button>
+                       <Button variant="outline" size="sm" className="h-7 text-xs text-destructive" onClick={() => verifyMutation.mutate({ id: m.id, status: "rejected" })}>
+                         <XCircle className="h-3 w-3 mr-1" />{language === "bn" ? "প্রত্যাখ্যান" : "Reject"}
+                       </Button>
                     </>
                   )}
                   <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => setDeleteId(m.id)}>

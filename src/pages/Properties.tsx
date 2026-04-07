@@ -19,6 +19,7 @@ import { toast } from "sonner";
 import { DIVISIONS, DIVISIONS_BN, DISTRICTS, DISTRICTS_BN, THANAS, THANAS_BN, getBnLabel } from "@/data/bangladeshAddress";
 import ImageUploader from "@/components/ImageUploader";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 
 type Property = {
   id: string;

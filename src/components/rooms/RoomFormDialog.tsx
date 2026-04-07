@@ -100,6 +100,8 @@ const RoomFormDialog = ({ open, onOpenChange, editing, properties, onSubmit, isP
     }
   }, [editing, properties]);
 
+  const isTinShed = propertyType === "tin_shed";
+
   const roomTypeLabels: Record<string, string> = {
     room: t("room.type_room") || "Room",
     flat: t("room.type_flat") || "Flat",

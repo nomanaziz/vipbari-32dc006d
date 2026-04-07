@@ -137,7 +137,12 @@ const FamilyMembersDialog = ({ tenant, onClose }: Props) => {
     <Dialog open={!!tenant} onOpenChange={(v) => { if (!v) onClose(); }}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>{t("tenant.family_members")} — {tenant?.full_name}</DialogTitle>
+          <DialogTitle>{language === "bn" ? "পরিবারের সদস্য" : "Family Members"} — {tenant?.full_name}</DialogTitle>
+          {members && members.length > 0 && (
+            <p className="text-sm text-muted-foreground">
+              {language === "bn" ? "মোট সদস্য" : "Total members"}: {members.length} | {language === "bn" ? "অনুমোদিত" : "Approved"}: {members.filter((m: any) => m.status === "approved").length}
+            </p>
+          )}
         </DialogHeader>
 
         {/* Members list */}

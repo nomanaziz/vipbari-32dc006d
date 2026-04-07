@@ -48,6 +48,7 @@ export default function TenantPayDialog({
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const camRef = useRef<HTMLInputElement>(null);
 
   const dueAmount = Number(bill?.total_amount || 0) - Number(bill?.received_amount || 0);
 

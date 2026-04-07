@@ -210,7 +210,7 @@ const Tenants = () => {
     return reason;
   };
 
-  const { t: translate } = useLanguage();
+  
 
   return (
     <div className="space-y-6">

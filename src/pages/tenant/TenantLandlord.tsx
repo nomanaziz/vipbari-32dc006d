@@ -1,12 +1,16 @@
 import { useEffect, useState } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Building2, Phone, Mail, Home, MapPin, DoorOpen, User, Info } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Building2, Phone, Mail, Home, MapPin, DoorOpen, User, Info, CheckCircle2, XCircle, Send } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { toast } from "sonner";
 
 interface LandlordInfo {
   full_name: string;
@@ -28,16 +32,67 @@ interface RoomInfo {
 export default function TenantLandlord() {
   const { language } = useLanguage();
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [landlord, setLandlord] = useState<LandlordInfo | null>(null);
   const [room, setRoom] = useState<RoomInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [isUnlinked, setIsUnlinked] = useState(false);
 
+  const t = (en: string, bn: string) => language === "bn" ? bn : en;
+
+  // Fetch pending invitations for this tenant
+  const { data: pendingInvitations } = useQuery({
+    queryKey: ["tenant-pending-invitations", user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("tenant_invitations")
+        .select("*")
+        .eq("tenant_user_id", user!.id)
+        .eq("status", "pending")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      // Fetch landlord profiles
+      const landlordIds = (data || []).map((i: any) => i.landlord_id);
+      if (landlordIds.length === 0) return [];
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("user_id, full_name, phone")
+        .in("user_id", landlordIds);
+      const profileMap = Object.fromEntries((profiles || []).map((p: any) => [p.user_id, p]));
+      return (data || []).map((inv: any) => ({
+        ...inv,
+        landlord_name: profileMap[inv.landlord_id]?.full_name || "",
+        landlord_phone: profileMap[inv.landlord_id]?.phone || "",
+      }));
+    },
+    enabled: !!user,
+  });
+
+  const respondMutation = useMutation({
+    mutationFn: async ({ invitation_id, response }: { invitation_id: string; response: string }) => {
+      const { data, error } = await supabase.functions.invoke("link-tenant", {
+        body: { action: "respond", invitation_id, response },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["tenant-pending-invitations"] });
+      if (variables.response === "accepted") {
+        toast.success(t("Invitation accepted! You are now linked.", "ইনভিটেশন গৃহীত! আপনি এখন লিংক হয়েছেন।"));
+        // Reload landlord data
+        setTimeout(() => window.location.reload(), 1000);
+      } else {
+        toast.success(t("Invitation rejected.", "ইনভিটেশন প্রত্যাখ্যান করা হয়েছে।"));
+      }
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
   useEffect(() => {
     if (!user) return;
     const fetchData = async () => {
       setLoading(true);
-      // Get tenant record
       const { data: tenant } = await supabase
         .from("tenants")
         .select("owner_id, room_id")
@@ -47,15 +102,12 @@ export default function TenantLandlord() {
       if (!tenant) { setLoading(false); return; }
 
       const tenantIsSelfOwned = tenant.owner_id === user.id;
-
-      // Determine landlord ID: use owner_id if linked, otherwise fallback to accepted request
       let landlordId: string | null = null;
       let fallbackRoomId: string | null = null;
 
       if (!tenantIsSelfOwned) {
         landlordId = tenant.owner_id;
       } else {
-        // Fetch latest accepted tolet_request for fallback
         const { data: acceptedReq } = await supabase
           .from("tolet_requests")
           .select("landlord_user_id, room_id")
@@ -69,14 +121,11 @@ export default function TenantLandlord() {
           landlordId = acceptedReq.landlord_user_id;
           fallbackRoomId = acceptedReq.room_id;
         }
-
-        // Only truly unlinked if no accepted request either
         setIsUnlinked(!acceptedReq);
       }
 
       const effectiveRoomId = tenant.room_id || fallbackRoomId;
 
-      // Fetch landlord profile and room info in parallel
       const [landlordRes, roomRes] = await Promise.all([
         landlordId
           ? supabase.from("profiles").select("full_name, phone, email, avatar_url").eq("user_id", landlordId).maybeSingle()
@@ -109,8 +158,6 @@ export default function TenantLandlord() {
     fetchData();
   }, [user]);
 
-  const t = (en: string, bn: string) => language === "bn" ? bn : en;
-
   if (loading) {
     return (
       <div className="p-4 md:p-6 space-y-6">
@@ -127,13 +174,63 @@ export default function TenantLandlord() {
     <div className="p-4 md:p-6 space-y-6">
       <h1 className="text-2xl font-bold text-foreground">{t("My Landlord", "আমার বাড়িওয়ালা")}</h1>
 
+      {/* Pending Invitations */}
+      {(pendingInvitations?.length ?? 0) > 0 && (
+        <Card className="border-blue-200 bg-blue-50/50 dark:bg-blue-950/20 dark:border-blue-800">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Send className="h-4 w-4 text-blue-600" />
+              {t("Pending Invitations", "অপেক্ষমাণ ইনভিটেশন")}
+              <Badge variant="secondary" className="ml-1">{pendingInvitations?.length}</Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {pendingInvitations?.map((inv: any) => (
+              <div key={inv.id} className="flex items-center justify-between p-3 rounded-lg border bg-background">
+                <div>
+                  <p className="font-medium text-sm">{inv.landlord_name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {inv.landlord_phone}
+                    {" · "}
+                    {t("wants to link you as a tenant", "আপনাকে ভাড়াটিয়া হিসেবে যুক্ত করতে চান")}
+                  </p>
+                </div>
+                <div className="flex gap-1.5">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-7 text-xs text-emerald-600 border-emerald-200 hover:bg-emerald-50"
+                    disabled={respondMutation.isPending}
+                    onClick={() => respondMutation.mutate({ invitation_id: inv.id, response: "accepted" })}
+                  >
+                    <CheckCircle2 className="h-3 w-3 mr-1" />
+                    {t("Accept", "গ্রহণ")}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-7 text-xs text-destructive"
+                    disabled={respondMutation.isPending}
+                    onClick={() => respondMutation.mutate({ invitation_id: inv.id, response: "rejected" })}
+                  >
+                    <XCircle className="h-3 w-3 mr-1" />
+                    {t("Reject", "প্রত্যাখ্যান")}
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
       {isUnlinked && (
         <Alert>
           <Info className="h-4 w-4" />
           <AlertDescription>
-            {language === "bn"
-              ? "আপনার অ্যাকাউন্ট এখনো কোনো বাড়িওয়ালার সাথে লিংক হয়নি। লিংক হওয়ার পর সম্পূর্ণ তথ্য দেখতে পাবেন।"
-              : "Your account is not linked to a landlord yet. You can still submit complaints, and your landlord will be able to see them after your account is linked."}
+            {t(
+              "Your account is not linked to a landlord yet. You can still submit complaints, and your landlord will be able to see them after your account is linked.",
+              "আপনার অ্যাকাউন্ট এখনো কোনো বাড়িওয়ালার সাথে লিংক হয়নি। লিংক হওয়ার পর সম্পূর্ণ তথ্য দেখতে পাবেন।"
+            )}
           </AlertDescription>
         </Alert>
       )}

@@ -24,7 +24,6 @@ Deno.serve(async (req) => {
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
 
-    // Verify the caller is a landlord
     const userClient = createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: authHeader } },
     });
@@ -38,25 +37,25 @@ Deno.serve(async (req) => {
 
     const adminClient = createClient(supabaseUrl, serviceKey);
 
-    // Check caller is a landlord
-    const { data: roleData } = await adminClient
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", user.id)
-      .eq("role", "landlord")
-      .maybeSingle();
+    const { action, phone, tenant_id, room_id, invitation_id, response } = await req.json();
 
-    if (!roleData) {
-      return new Response(JSON.stringify({ error: "Only landlords can link tenants" }), {
-        status: 403,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const { action, phone, tenant_id, room_id } = await req.json();
-
-    // Action: search - find unassigned tenants by phone
+    // ─── ACTION: SEARCH ───────────────────────────────
     if (action === "search") {
+      // Check caller is a landlord
+      const { data: roleData } = await adminClient
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .eq("role", "landlord")
+        .maybeSingle();
+
+      if (!roleData) {
+        return new Response(JSON.stringify({ error: "Only landlords can search tenants" }), {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
       if (!phone || phone.length < 4) {
         return new Response(JSON.stringify({ error: "Phone number too short" }), {
           status: 400,
@@ -71,12 +70,23 @@ Deno.serve(async (req) => {
         .eq("status", "active")
         .limit(10);
 
-      // Also verify the user account still exists
+      // Filter: only self-owned tenants with valid auth accounts
       const validTenants: any[] = [];
       for (const t of (tenants || []).filter((t: any) => t.user_id && t.owner_id === t.user_id)) {
         const { data: authUser } = await adminClient.auth.admin.getUserById(t.user_id);
         if (authUser?.user) {
-          validTenants.push(t);
+          // Check if there's an existing invitation from this landlord
+          const { data: existingInvite } = await adminClient
+            .from("tenant_invitations")
+            .select("status")
+            .eq("landlord_id", user.id)
+            .eq("tenant_id", t.id)
+            .maybeSingle();
+
+          validTenants.push({
+            ...t,
+            invitation_status: existingInvite?.status || null,
+          });
         }
       }
 
@@ -85,8 +95,23 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Action: link - assign tenant to this landlord
-    if (action === "link") {
+    // ─── ACTION: INVITE ───────────────────────────────
+    if (action === "invite") {
+      // Check caller is a landlord
+      const { data: roleData } = await adminClient
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .eq("role", "landlord")
+        .maybeSingle();
+
+      if (!roleData) {
+        return new Response(JSON.stringify({ error: "Only landlords can invite tenants" }), {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
       if (!tenant_id) {
         return new Response(JSON.stringify({ error: "tenant_id required" }), {
           status: 400,
@@ -108,30 +133,144 @@ Deno.serve(async (req) => {
         });
       }
 
-      // Update owner_id and optionally room_id
-      const updateData: any = { owner_id: user.id };
-      if (room_id) {
-        updateData.room_id = room_id;
+      // Check if invitation already exists
+      const { data: existingInvite } = await adminClient
+        .from("tenant_invitations")
+        .select("id, status")
+        .eq("landlord_id", user.id)
+        .eq("tenant_id", tenant_id)
+        .maybeSingle();
+
+      if (existingInvite) {
+        if (existingInvite.status === "pending") {
+          return new Response(JSON.stringify({ error: "Invitation already sent and pending" }), {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        if (existingInvite.status === "rejected") {
+          return new Response(JSON.stringify({ error: "Tenant has rejected your invitation. You cannot re-invite." }), {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        if (existingInvite.status === "accepted") {
+          return new Response(JSON.stringify({ error: "Tenant already accepted your invitation" }), {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
       }
 
-      const { error: updateError } = await adminClient
-        .from("tenants")
-        .update(updateData)
-        .eq("id", tenant_id);
+      // Insert invitation
+      const { error: insertError } = await adminClient
+        .from("tenant_invitations")
+        .insert({
+          landlord_id: user.id,
+          tenant_id: tenant_id,
+          tenant_user_id: tenant.user_id,
+          room_id: room_id || null,
+          status: "pending",
+        });
 
-      if (updateError) {
-        return new Response(JSON.stringify({ error: updateError.message }), {
+      if (insertError) {
+        return new Response(JSON.stringify({ error: insertError.message }), {
           status: 500,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
 
-      // If room assigned, mark room as occupied
-      if (room_id) {
-        await adminClient
-          .from("rooms")
-          .update({ status: "occupied", tenant_id: tenant_id })
-          .eq("id", room_id);
+      // Create notification for tenant
+      await adminClient.from("notifications").insert({
+        user_id: tenant.user_id,
+        title: "New Landlord Invitation",
+        body: "A landlord has invited you to link with their property. Please check and respond.",
+        type: "tenant_invitation",
+      });
+
+      return new Response(JSON.stringify({ success: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // ─── ACTION: RESPOND (tenant accepts/rejects) ─────
+    if (action === "respond") {
+      if (!invitation_id || !response || !["accepted", "rejected"].includes(response)) {
+        return new Response(JSON.stringify({ error: "invitation_id and response (accepted/rejected) required" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      // Get the invitation
+      const { data: invite } = await adminClient
+        .from("tenant_invitations")
+        .select("*")
+        .eq("id", invitation_id)
+        .eq("tenant_user_id", user.id)
+        .eq("status", "pending")
+        .single();
+
+      if (!invite) {
+        return new Response(JSON.stringify({ error: "Invitation not found or already responded" }), {
+          status: 404,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      // Update invitation status
+      await adminClient
+        .from("tenant_invitations")
+        .update({ status: response })
+        .eq("id", invitation_id);
+
+      if (response === "accepted") {
+        // Link tenant: update owner_id
+        const updateData: any = { owner_id: invite.landlord_id };
+        if (invite.room_id) {
+          updateData.room_id = invite.room_id;
+        }
+
+        const { error: updateError } = await adminClient
+          .from("tenants")
+          .update(updateData)
+          .eq("id", invite.tenant_id);
+
+        if (updateError) {
+          // Rollback invitation status
+          await adminClient
+            .from("tenant_invitations")
+            .update({ status: "pending" })
+            .eq("id", invitation_id);
+          return new Response(JSON.stringify({ error: updateError.message }), {
+            status: 500,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+
+        // If room assigned, mark room as occupied
+        if (invite.room_id) {
+          await adminClient
+            .from("rooms")
+            .update({ status: "occupied", tenant_id: invite.tenant_id })
+            .eq("id", invite.room_id);
+        }
+
+        // Notify landlord
+        await adminClient.from("notifications").insert({
+          user_id: invite.landlord_id,
+          title: "Invitation Accepted",
+          body: "A tenant has accepted your invitation and is now linked to your account.",
+          type: "tenant_invitation_accepted",
+        });
+      } else {
+        // Notify landlord of rejection
+        await adminClient.from("notifications").insert({
+          user_id: invite.landlord_id,
+          title: "Invitation Rejected",
+          body: "A tenant has rejected your invitation.",
+          type: "tenant_invitation_rejected",
+        });
       }
 
       return new Response(JSON.stringify({ success: true }), {

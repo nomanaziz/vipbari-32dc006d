@@ -92,14 +92,6 @@ const RoomFormDialog = ({ open, onOpenChange, editing, properties, onSubmit, isP
     enabled: !!roomId,
   });
 
-  useEffect(() => {
-    if (editing) {
-      setForm(formFromRoom(editing));
-    } else {
-      setForm(getDefaultForm(properties?.[0]?.id));
-    }
-  }, [editing, properties]);
-
   const isTinShed = propertyType === "tin_shed";
 
   const roomTypeLabels: Record<string, string> = {
@@ -107,6 +99,25 @@ const RoomFormDialog = ({ open, onOpenChange, editing, properties, onSubmit, isP
     flat: t("room.type_flat") || "Flat",
     shop: t("room.type_shop") || "Shop",
   };
+
+  const roomTypeConfig: Record<string, { options: string[]; default: string }> = {
+    building: { options: ["flat", "shop"], default: "flat" },
+    house: { options: ["room"], default: "room" },
+    shop: { options: ["shop"], default: "shop" },
+    tin_shed: { options: ["room"], default: "room" },
+  };
+
+  const currentConfig = roomTypeConfig[propertyType || ""] || { options: ["room", "flat", "shop"], default: "room" };
+  const availableRoomTypes = currentConfig.options;
+  const showRoomTypeSelector = availableRoomTypes.length > 1 && !isTinShed;
+
+  useEffect(() => {
+    if (editing) {
+      setForm(formFromRoom(editing));
+    } else {
+      setForm({ ...getDefaultForm(properties?.[0]?.id), room_type: currentConfig.default });
+    }
+  }, [editing, properties, propertyType]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -182,15 +193,15 @@ const RoomFormDialog = ({ open, onOpenChange, editing, properties, onSubmit, isP
               <Label>{t("room.number")}</Label>
               <Input value={form.room_number} onChange={e => setForm(f => ({ ...f, room_number: e.target.value }))} required />
             </div>
-            {!isTinShed && (
+            {showRoomTypeSelector && (
               <div className="space-y-2">
                 <Label>{t("room.type")}</Label>
                 <Select value={form.room_type} onValueChange={v => setForm(f => ({ ...f, room_type: v }))}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="room">{roomTypeLabels.room}</SelectItem>
-                    <SelectItem value="flat">{roomTypeLabels.flat}</SelectItem>
-                    <SelectItem value="shop">{roomTypeLabels.shop}</SelectItem>
+                    {availableRoomTypes.map(type => (
+                      <SelectItem key={type} value={type}>{roomTypeLabels[type]}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>

@@ -468,6 +468,9 @@ const BulkRoomAddDialog = ({ properties, onSuccess }: Props) => {
   };
 
   const previewItems = useMemo(() => {
+    if (isSimpleMode) {
+      return Array.from({ length: simpleCount }, (_, i) => ({ floor: 0, label: String(i + 1) }));
+    }
     const items: { floor: number; label: string }[] = [];
     const templateUnits = unitMode === "same" ? units : diffUnits;
     for (const floor of floors) {
@@ -476,7 +479,7 @@ const BulkRoomAddDialog = ({ properties, onSuccess }: Props) => {
       }
     }
     return items;
-  }, [unitMode, floors, units, diffUnits]);
+  }, [isSimpleMode, simpleCount, unitMode, floors, units, diffUnits]);
 
   // Group summary for display
   const groupSummary = useMemo(() => {

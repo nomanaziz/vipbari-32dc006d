@@ -57,7 +57,7 @@ const GROUP_COLORS: Record<string, string> = {
 };
 
 interface Props {
-  properties: { id: string; name: string }[];
+  properties: { id: string; name: string; property_type?: string }[];
   onSuccess: () => void;
 }
 
@@ -181,7 +181,7 @@ const UnitCard = ({
 );
 
 const BulkRoomAddDialog = ({ properties, onSuccess }: Props) => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [open, setOpen] = useState(false);
   const [propertyId, setPropertyId] = useState(properties?.[0]?.id || "");
   const [floorFrom, setFloorFrom] = useState("1");
@@ -189,6 +189,14 @@ const BulkRoomAddDialog = ({ properties, onSuccess }: Props) => {
   const [unitMode, setUnitMode] = useState<"same" | "different">("same");
   const [units, setUnits] = useState<UnitTemplate[]>([defaultUnit()]);
   const [isPending, setIsPending] = useState(false);
+
+  // Simple mode state (for tin_shed/house/shop)
+  const [simpleRoomCount, setSimpleRoomCount] = useState("10");
+  const [simpleRent, setSimpleRent] = useState("0");
+
+  // Derive property type
+  const effectivePropertyType = properties.find(p => p.id === propertyId)?.property_type;
+  const isSimpleMode = effectivePropertyType === "tin_shed" || effectivePropertyType === "house" || effectivePropertyType === "shop";
 
   // New state for enhanced features
   const [unitsPerFloor, setUnitsPerFloor] = useState("1");
@@ -286,10 +294,18 @@ const BulkRoomAddDialog = ({ properties, onSuccess }: Props) => {
     setDiffUnits(prev => prev.map(u => u.id === id ? { ...u, ...patch } : u));
   }, []);
 
+  const simpleCount = Math.max(0, Math.min(50, parseInt(simpleRoomCount) || 0));
+
   const totalRooms = useMemo(() => {
+    if (isSimpleMode) return simpleCount;
     if (unitMode === "same") return floorCount * units.length;
     return floorCount * diffUnits.length;
-  }, [unitMode, floorCount, units.length, diffUnits.length]);
+  }, [isSimpleMode, simpleCount, unitMode, floorCount, units.length, diffUnits.length]);
+
+  const simpleRoomType = effectivePropertyType === "shop" ? "shop" : "room";
+  const simpleLabel = effectivePropertyType === "shop" 
+    ? (language === "bn" ? "দোকান" : "Shop") 
+    : (language === "bn" ? "রুম" : "Room");
 
   const generateRoomNumber = (floor: number, unitLabel: string) => `${floor}${unitLabel}`;
 
@@ -339,7 +355,7 @@ const BulkRoomAddDialog = ({ properties, onSuccess }: Props) => {
 
   const handleSubmit = async () => {
     if (!propertyId) { toast.error(t("room.select_property") || "Select a property"); return; }
-    if (fromFloor > toFloor) { toast.error(t("bulk.invalid_floor_range") || "Invalid floor range"); return; }
+    if (!isSimpleMode && fromFloor > toFloor) { toast.error(t("bulk.invalid_floor_range") || "Invalid floor range"); return; }
     if (totalRooms > 100) { toast.error(t("bulk.too_many") || "Maximum 100 rooms at once"); return; }
     if (totalRooms === 0) return;
 
@@ -370,27 +386,51 @@ const BulkRoomAddDialog = ({ properties, onSuccess }: Props) => {
       }
 
       const rows: any[] = [];
-      const buildRow = (unit: any, floor: number) => ({
-        property_id: propertyId,
-        room_number: generateRoomNumber(floor, unit.label),
-        room_type: unit.room_type,
-        floor,
-        rent_amount: Number(unit.rent_amount),
-        bedrooms: Number(unit.bedrooms),
-        bathrooms: Number(unit.bathrooms),
-        has_drawing_room: unit.has_drawing_room,
-        has_dining_room: unit.has_dining_room,
-        has_kitchen: unit.has_kitchen,
-        balconies: Number(unit.balconies),
-        has_roof_access: unit.has_roof_access,
-        area_sqft: Number(unit.area_sqft),
-        description: unit.description,
-      });
 
-      const templateUnits = unitMode === "same" ? units : diffUnits;
-      for (let floor = fromFloor; floor <= toFloor; floor++) {
-        for (const unit of templateUnits) {
-          rows.push(buildRow(unit, floor));
+      if (isSimpleMode) {
+        // Simple mode: sequential rooms, no amenities
+        for (let i = 1; i <= simpleCount; i++) {
+          rows.push({
+            property_id: propertyId,
+            room_number: String(i),
+            room_type: simpleRoomType,
+            floor: 0,
+            rent_amount: Number(simpleRent),
+            bedrooms: 0,
+            bathrooms: 0,
+            has_drawing_room: false,
+            has_dining_room: false,
+            has_kitchen: false,
+            balconies: 0,
+            has_roof_access: false,
+            area_sqft: 0,
+            description: "",
+          });
+        }
+      } else {
+        // Building mode: floor-based
+        const buildRow = (unit: any, floor: number) => ({
+          property_id: propertyId,
+          room_number: generateRoomNumber(floor, unit.label),
+          room_type: unit.room_type,
+          floor,
+          rent_amount: Number(unit.rent_amount),
+          bedrooms: Number(unit.bedrooms),
+          bathrooms: Number(unit.bathrooms),
+          has_drawing_room: unit.has_drawing_room,
+          has_dining_room: unit.has_dining_room,
+          has_kitchen: unit.has_kitchen,
+          balconies: Number(unit.balconies),
+          has_roof_access: unit.has_roof_access,
+          area_sqft: Number(unit.area_sqft),
+          description: unit.description,
+        });
+
+        const templateUnits = unitMode === "same" ? units : diffUnits;
+        for (let floor = fromFloor; floor <= toFloor; floor++) {
+          for (const unit of templateUnits) {
+            rows.push(buildRow(unit, floor));
+          }
         }
       }
 
@@ -428,6 +468,9 @@ const BulkRoomAddDialog = ({ properties, onSuccess }: Props) => {
   };
 
   const previewItems = useMemo(() => {
+    if (isSimpleMode) {
+      return Array.from({ length: simpleCount }, (_, i) => ({ floor: 0, label: String(i + 1) }));
+    }
     const items: { floor: number; label: string }[] = [];
     const templateUnits = unitMode === "same" ? units : diffUnits;
     for (const floor of floors) {
@@ -436,7 +479,7 @@ const BulkRoomAddDialog = ({ properties, onSuccess }: Props) => {
       }
     }
     return items;
-  }, [unitMode, floors, units, diffUnits]);
+  }, [isSimpleMode, simpleCount, unitMode, floors, units, diffUnits]);
 
   // Group summary for display
   const groupSummary = useMemo(() => {
@@ -478,6 +521,50 @@ const BulkRoomAddDialog = ({ properties, onSuccess }: Props) => {
               </Select>
             </div>
 
+            {/* Simple mode for tin_shed / house / shop */}
+            {isSimpleMode && (
+              <div className="space-y-4">
+                <div className="rounded-lg border border-blue-300 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-800 p-3">
+                  <p className="text-sm font-medium text-blue-700 dark:text-blue-400">
+                    {effectivePropertyType === "shop" 
+                      ? (language === "bn" ? "📦 একসাথে একাধিক দোকান যোগ করুন" : "📦 Add multiple shops at once")
+                      : (language === "bn" ? "🏠 একসাথে একাধিক রুম যোগ করুন" : "🏠 Add multiple rooms at once")}
+                  </p>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>{language === "bn" ? `${simpleLabel} সংখ্যা` : `Number of ${simpleLabel}s`}</Label>
+                    <Input 
+                      type="number" 
+                      min="1" 
+                      max="50" 
+                      value={simpleRoomCount} 
+                      onChange={e => setSimpleRoomCount(e.target.value)} 
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>{language === "bn" ? `প্রতি ${simpleLabel} ভাড়া (৳)` : `Rent per ${simpleLabel} (৳)`}</Label>
+                    <Input 
+                      type="number" 
+                      min="0" 
+                      value={simpleRent} 
+                      onChange={e => setSimpleRent(e.target.value)} 
+                    />
+                  </div>
+                </div>
+                {effectivePropertyType === "tin_shed" && (
+                  <div className="rounded-lg border border-emerald-300 bg-emerald-50 dark:bg-emerald-900/20 dark:border-emerald-800 p-3">
+                    <p className="text-sm text-emerald-700 dark:text-emerald-400">
+                      ⚡ {language === "bn" ? "সব ইউটিলিটি ভাড়ায় অন্তর্ভুক্ত · বাথরুম, রান্নাঘর কমন/শেয়ার্ড" : "All utilities included · Bathroom, kitchen common/shared"}
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Building mode: Floor range */}
+            {!isSimpleMode && (
+              <>
             {/* Floor range */}
             <div className="space-y-2">
               <Label>{t("bulk.floor_range") || "Floor Range"}</Label>
@@ -504,7 +591,6 @@ const BulkRoomAddDialog = ({ properties, onSuccess }: Props) => {
               </RadioGroup>
             </div>
 
-            {/* SAME MODE */}
             {unitMode === "same" && (
               <div className="space-y-3">
                 {/* Units per floor input */}
@@ -651,8 +737,8 @@ const BulkRoomAddDialog = ({ properties, onSuccess }: Props) => {
                 </Button>
               </div>
             )}
-
-            {/* Preview */}
+              </>
+            )}
             {totalRooms > 0 && (
               <div className="space-y-2">
                 <Label>{t("bulk.preview") || "Preview"} ({totalRooms} {t("bulk.rooms") || "rooms"})</Label>

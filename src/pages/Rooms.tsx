@@ -771,6 +771,23 @@ const Rooms = () => {
                             </p>
                             <p className="text-sm font-medium mt-1">৳{Number(r.rent_amount).toLocaleString()}/{t("bill.month") || "month"}</p>
                             <RoomAmenityBadges room={r} compact />
+                            {isTinShed && (
+                              <div className="flex flex-wrap gap-1 mt-1">
+                                <Badge className="text-[10px] bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 border-amber-300">
+                                  🏠 {language === "bn" ? "টিনশেড" : "Tin Shed"}
+                                </Badge>
+                                {(roomProperty as any)?.utilities_included && (
+                                  <Badge variant="outline" className="text-[10px] border-emerald-400 text-emerald-700 dark:text-emerald-400">
+                                    ⚡ {language === "bn" ? "ইউটিলিটি অন্তর্ভুক্ত" : "Utilities Included"}
+                                  </Badge>
+                                )}
+                                {((roomProperty as any)?.common_bathrooms > 0 || (roomProperty as any)?.common_kitchens > 0) && (
+                                  <Badge variant="secondary" className="text-[10px]">
+                                    🔁 {language === "bn" ? "কমন সুবিধা" : "Shared Facilities"}
+                                  </Badge>
+                                )}
+                              </div>
+                            )}
 
                             {!hasRoomSub ? (
                               <div className="mt-2 space-y-1">

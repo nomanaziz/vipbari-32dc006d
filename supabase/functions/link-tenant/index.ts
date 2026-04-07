@@ -70,24 +70,21 @@ Deno.serve(async (req) => {
         .eq("status", "active")
         .limit(10);
 
-      // Filter: only self-owned tenants with valid auth accounts
+      // Filter: only self-owned (unlinked) tenants
       const validTenants: any[] = [];
       for (const t of (tenants || []).filter((t: any) => t.user_id && t.owner_id === t.user_id)) {
-        const { data: authUser } = await adminClient.auth.admin.getUserById(t.user_id);
-        if (authUser?.user) {
-          // Check if there's an existing invitation from this landlord
-          const { data: existingInvite } = await adminClient
-            .from("tenant_invitations")
-            .select("status")
-            .eq("landlord_id", user.id)
-            .eq("tenant_id", t.id)
-            .maybeSingle();
+        // Check if there's an existing invitation from this landlord
+        const { data: existingInvite } = await adminClient
+          .from("tenant_invitations")
+          .select("status")
+          .eq("landlord_id", user.id)
+          .eq("tenant_id", t.id)
+          .maybeSingle();
 
-          validTenants.push({
-            ...t,
-            invitation_status: existingInvite?.status || null,
-          });
-        }
+        validTenants.push({
+          ...t,
+          invitation_status: existingInvite?.status || null,
+        });
       }
 
       return new Response(JSON.stringify({ tenants: validTenants }), {

@@ -41,6 +41,8 @@ const TenantProfile = () => {
   const avatarRef = useRef<HTMLInputElement>(null);
   const avatarCamRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState<string | null>(null);
+  const [cropFile, setCropFile] = useState<File | null>(null);
+  const [cropOpen, setCropOpen] = useState(false);
 
   const { data: tenant, isLoading } = useQuery({
     queryKey: ["my-tenant-profile", user?.id],

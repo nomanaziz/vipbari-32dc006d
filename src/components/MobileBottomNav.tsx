@@ -37,15 +37,6 @@ export function MobileBottomNav() {
 
   const landlordMoreGroups: MoreGroup[] = [
     {
-      label: L("Property", "সম্পত্তি"),
-      items: [
-        { title: t("nav.properties"), url: "/properties", icon: Building2 },
-        { title: t("nav.rooms"), url: "/rooms", icon: DoorOpen },
-        { title: t("nav.meters"), url: "/meters", icon: Gauge },
-        { title: L("Garages", "গ্যারেজ"), url: "/garages", icon: Car },
-      ],
-    },
-    {
       label: L("Tenants", "ভাড়াটিয়া"),
       items: [
         { title: L("Guests", "অতিথি"), url: "/guests", icon: UserCog },
@@ -66,6 +57,15 @@ export function MobileBottomNav() {
         { title: t("nav.messages") || "Messages", url: "/messages", icon: MessageSquare },
         { title: t("nav.tolet_requests") || "To-Let Requests", url: "/tolet-requests", icon: Inbox },
         { title: L("My Listings", "আমার লিস্টিং"), url: "/my-listings", icon: ShoppingBag },
+      ],
+    },
+    {
+      label: L("Property", "সম্পত্তি"),
+      items: [
+        { title: t("nav.properties"), url: "/properties", icon: Building2 },
+        { title: t("nav.rooms"), url: "/rooms", icon: DoorOpen },
+        { title: t("nav.meters"), url: "/meters", icon: Gauge },
+        { title: L("Garages", "গ্যারেজ"), url: "/garages", icon: Car },
       ],
     },
     {

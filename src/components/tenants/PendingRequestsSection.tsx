@@ -16,10 +16,40 @@ const PendingRequestsSection = () => {
   const { data: pendingMembers } = useQuery({
     queryKey: ["pending-members", user?.id],
     queryFn: async () => {
+      // Get directly owned tenants
+      const { data: ownedTenants } = await supabase
+        .from("tenants")
+        .select("id")
+        .eq("owner_id", user!.id);
+
+      // Get tenants linked via accepted tolet_requests
+      const { data: linkedRequests } = await supabase
+        .from("tolet_requests")
+        .select("tenant_user_id")
+        .eq("landlord_user_id", user!.id)
+        .eq("status", "accepted");
+
+      const linkedUserIds = (linkedRequests || []).map((r: any) => r.tenant_user_id).filter(Boolean);
+      let linkedTenantIds: string[] = [];
+      if (linkedUserIds.length > 0) {
+        const { data: linkedTenants } = await supabase
+          .from("tenants")
+          .select("id")
+          .in("user_id", linkedUserIds);
+        linkedTenantIds = (linkedTenants || []).map((t: any) => t.id);
+      }
+
+      const allTenantIds = [
+        ...(ownedTenants || []).map((t: any) => t.id),
+        ...linkedTenantIds,
+      ];
+      const uniqueTenantIds = [...new Set(allTenantIds)];
+      if (uniqueTenantIds.length === 0) return [];
+
       const { data, error } = await supabase
         .from("tenant_members")
         .select("*, tenants!inner(full_name, phone, owner_id)")
-        .eq("tenants.owner_id", user!.id)
+        .in("tenant_id", uniqueTenantIds)
         .eq("status", "pending")
         .order("created_at", { ascending: false });
       if (error) throw error;

@@ -212,7 +212,7 @@ const ListingDetail = () => {
               </div>
             ) : isGarage ? (
               <div className="relative rounded-xl overflow-hidden aspect-video">
-                <img src="/images/default-garage.png" alt="Garage" className="w-full h-full object-cover" />
+                <img src={getDefaultImage("garage")} alt="Garage" className="w-full h-full object-cover" />
                 {isBoosted && (
                   <div className="absolute top-3 right-3 bg-gradient-to-r from-purple-500 to-violet-500 text-white text-xs px-3 py-1 rounded-full flex items-center gap-1 shadow-lg">
                     <Flame className="h-3.5 w-3.5" />

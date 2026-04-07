@@ -117,7 +117,7 @@ const BulkRoomManageDialog = ({ rooms, onSuccess }: Props) => {
 
       const { error } = await supabase
         .from("rooms")
-        .update({ [modifyField]: value })
+        .update({ [modifyField]: value } as any)
         .in("id", ids);
       if (error) throw error;
 

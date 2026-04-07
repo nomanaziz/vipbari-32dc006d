@@ -1,36 +1,52 @@
 
 
-# Fix: Admin-Added Balance Not Showing in Landlord Subscription Page
+# Default Images for All Property Types
 
 ## Problem
-When admin adds Room/Flat balance for a landlord, a new `user_subscriptions` row is created. But the Subscription page uses `.find()` which only picks the **first** matching subscription. The admin-added balance (second row) is ignored in the display.
-
-## Root Cause
-In `Subscription.tsx` line 181:
-```js
-const activeRoom = allSubs.find(s => s.product_type === "room_management" && ...);
-```
-This returns only ONE subscription. But the landlord may have multiple active room subscriptions (trial + admin-added).
-
-The "Active Balance" card then shows `activeRoomSub.room_count` from just that one row.
+Currently the app references `/images/default-room.png` and `/images/default-garage.png` which don't exist in the `public` folder. This causes broken/missing images on To-Let, Buy-Sell, Listing Detail, and My Listings pages when users haven't uploaded photos.
 
 ## Solution
-Change the Subscription page to **aggregate all active subscriptions** of each product type, matching how `Rooms.tsx` already does it correctly (line 169: `.reduce()`).
+Generate beautiful SVG default images for each property type and create a central helper, then update all references.
 
-### Changes in `src/pages/Subscription.tsx`
+### Step 1: Create Default Image SVGs
+Generate 5 attractive SVG images in `public/images/`:
+- `default-room.svg` — bedroom/flat illustration (bed, window, warm colors)
+- `default-apartment.svg` — apartment building illustration
+- `default-garage.svg` — parking/garage illustration (car, gate)
+- `default-shop.svg` — shop/store front illustration
+- `default-property.svg` — generic building/house illustration (fallback)
 
-1. **Replace `.find()` with aggregation** — compute total room_count, tolet_count, sale_listing_count across all active subs of each type
-2. **Calculate days remaining** from the subscription with the latest `expires_at` (not just the first found)
-3. **Display total counts** in the Active Balance card instead of single-sub counts
+Each SVG will be a clean, modern illustration with soft gradients — professional-looking placeholders that make the site look polished even without user photos.
 
+### Step 2: Create Helper Utility
+New file `src/lib/defaultImages.ts`:
+```typescript
+export function getDefaultImage(type?: string): string {
+  switch (type) {
+    case "garage": return "/images/default-garage.svg";
+    case "shop": return "/images/default-shop.svg";
+    case "apartment": return "/images/default-apartment.svg";
+    case "flat":
+    case "room":
+    case "tin_shed":
+      return "/images/default-room.svg";
+    default:
+      return "/images/default-property.svg";
+  }
+}
 ```
-Before: activeRoomSub.room_count → shows 20 (trial only)
-After:  totalRoomCount → shows 30 (20 trial + 10 admin-added)
-```
 
-| File | Change |
-|------|--------|
-| `src/pages/Subscription.tsx` | Aggregate all active subs per product_type for display. Show total room_count/tolet_count/sale_listing_count. Use latest expires_at for days remaining. |
+### Step 3: Update All References
 
-This is a display-only fix — the actual room limit logic in `Rooms.tsx` already sums correctly.
+| File | Current | Change |
+|------|---------|--------|
+| `src/pages/ToLet.tsx` | `/images/default-room.png`, `/images/default-garage.png` | Use `getDefaultImage()` based on room type |
+| `src/pages/tenant/TenantToLet.tsx` | Same broken paths | Use `getDefaultImage()` |
+| `src/pages/ListingDetail.tsx` | Same broken paths | Use `getDefaultImage()` |
+| `src/pages/MyListings.tsx` | `/images/default-room.png` | Use `getDefaultImage(property_type)` |
+| `src/components/sale/SaleListingCard.tsx` | `/placeholder.svg` | Use `getDefaultImage(property_type)` |
+| `src/pages/SaleListingDetail.tsx` | `/placeholder.svg` | Use `getDefaultImage(property_type)` |
+| `src/pages/BuySell.tsx` | No change needed (uses SaleListingCard) | — |
+
+All 6 files with broken or generic fallback images will be updated to show type-appropriate default images.
 

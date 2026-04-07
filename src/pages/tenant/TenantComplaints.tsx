@@ -196,7 +196,10 @@ const TenantComplaints = () => {
     enabled: !!tenant?.room_id,
   });
 
-  const isUnlinked = tenant && tenant.owner_id === user?.id && !acceptedRequest;
+  const isLinkedToLandlord = tenant && (
+    (tenant.owner_id !== user?.id) || !!acceptedRequest
+  );
+  const isUnlinked = !isLinkedToLandlord;
 
   if (!tenant) {
     return (

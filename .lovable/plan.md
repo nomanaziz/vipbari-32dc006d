@@ -1,79 +1,88 @@
 
 
-# Tin Shed / Common Rental System Module
+# Tenant Release/Archive System (No Direct Delete)
 
 ## Summary
-Add a new property type "tin_shed" that represents shared-facility rental properties common in Bangladesh. When selected, the system simplifies room creation (no flat/unit options), stores common facility counts on the property, and auto-includes utilities in billing.
+Replace direct tenant deletion with a **Release → Archive** system. Landlords cannot delete tenants who have billing history (1+ bill). New tenants with no bills can still be deleted. Released tenants go to an archive with full history view and can be reactivated.
 
-## Database Changes (1 migration)
+## Current State
+- Tenants page has a Delete option for all tenants (via `DeleteConfirmDialog`)
+- A basic Release mutation exists (sets `owner_id = user_id`, `status = inactive`, clears `room_id`) — but only for linked-account tenants
+- No archive view, no release reason tracking, no bill-based delete protection
 
-**Add columns to `properties` table:**
+## Changes
+
+### 1. Database Migration — Add release tracking columns to `tenants`
 ```sql
-ALTER TABLE properties
-  ADD COLUMN common_bathrooms integer NOT NULL DEFAULT 0,
-  ADD COLUMN common_washrooms integer NOT NULL DEFAULT 0,
-  ADD COLUMN common_kitchens integer NOT NULL DEFAULT 0,
-  ADD COLUMN common_stoves integer NOT NULL DEFAULT 0,
-  ADD COLUMN utilities_included boolean NOT NULL DEFAULT false;
+ALTER TABLE tenants
+  ADD COLUMN released_at timestamptz,
+  ADD COLUMN release_reason text DEFAULT '',
+  ADD COLUMN release_notes text DEFAULT '';
 ```
+No new table needed — existing `status` column (`active` / `inactive`) already handles the state. `released_at` tracks when they were released.
 
-No new tables needed. The existing `properties` and `rooms` tables handle everything. The `common_facilities` data lives as columns on `properties` (simpler than JSON for queries/display).
+### 2. `src/pages/Tenants.tsx` — Core Logic Changes
 
-## Frontend Changes
+**Delete protection:**
+- Before allowing delete, check if tenant has any bills: `SELECT count(*) FROM bills WHERE tenant_id = ?`
+- If bills exist → block delete, show toast: "এই ভাড়াটিয়ার বিল আছে। মুছে ফেলা যাবে না, রিলিজ করুন।"
+- If no bills → allow normal delete (for mistakenly created entries)
 
-### 1. `src/pages/Properties.tsx`
-- Add `"tin_shed"` to property type dropdown with label "টিনশেড / কমন" / "Tin Shed / Common"
-- Add `typeLabels.tin_shed`
-- When `property_type === "tin_shed"`:
-  - Show **Common Facilities section** with number inputs: bathrooms, washrooms, kitchens, stoves
-  - Show **Utilities Included** toggle (default: on)
-  - Hide irrelevant facilities (lift, generator, CCTV, etc.) — keep only gas, water, electricity
-- Update `defaultForm` to include new fields: `common_bathrooms: 0`, `common_washrooms: 0`, `common_kitchens: 0`, `common_stoves: 0`, `utilities_included: false`
-- Save/update these fields in create/update mutations
-- On property cards: show "🏠 টিনশেড" badge and common facility summary when type is tin_shed
-- Show occupancy rate badge (e.g., "10/15 ভাড়া দেওয়া")
+**Release flow (replaces current simple release):**
+- Remove the `confirm()` prompt, replace with a proper **Release Dialog**
+- Release works for ALL landlord-added tenants (not just linked-account ones)
+- On release: set `status = 'inactive'`, `room_id = null`, `released_at = now()`, `release_reason`, `release_notes`
+- Free the room (`status = vacant`)
 
-### 2. `src/components/rooms/RoomFormDialog.tsx`
-- Accept a new prop: `propertyType?: string`
-- When `propertyType === "tin_shed"`:
-  - Force `room_type = "room"` (hide type selector, no flat/shop)
-  - Hide bedrooms, bathrooms, drawing room, dining room, kitchen, balconies, area_sqft fields
-  - Show only: Room Number, Floor, Rent Amount, Description
-  - Show read-only info: "সব ইউটিলিটি ভাড়ায় অন্তর্ভুক্ত" (Utilities included in rent)
+**Status filter update:**
+- Add "released" as a filterable view (tenants where `status = 'inactive'` and `released_at IS NOT NULL`)
+- Rename filter options: Active / Released (Archive)
 
-### 3. `src/pages/Rooms.tsx`
-- Pass `propertyType` to `RoomFormDialog` based on selected property
-- On room cards for tin_shed properties:
-  - Show "কমন সুবিধা" badge
-  - Display shared facility counts from property data
-  - Show "ইউটিলিটি অন্তর্ভুক্ত" badge
+**Reactivate option:**
+- For released/archived tenants, show "Reactivate" menu item
+- Reactivate sets `status = 'active'`, clears `released_at`, allows re-assigning a room
 
-### 4. `src/components/rooms/BulkRoomAddDialog.tsx`
-- When property is tin_shed type, simplify the bulk form (only room number prefix + count + rent)
+**Hide Delete for billed tenants:**
+- In dropdown menu, conditionally show Delete only if tenant has no bills
 
-### 5. Bills Logic (`src/pages/Bills.tsx` / bill generation)
-- When generating bills for tin_shed property rooms:
-  - Auto-set electricity, gas, water charges to 0
-  - Only charge rent_amount + optional other_charges
-  - Show "ইউটিলিটি অন্তর্ভুক্ত" label on bill
+### 3. New Component: `src/components/tenants/TenantReleaseDialog.tsx`
 
-### 6. To-Let Listing Display
-- When listing tin_shed rooms on to-let, show common facilities and "utilities included" badge
+A dialog with:
+- Tenant name display
+- Release reason selector (radio/select):
+  - "সব বিল পরিশোধ করে চলে গেছে" / "Left — all bills paid"
+  - "বিল বাকি রেখে চলে গেছে" / "Left — bills unpaid"
+  - "অন্যান্য" / "Other"
+- Optional notes textarea
+- Confirm button
+
+### 4. Archive/History View Enhancement
+
+In the tenant card (when `status = inactive` and `released_at` exists):
+- Show "Released" badge with date
+- Show release reason badge
+- Show summary stats: total months stayed, total rent paid, total due
+- These stats come from a query on the `bills` table for that tenant
+
+### 5. Translation Keys (`LanguageContext.tsx`)
+
+Add keys for:
+- Release dialog title, reasons, confirm button
+- "Cannot delete — has billing history"
+- "Reactivate" button
+- Archive-related labels
 
 ## Files to Modify
 
 | File | Change |
 |------|--------|
-| DB migration | Add 5 columns to `properties` |
-| `src/pages/Properties.tsx` | Add tin_shed type, common facilities form section, badges |
-| `src/components/rooms/RoomFormDialog.tsx` | Simplified form when tin_shed |
-| `src/pages/Rooms.tsx` | Pass propertyType, show facility badges |
-| `src/components/rooms/BulkRoomAddDialog.tsx` | Simplified bulk add for tin_shed |
-| `src/pages/Bills.tsx` | Zero utility charges for tin_shed |
-| `src/contexts/LanguageContext.tsx` | Add translation keys for tin_shed labels |
+| DB migration | Add `released_at`, `release_reason`, `release_notes` to `tenants` |
+| `src/pages/Tenants.tsx` | Bill-check before delete, release dialog integration, reactivate option, archive filter |
+| New: `src/components/tenants/TenantReleaseDialog.tsx` | Release reason dialog |
+| `src/contexts/LanguageContext.tsx` | New translation keys |
 
 ## Not Changing
-- Tenant management — already links tenant → room → property, works as-is
-- No new tables or RLS policies needed
-- Existing property_type is a text column, so adding "tin_shed" needs no enum change
+- Admin tenant management (AdminTenants.tsx) — admin retains full delete power
+- Tenant form dialog — no changes needed
+- Database triggers or RLS — existing policies cover status updates
 

@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Trash2, UserPlus, Users, Edit2, X, Clock, CheckCircle2, XCircle, Upload, Loader2, Camera } from "lucide-react";
+import { Trash2, UserPlus, Users, Edit2, X, Clock, CheckCircle2, XCircle, Upload, Loader2, Camera, ImagePlus } from "lucide-react";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -45,7 +45,9 @@ const TenantFamily = () => {
   const [uploading, setUploading] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const docRef = useRef<HTMLInputElement>(null);
+  const docCamRef = useRef<HTMLInputElement>(null);
   const photoRef = useRef<HTMLInputElement>(null);
+  const photoCamRef = useRef<HTMLInputElement>(null);
 
   const { data: tenant } = useQuery({
     queryKey: ["my-tenant-record", user?.id],
@@ -234,18 +236,30 @@ const TenantFamily = () => {
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* Photo upload */}
               <div className="flex flex-col items-center gap-2">
-                <div className="relative group cursor-pointer" onClick={() => photoRef.current?.click()}>
+                <div className="relative">
                   <Avatar className="h-20 w-20">
                     {form.photo_url && <AvatarImage src={form.photo_url} alt={form.name} />}
                     <AvatarFallback className="bg-muted text-muted-foreground text-xl">
                       {form.name?.charAt(0)?.toUpperCase() || <Camera className="h-6 w-6" />}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                    {uploading ? <Loader2 className="h-5 w-5 text-white animate-spin" /> : <Camera className="h-5 w-5 text-white" />}
-                  </div>
+                  {uploading && (
+                    <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center">
+                      <Loader2 className="h-5 w-5 text-white animate-spin" />
+                    </div>
+                  )}
                 </div>
-                <p className="text-xs text-muted-foreground">{language === "bn" ? "ছবি যোগ করুন" : "Add photo"}</p>
+                <div className="flex gap-2">
+                  <Button type="button" variant="outline" size="sm" onClick={() => photoCamRef.current?.click()} disabled={uploading}>
+                    <Camera className="h-4 w-4 mr-1" />
+                    {language === "bn" ? "ক্যামেরা" : "Camera"}
+                  </Button>
+                  <Button type="button" variant="outline" size="sm" onClick={() => photoRef.current?.click()} disabled={uploading}>
+                    <ImagePlus className="h-4 w-4 mr-1" />
+                    {language === "bn" ? "গ্যালারি" : "Gallery"}
+                  </Button>
+                </div>
+                <input ref={photoCamRef} type="file" accept="image/*" capture="user" className="hidden" onChange={(e) => e.target.files?.[0] && uploadPhoto(e.target.files[0])} />
                 <input ref={photoRef} type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && uploadPhoto(e.target.files[0])} />
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -302,11 +316,18 @@ const TenantFamily = () => {
                         </button>
                       </div>
                     ) : (
-                      <Button type="button" variant="outline" size="sm" onClick={() => docRef.current?.click()} disabled={uploading}>
-                        {uploading ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Upload className="h-4 w-4 mr-1" />}
-                        {language === "bn" ? "আপলোড" : "Upload"}
-                      </Button>
+                      <div className="flex gap-1">
+                        <Button type="button" variant="outline" size="sm" onClick={() => docCamRef.current?.click()} disabled={uploading}>
+                          {uploading ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Camera className="h-4 w-4 mr-1" />}
+                          {language === "bn" ? "ক্যামেরা" : "Camera"}
+                        </Button>
+                        <Button type="button" variant="outline" size="sm" onClick={() => docRef.current?.click()} disabled={uploading}>
+                          <ImagePlus className="h-4 w-4 mr-1" />
+                          {language === "bn" ? "গ্যালারি" : "Gallery"}
+                        </Button>
+                      </div>
                     )}
+                    <input ref={docCamRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => e.target.files?.[0] && uploadDoc(e.target.files[0])} />
                     <input ref={docRef} type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && uploadDoc(e.target.files[0])} />
                   </div>
                 </div>

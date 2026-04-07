@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Card, CardContent } from "@/components/ui/card";
-import { Loader2, Upload, Phone, Building2 } from "lucide-react";
+import { Loader2, Upload, Phone, Building2, Camera, ImagePlus } from "lucide-react";
 import { toast } from "sonner";
 
 interface PaymentAccount {
@@ -48,6 +48,7 @@ export default function TenantPayDialog({
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const camRef = useRef<HTMLInputElement>(null);
 
   const dueAmount = Number(bill?.total_amount || 0) - Number(bill?.received_amount || 0);
 
@@ -184,10 +185,17 @@ export default function TenantPayDialog({
           {/* Screenshot */}
           <div className="space-y-1.5">
             <Label>{t("Payment Screenshot (optional)", "পেমেন্ট স্ক্রিনশট (ঐচ্ছিক)")}</Label>
-            <Button variant="outline" size="sm" onClick={() => fileRef.current?.click()} disabled={uploading}>
-              {uploading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Upload className="h-4 w-4 mr-2" />}
-              {screenshotUrl ? t("Uploaded ✓", "আপলোড হয়েছে ✓") : t("Upload", "আপলোড")}
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={() => camRef.current?.click()} disabled={uploading}>
+                {uploading ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Camera className="h-4 w-4 mr-1" />}
+                {t("Camera", "ক্যামেরা")}
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => fileRef.current?.click()} disabled={uploading}>
+                <ImagePlus className="h-4 w-4 mr-1" />
+                {screenshotUrl ? t("Uploaded ✓", "আপলোড হয়েছে ✓") : t("Gallery", "গ্যালারি")}
+              </Button>
+            </div>
+            <input ref={camRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleUpload} />
             <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleUpload} />
           </div>
         </div>

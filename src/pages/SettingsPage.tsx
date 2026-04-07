@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Bell, BellOff, Loader2, Camera, User, Lock, DoorOpen, Palette, CreditCard, Zap, Settings2 } from "lucide-react";
+import { Bell, BellOff, Loader2, Camera, ImagePlus, User, Lock, DoorOpen, Palette, CreditCard, Zap, Settings2 } from "lucide-react";
 import { toast } from "sonner";
 import PaymentAccountCard from "@/components/settings/PaymentAccountCard";
 import { ColorPresetPicker } from "@/components/ColorPresetPicker";
@@ -65,6 +65,7 @@ const SettingsPage = () => {
 
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const cameraRef = useRef<HTMLInputElement>(null);
 
   useState(() => {
     if (profile) {
@@ -198,21 +199,33 @@ const SettingsPage = () => {
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="flex items-center gap-4">
-                <div className="relative group cursor-pointer" onClick={() => fileRef.current?.click()}>
+                <div className="relative group">
                   <Avatar className="h-20 w-20">
                     <AvatarImage src={profile?.avatar_url || undefined} />
                     <AvatarFallback className="text-2xl bg-primary text-primary-foreground">
                       {profile?.full_name?.charAt(0)?.toUpperCase() || "U"}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                    {uploadingAvatar ? <Loader2 className="h-5 w-5 animate-spin text-white" /> : <Camera className="h-5 w-5 text-white" />}
+                  {uploadingAvatar && (
+                    <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center">
+                      <Loader2 className="h-5 w-5 animate-spin text-white" />
+                    </div>
+                  )}
+                </div>
+                <div className="space-y-1">
+                  <p className="font-medium">{profile?.full_name}</p>
+                  <div className="flex gap-2">
+                    <Button type="button" variant="outline" size="sm" onClick={() => cameraRef.current?.click()} disabled={uploadingAvatar}>
+                      <Camera className="h-4 w-4 mr-1" />
+                      {language === "bn" ? "ক্যামেরা" : "Camera"}
+                    </Button>
+                    <Button type="button" variant="outline" size="sm" onClick={() => fileRef.current?.click()} disabled={uploadingAvatar}>
+                      <ImagePlus className="h-4 w-4 mr-1" />
+                      {language === "bn" ? "গ্যালারি" : "Gallery"}
+                    </Button>
                   </div>
                 </div>
-                <div>
-                  <p className="font-medium">{profile?.full_name}</p>
-                  <p className="text-sm text-muted-foreground">{t("settings.upload_avatar")}</p>
-                </div>
+                <input ref={cameraRef} type="file" accept="image/*" capture="user" className="hidden" onChange={handleAvatarUpload} disabled={uploadingAvatar} />
                 <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} disabled={uploadingAvatar} />
               </div>
 

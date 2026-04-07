@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { User, MapPin, FileText, Save, Loader2, Upload, X, Camera } from "lucide-react";
+import { User, MapPin, FileText, Save, Loader2, Upload, X, Camera, ImagePlus } from "lucide-react";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -34,8 +34,11 @@ const TenantProfile = () => {
   const { user, profile: authProfile, refreshProfile } = useAuth();
   const queryClient = useQueryClient();
   const frontRef = useRef<HTMLInputElement>(null);
+  const frontCamRef = useRef<HTMLInputElement>(null);
   const backRef = useRef<HTMLInputElement>(null);
+  const backCamRef = useRef<HTMLInputElement>(null);
   const avatarRef = useRef<HTMLInputElement>(null);
+  const avatarCamRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState<string | null>(null);
 
   const { data: tenant, isLoading } = useQuery({
@@ -238,18 +241,30 @@ const TenantProfile = () => {
         {/* Profile Picture */}
         <Card>
           <CardContent className="py-6 flex flex-col items-center gap-3">
-            <div className="relative group cursor-pointer" onClick={() => avatarRef.current?.click()}>
+            <div className="relative">
               <Avatar className="h-24 w-24">
                 {authProfile?.avatar_url && <AvatarImage src={authProfile.avatar_url} alt={authProfile?.full_name || ""} />}
                 <AvatarFallback className="bg-primary text-primary-foreground text-2xl font-bold">
                   {authProfile?.full_name?.charAt(0)?.toUpperCase() || "U"}
                 </AvatarFallback>
               </Avatar>
-              <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                {uploading === "avatar" ? <Loader2 className="h-6 w-6 text-white animate-spin" /> : <Camera className="h-6 w-6 text-white" />}
-              </div>
+              {uploading === "avatar" && (
+                <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center">
+                  <Loader2 className="h-6 w-6 text-white animate-spin" />
+                </div>
+              )}
             </div>
-            <p className="text-sm text-muted-foreground">{language === "bn" ? "ছবি পরিবর্তন করতে ক্লিক করুন" : "Click to change photo"}</p>
+            <div className="flex gap-2">
+              <Button type="button" variant="outline" size="sm" onClick={() => avatarCamRef.current?.click()} disabled={!!uploading}>
+                <Camera className="h-4 w-4 mr-1" />
+                {language === "bn" ? "ক্যামেরা" : "Camera"}
+              </Button>
+              <Button type="button" variant="outline" size="sm" onClick={() => avatarRef.current?.click()} disabled={!!uploading}>
+                <ImagePlus className="h-4 w-4 mr-1" />
+                {language === "bn" ? "গ্যালারি" : "Gallery"}
+              </Button>
+            </div>
+            <input ref={avatarCamRef} type="file" accept="image/*" capture="user" className="hidden" onChange={(e) => e.target.files?.[0] && uploadAvatar(e.target.files[0])} />
             <input ref={avatarRef} type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && uploadAvatar(e.target.files[0])} />
           </CardContent>
         </Card>
@@ -333,11 +348,18 @@ const TenantProfile = () => {
                       </button>
                     </div>
                   ) : (
-                    <Button type="button" variant="outline" size="sm" onClick={() => frontRef.current?.click()} disabled={!!uploading}>
-                      {uploading === "doc_front_url" ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Upload className="h-4 w-4 mr-1" />}
-                      {language === "bn" ? "আপলোড" : "Upload"}
-                    </Button>
+                    <div className="flex gap-1">
+                      <Button type="button" variant="outline" size="sm" onClick={() => frontCamRef.current?.click()} disabled={!!uploading}>
+                        {uploading === "doc_front_url" ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Camera className="h-4 w-4 mr-1" />}
+                        {language === "bn" ? "ক্যামেরা" : "Camera"}
+                      </Button>
+                      <Button type="button" variant="outline" size="sm" onClick={() => frontRef.current?.click()} disabled={!!uploading}>
+                        <ImagePlus className="h-4 w-4 mr-1" />
+                        {language === "bn" ? "গ্যালারি" : "Gallery"}
+                      </Button>
+                    </div>
                   )}
+                  <input ref={frontCamRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => e.target.files?.[0] && uploadDoc(e.target.files[0], "doc_front_url")} />
                   <input ref={frontRef} type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && uploadDoc(e.target.files[0], "doc_front_url")} />
                 </div>
               </div>
@@ -352,11 +374,18 @@ const TenantProfile = () => {
                       </button>
                     </div>
                   ) : (
-                    <Button type="button" variant="outline" size="sm" onClick={() => backRef.current?.click()} disabled={!!uploading}>
-                      {uploading === "doc_back_url" ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Upload className="h-4 w-4 mr-1" />}
-                      {language === "bn" ? "আপলোড" : "Upload"}
-                    </Button>
+                    <div className="flex gap-1">
+                      <Button type="button" variant="outline" size="sm" onClick={() => backCamRef.current?.click()} disabled={!!uploading}>
+                        {uploading === "doc_back_url" ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Camera className="h-4 w-4 mr-1" />}
+                        {language === "bn" ? "ক্যামেরা" : "Camera"}
+                      </Button>
+                      <Button type="button" variant="outline" size="sm" onClick={() => backRef.current?.click()} disabled={!!uploading}>
+                        <ImagePlus className="h-4 w-4 mr-1" />
+                        {language === "bn" ? "গ্যালারি" : "Gallery"}
+                      </Button>
+                    </div>
                   )}
+                  <input ref={backCamRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => e.target.files?.[0] && uploadDoc(e.target.files[0], "doc_back_url")} />
                   <input ref={backRef} type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && uploadDoc(e.target.files[0], "doc_back_url")} />
                 </div>
               </div>

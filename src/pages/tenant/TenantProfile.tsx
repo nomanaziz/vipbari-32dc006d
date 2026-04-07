@@ -263,8 +263,9 @@ const TenantProfile = () => {
                 {language === "bn" ? "গ্যালারি" : "Gallery"}
               </Button>
             </div>
-            <input ref={avatarCamRef} type="file" accept="image/*" capture="user" className="hidden" onChange={(e) => e.target.files?.[0] && uploadAvatar(e.target.files[0])} />
-            <input ref={avatarRef} type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && uploadAvatar(e.target.files[0])} />
+            <input ref={avatarCamRef} type="file" accept="image/*" capture="user" className="hidden" onChange={handleAvatarSelect} />
+            <input ref={avatarRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarSelect} />
+            <ImageCropDialog file={cropFile} open={cropOpen} onClose={() => { setCropOpen(false); setCropFile(null); }} onCropComplete={handleCroppedAvatar} />
           </CardContent>
         </Card>
 

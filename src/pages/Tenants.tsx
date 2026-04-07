@@ -378,6 +378,12 @@ const Tenants = () => {
                           <Badge variant="outline" className="text-xs">
                             {tenant.user_id ? (language === "bn" ? "নিজে" : "Self") : (language === "bn" ? "বাড়িওয়ালা" : "Landlord")}
                           </Badge>
+                          {(memberCounts?.[tenant.id] || 0) > 0 && (
+                            <Badge variant="outline" className="text-xs gap-1">
+                              <Users className="h-3 w-3" />
+                              {language === "bn" ? "পরিবার" : "Family"}: {memberCounts?.[tenant.id]}
+                            </Badge>
+                          )}
                           {released ? (
                             <Badge variant="destructive" className="text-xs gap-1">
                               <Archive className="h-3 w-3" />

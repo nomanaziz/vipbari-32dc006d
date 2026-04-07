@@ -96,9 +96,10 @@ const RoomFormDialog = ({ open, onOpenChange, editing, properties, onSubmit, isP
     if (editing) {
       setForm(formFromRoom(editing));
     } else {
-      setForm(getDefaultForm(properties?.[0]?.id));
+      const config = propertyType ? (roomTypeConfig[propertyType] || { default: "room" }) : { default: "room" };
+      setForm({ ...getDefaultForm(properties?.[0]?.id), room_type: config.default });
     }
-  }, [editing, properties]);
+  }, [editing, properties, propertyType]);
 
   const isTinShed = propertyType === "tin_shed";
 

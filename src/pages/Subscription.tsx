@@ -721,7 +721,18 @@ const Subscription = () => {
       )}
 
       {/* Dialogs */}
-      <ManualPaymentDialog open={manualPayOpen} onOpenChange={setManualPayOpen} productType={manualPayType} onSuccess={() => fetchData()} />
+      <ManualPaymentDialog
+        open={manualPayOpen}
+        onOpenChange={setManualPayOpen}
+        productType={manualPayType}
+        roomCount={roomCount}
+        toletCount={toletCount}
+        durationMonths={duration}
+        discountPercent={durationDiscountPct}
+        couponCode={couponCode}
+        totalPrice={grandTotal}
+        onSuccess={() => fetchData()}
+      />
       <CartDrawer />
     </div>
   );

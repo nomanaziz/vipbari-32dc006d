@@ -70,9 +70,18 @@ Deno.serve(async (req) => {
         .eq("status", "active")
         .limit(10);
 
-      // Filter: only self-owned (unlinked) tenants
+      // Filter: only self-owned (unlinked) tenants with valid profiles
       const validTenants: any[] = [];
       for (const t of (tenants || []).filter((t: any) => t.user_id && t.owner_id === t.user_id)) {
+        // Verify profile exists (skip orphaned tenant records)
+        const { data: profile } = await adminClient
+          .from("profiles")
+          .select("user_id, full_name")
+          .eq("user_id", t.user_id)
+          .maybeSingle();
+
+        if (!profile) continue; // orphaned record, skip
+
         // Check if there's an existing invitation from this landlord
         const { data: existingInvite } = await adminClient
           .from("tenant_invitations")
@@ -83,6 +92,7 @@ Deno.serve(async (req) => {
 
         validTenants.push({
           ...t,
+          full_name: profile.full_name || t.full_name, // use profile name
           invitation_status: existingInvite?.status || null,
         });
       }

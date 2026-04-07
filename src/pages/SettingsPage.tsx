@@ -16,6 +16,7 @@ import PaymentAccountCard from "@/components/settings/PaymentAccountCard";
 import { ColorPresetPicker } from "@/components/ColorPresetPicker";
 import UtilitySettingsTab from "@/components/settings/UtilitySettingsTab";
 import AdvanceSettingsTab from "@/components/settings/AdvanceSettingsTab";
+import ImageCropDialog from "@/components/ImageCropDialog";
 
 const MAX_WIDTH = 1200;
 const JPEG_QUALITY = 0.7;

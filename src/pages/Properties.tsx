@@ -358,7 +358,16 @@ const Properties = () => {
       queryClient.invalidateQueries({ queryKey: ["property_staff"] });
       toast.success(t("property.deleted") || "Property deleted");
     },
-    onError: (e) => toast.error(e.message),
+    onError: (e) => {
+      const msg = e?.message || "";
+      if (msg.includes("rooms_property_id_fkey")) {
+        toast.error(language === "bn" ? "এই সম্পত্তিতে রুম আছে। প্রথমে রুমগুলো মুছুন।" : "This property has rooms. Please delete the rooms first.");
+      } else if (msg.includes("garages_property_id_fkey")) {
+        toast.error(language === "bn" ? "এই সম্পত্তিতে গ্যারেজ আছে। প্রথমে গ্যারেজগুলো মুছুন।" : "This property has garages. Please delete the garages first.");
+      } else {
+        toast.error(msg);
+      }
+    },
   });
 
   const resetForm = () => { setForm(defaultForm); setSelectedStaff([]); };

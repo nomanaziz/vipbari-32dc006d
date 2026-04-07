@@ -408,7 +408,7 @@ const translations: Record<string, Record<Language, string>> = {
 
   "landing.faq_title": { bn: "সাধারণ জিজ্ঞাসা", en: "Frequently Asked Questions" },
   "landing.faq1_q": { bn: "VIP Bari কি ফ্রি?", en: "Is VIP Bari free?" },
-  "landing.faq1_a": { bn: "হ্যাঁ! ৩০ দিনের ফ্রি ট্রায়াল আছে ৫টি রুম পর্যন্ত। এরপর প্রতি রুম মাত্র ১০ টাকা/মাস।", en: "Yes! There's a 30-day free trial for up to 5 rooms. After that, it's just ৳10/room/month." },
+  "landing.faq1_a": { bn: "হ্যাঁ! ৩০ দিনের ফ্রি ট্রায়াল আছে — ২০টি রুম ও ৫টি টু-লেট স্লট সহ সব ফিচার। এরপর প্রতি রুম মাত্র ১০ টাকা/মাস।", en: "Yes! There's a 30-day free trial with 20 rooms and 5 to-let slots, all features included. After that, it's just ৳10/room/month." },
   "landing.faq2_q": { bn: "মোবাইলে ব্যবহার করা যাবে?", en: "Can I use it on mobile?" },
   "landing.faq2_a": { bn: "অবশ্যই! VIP Bari সম্পূর্ণ মোবাইল-ফ্রেন্ডলি। যেকোনো ব্রাউজারে ব্যবহার করতে পারবেন।", en: "Absolutely! VIP Bari is fully mobile-friendly. Use it in any browser." },
   "landing.faq3_q": { bn: "আমার ডেটা কি নিরাপদ?", en: "Is my data secure?" },

@@ -320,12 +320,9 @@ const Rooms = () => {
   };
 
   // Calculate subscription balances — inactive rooms don't count toward used slots
-  // 4 free rooms total per landlord
-  const freeRoomSlots = 4;
   const roomSub = subscriptions?.filter(s => s.product_type === "room_management") || [];
   const toletSub = subscriptions?.filter(s => s.product_type === "tolet") || [];
-  const paidRoomSlots = roomSub.reduce((sum, s) => sum + s.room_count, 0);
-  const totalRoomSlots = freeRoomSlots + paidRoomSlots;
+  const totalRoomSlots = roomSub.reduce((sum, s) => sum + s.room_count, 0);
   const totalToletSlots = toletSub.reduce((sum, s) => sum + s.tolet_count, 0);
   const activeRooms = rooms?.filter((r: any) => r.status !== "inactive") || [];
   const totalRooms = activeRooms.length;

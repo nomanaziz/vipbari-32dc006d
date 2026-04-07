@@ -366,8 +366,7 @@ const BulkRoomAddDialog = ({ properties, onSuccess }: Props) => {
           .eq("status", "active")
           .gte("expires_at", new Date().toISOString());
         const paidSlots = (subs || []).reduce((sum, s) => sum + s.room_count, 0);
-        const freeSlots = 4;
-        slotCount = paidSlots + freeSlots;
+        slotCount = paidSlots;
       }
 
       const rows: any[] = [];

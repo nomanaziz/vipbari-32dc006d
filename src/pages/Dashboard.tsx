@@ -137,6 +137,9 @@ const TenantDashboard = () => {
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">{t("dashboard.title")}</h1>
 
+      {/* Pending Invitations Banner */}
+      <TenantInvitationBanner />
+
       {/* Scrolling Notice Marquee */}
       {latestNotices && latestNotices.length > 0 && (
         <Link to="/tenant/notices">

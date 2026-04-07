@@ -45,7 +45,7 @@ const RoomAmenityBadges = ({ room, property, compact = false }: RoomAmenityBadge
     return (
       <p className="text-xs text-muted-foreground mt-1">
         {[...items, ...facilities].join(" · ")}
-        {room.area_sqft > 0 && ` · ${room.area_sqft} sqft`}
+        {!isTinShed && room.area_sqft > 0 && ` · ${room.area_sqft} sqft`}
       </p>
     );
   }

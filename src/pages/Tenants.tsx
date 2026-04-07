@@ -464,6 +464,7 @@ const Tenants = () => {
                                 {language === "bn" ? "ব্লক করুন" : "Block"}
                               </DropdownMenuItem>
                             )}
+                          </>
                         )}
                         {released && (
                           <DropdownMenuItem onClick={() => reactivateMutation.mutate(tenant)}>

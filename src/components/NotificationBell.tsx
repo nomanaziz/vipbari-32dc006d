@@ -34,6 +34,11 @@ export function NotificationBell() {
         return "/complaints";
       case "complaint_update":
         return "/tenant/complaints";
+      case "tenant_invitation":
+        return "/tenant/landlord";
+      case "tenant_invitation_accepted":
+      case "tenant_invitation_rejected":
+        return "/tenants";
       default:
         return "/dashboard";
     }
@@ -95,6 +100,9 @@ export function NotificationBell() {
       case "request_rejected": return "❌";
       case "new_request": return "📩";
       case "room_assigned": return "🏠";
+      case "tenant_invitation": return "📨";
+      case "tenant_invitation_accepted": return "✅";
+      case "tenant_invitation_rejected": return "❌";
       default: return "🔔";
     }
   };

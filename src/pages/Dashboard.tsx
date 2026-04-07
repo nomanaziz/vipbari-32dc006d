@@ -2,6 +2,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Building2, DoorOpen, Users, CreditCard, TrendingUp, AlertCircle, Home, Send, CheckCircle2, Clock, XCircle, AlertTriangle, Bell, Wallet, Car } from "lucide-react";
+import TenantInvitationBanner from "@/components/tenants/TenantInvitationBanner";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -136,6 +137,9 @@ const TenantDashboard = () => {
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">{t("dashboard.title")}</h1>
+
+      {/* Pending Invitations Banner */}
+      <TenantInvitationBanner />
 
       {/* Scrolling Notice Marquee */}
       {latestNotices && latestNotices.length > 0 && (

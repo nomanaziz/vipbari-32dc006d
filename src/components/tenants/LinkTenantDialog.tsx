@@ -171,29 +171,34 @@ const LinkTenantDialog = ({ open, onOpenChange, availableRooms }: LinkTenantDial
             </div>
           )}
 
-          {/* Room assignment (optional) */}
+          {/* Room assignment (required) */}
           {canInvite && (
             <div className="space-y-2">
-              <Label>{language === "bn" ? "রুম নির্ধারণ করুন (ঐচ্ছিক)" : "Assign room (optional)"}</Label>
-              <Select value={selectedRoom} onValueChange={setSelectedRoom}>
-                <SelectTrigger>
-                  <SelectValue placeholder={language === "bn" ? "রুম নেই" : "No room"} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">{language === "bn" ? "রুম নেই" : "No room"}</SelectItem>
-                  {availableRooms.map((r: any) => (
-                    <SelectItem key={r.id} value={r.id}>
-                      {r.room_number} — {r.properties?.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label>{language === "bn" ? "রুম নির্ধারণ করুন *" : "Assign room *"}</Label>
+              {availableRooms.length === 0 ? (
+                <p className="text-sm text-destructive">
+                  {language === "bn" ? "কোনো খালি রুম নেই। প্রথমে একটি রুম যোগ করুন।" : "No vacant rooms available. Please add a room first."}
+                </p>
+              ) : (
+                <Select value={selectedRoom} onValueChange={setSelectedRoom}>
+                  <SelectTrigger>
+                    <SelectValue placeholder={language === "bn" ? "রুম নির্বাচন করুন" : "Select a room"} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableRooms.map((r: any) => (
+                      <SelectItem key={r.id} value={r.id}>
+                        {r.room_number} — {r.properties?.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
           )}
 
           {/* Invite button */}
           {canInvite && (
-            <Button onClick={handleInvite} disabled={sending} className="w-full">
+            <Button onClick={handleInvite} disabled={sending || !selectedRoom || availableRooms.length === 0} className="w-full">
               <Send className="h-4 w-4 mr-2" />
               {sending
                 ? (language === "bn" ? "পাঠানো হচ্ছে..." : "Sending...")

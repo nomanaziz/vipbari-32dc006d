@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Plus, Users, Pencil, Trash2, Phone, Search, MapPin, CalendarDays, MoreVertical, UserPlus, UserMinus, Link, RotateCcw, Archive } from "lucide-react";
+import { Plus, Users, Pencil, Trash2, Phone, Search, MapPin, CalendarDays, MoreVertical, UserPlus, UserMinus, Link, RotateCcw, Archive, ArrowRightLeft } from "lucide-react";
 import { toast } from "sonner";
 
 import TenantFormDialog from "@/components/tenants/TenantFormDialog";
@@ -21,6 +21,7 @@ import PendingRequestsSection from "@/components/tenants/PendingRequestsSection"
 import TenantStatsCards from "@/components/tenants/TenantStatsCards";
 import LinkTenantDialog from "@/components/tenants/LinkTenantDialog";
 import TenantReleaseDialog from "@/components/tenants/TenantReleaseDialog";
+import RoomShiftDialog from "@/components/tenants/RoomShiftDialog";
 
 const Tenants = () => {
   const { language, t } = useLanguage();
@@ -36,6 +37,7 @@ const Tenants = () => {
   const [deleteTenant, setDeleteTenant] = useState<any>(null);
   const [releaseTenant, setReleaseTenant] = useState<any>(null);
   const [credentials, setCredentials] = useState<{ phone: string; password: string } | null>(null);
+  const [shiftTenant, setShiftTenant] = useState<any>(null);
 
   const { data: rooms } = useQuery({
     queryKey: ["rooms-for-assign", effectiveOwnerId],
@@ -438,6 +440,10 @@ const Tenants = () => {
                               <UserMinus className="h-3.5 w-3.5 mr-2" />
                               {language === "bn" ? "রিলিজ করুন" : "Release"}
                             </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setShiftTenant(tenant)}>
+                              <ArrowRightLeft className="h-3.5 w-3.5 mr-2" />
+                              {language === "bn" ? "রুম শিফট" : "Room Shift"}
+                            </DropdownMenuItem>
                           </>
                         )}
                         {released && (
@@ -508,6 +514,14 @@ const Tenants = () => {
         onOpenChange={(open) => !open && setDeleteTenant(null)}
         onConfirm={() => { if (deleteTenant) { deleteMutation.mutate(deleteTenant); setDeleteTenant(null); } }}
         isPending={deleteMutation.isPending}
+      />
+
+      {/* Room Shift Dialog */}
+      <RoomShiftDialog
+        open={!!shiftTenant}
+        onOpenChange={(v) => { if (!v) setShiftTenant(null); }}
+        tenant={shiftTenant}
+        availableRooms={vacantRooms}
       />
     </div>
   );

@@ -92,15 +92,6 @@ const RoomFormDialog = ({ open, onOpenChange, editing, properties, onSubmit, isP
     enabled: !!roomId,
   });
 
-  useEffect(() => {
-    if (editing) {
-      setForm(formFromRoom(editing));
-    } else {
-      const config = propertyType ? (roomTypeConfig[propertyType] || { default: "room" }) : { default: "room" };
-      setForm({ ...getDefaultForm(properties?.[0]?.id), room_type: config.default });
-    }
-  }, [editing, properties, propertyType]);
-
   const isTinShed = propertyType === "tin_shed";
 
   const roomTypeLabels: Record<string, string> = {
@@ -109,7 +100,6 @@ const RoomFormDialog = ({ open, onOpenChange, editing, properties, onSubmit, isP
     shop: t("room.type_shop") || "Shop",
   };
 
-  // Smart room type options based on property type
   const roomTypeConfig: Record<string, { options: string[]; default: string }> = {
     building: { options: ["flat", "shop"], default: "flat" },
     house: { options: ["room"], default: "room" },
@@ -120,6 +110,14 @@ const RoomFormDialog = ({ open, onOpenChange, editing, properties, onSubmit, isP
   const currentConfig = roomTypeConfig[propertyType || ""] || { options: ["room", "flat", "shop"], default: "room" };
   const availableRoomTypes = currentConfig.options;
   const showRoomTypeSelector = availableRoomTypes.length > 1 && !isTinShed;
+
+  useEffect(() => {
+    if (editing) {
+      setForm(formFromRoom(editing));
+    } else {
+      setForm({ ...getDefaultForm(properties?.[0]?.id), room_type: currentConfig.default });
+    }
+  }, [editing, properties, propertyType]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

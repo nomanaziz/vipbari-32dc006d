@@ -108,6 +108,18 @@ const RoomFormDialog = ({ open, onOpenChange, editing, properties, onSubmit, isP
     shop: t("room.type_shop") || "Shop",
   };
 
+  // Smart room type options based on property type
+  const roomTypeConfig: Record<string, { options: string[]; default: string }> = {
+    building: { options: ["flat", "shop"], default: "flat" },
+    house: { options: ["room"], default: "room" },
+    shop: { options: ["shop"], default: "shop" },
+    tin_shed: { options: ["room"], default: "room" },
+  };
+
+  const currentConfig = roomTypeConfig[propertyType || ""] || { options: ["room", "flat", "shop"], default: "room" };
+  const availableRoomTypes = currentConfig.options;
+  const showRoomTypeSelector = availableRoomTypes.length > 1 && !isTinShed;
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.property_id) { toast.error("Select a property"); return; }

@@ -723,8 +723,8 @@ const BulkRoomAddDialog = ({ properties, onSuccess }: Props) => {
                 </Button>
               </div>
             )}
-
-            {/* Preview */}
+              </>
+            )}
             {totalRooms > 0 && (
               <div className="space-y-2">
                 <Label>{t("bulk.preview") || "Preview"} ({totalRooms} {t("bulk.rooms") || "rooms"})</Label>

@@ -1,42 +1,21 @@
 
 
-# Room Type Auto-Selection by Property Type
+# Fix: Dynamic Room Type Based on Selected Property
 
-## Summary
-Remove "Apartment" from property types. Auto-set room type based on property type when adding rooms:
-- **Building** → default "flat", options: flat, shop
-- **House** → default "room", options: room
-- **Shop (দোকান)** → default "shop", options: shop
-- **Tin Shed** → forced "room" (already handled)
+## Problem
+When adding a room, if `selectedProperty` filter is "all", `propertyType` is `undefined` — so the fallback shows all options (room, flat, shop) regardless of property type. Even when the user picks a tin_shed or house property inside the dialog, "flat" still appears.
 
-## Changes
+## Fix
 
-### 1. `src/pages/Properties.tsx` — Remove Apartment
-- Remove `apartment` from the property type `<Select>` dropdown (line 477)
-- Remove `apartment` from `typeLabels` (line 445)
+### `src/components/rooms/RoomFormDialog.tsx`
+- Change `properties` prop type from `{ id: string; name: string }[]` to `{ id: string; name: string; property_type?: string }[]`
+- Derive `effectivePropertyType` from the form's `property_id` by looking up the property type from the `properties` array: `properties.find(p => p.id === form.property_id)?.property_type`
+- Use `effectivePropertyType` (falling back to `propertyType` prop) for the room type config lookup
+- When user changes `property_id` in the form, auto-update `room_type` to the new property's default
 
-### 2. `src/components/rooms/RoomFormDialog.tsx` — Smart Room Type
-- Accept `propertyType` prop (already passed from Rooms.tsx)
-- Replace the current logic (which only checks `isTinShed`) with a mapping:
+### `src/pages/Rooms.tsx`
+- Pass `property_type` in the `properties` array to `RoomFormDialog` (currently only passes `id` and `name`)
 
-| Property Type | Available Room Types | Default |
-|--------------|---------------------|---------|
-| `building` | flat, shop | flat |
-| `house` | room | room |
-| `shop` | shop | shop |
-| `tin_shed` | room (hidden selector) | room |
-
-- When property changes in the form, auto-set `room_type` to the default for that property type
-- Show/hide the room type selector based on available options (hide if only 1 option)
-- Update `useEffect` to set correct default `room_type` when `propertyType` changes
-
-### 3. `src/pages/Rooms.tsx` — Pass Property Type
-- Already passes `propertyType` to RoomFormDialog — no change needed
-- Verify the `propertyType` resolves correctly when a property is selected
-
-### Files to Modify
-| File | Change |
-|------|--------|
-| `src/pages/Properties.tsx` | Remove apartment option |
-| `src/components/rooms/RoomFormDialog.tsx` | Smart room type selection based on property type |
+### `src/pages/admin/AdminRooms.tsx`
+- No change needed (admin doesn't use RoomFormDialog)
 

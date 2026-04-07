@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Search, Send, Phone, Clock, XCircle, CheckCircle2 } from "lucide-react";
+import { Search, Send, Phone, Clock, XCircle, CheckCircle2, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 
 interface LinkTenantDialogProps {
@@ -19,7 +19,7 @@ interface LinkTenantDialogProps {
 }
 
 const LinkTenantDialog = ({ open, onOpenChange, availableRooms }: LinkTenantDialogProps) => {
-  const { t, language } = useLanguage();
+  const { language } = useLanguage();
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [phone, setPhone] = useState("");
@@ -108,7 +108,9 @@ const LinkTenantDialog = ({ open, onOpenChange, availableRooms }: LinkTenantDial
     return null;
   };
 
-  const canInvite = selectedTenant && !selectedTenant.invitation_status;
+  // Allow invite if no status OR if rejected (re-invite)
+  const canInvite = selectedTenant && (!selectedTenant.invitation_status || selectedTenant.invitation_status === "rejected");
+  const isReinvite = selectedTenant?.invitation_status === "rejected";
 
   return (
     <Dialog open={open} onOpenChange={(v) => { onOpenChange(v); if (!v) resetState(); }}>
@@ -146,27 +148,30 @@ const LinkTenantDialog = ({ open, onOpenChange, availableRooms }: LinkTenantDial
             <div className="space-y-2">
               <Label>{language === "bn" ? "ভাড়াটিয়া নির্বাচন করুন" : "Select tenant"}</Label>
               <div className="space-y-2 max-h-48 overflow-y-auto">
-                {results.map((tenant) => (
-                  <div
-                    key={tenant.id}
-                    onClick={() => !tenant.invitation_status && setSelectedTenant(tenant)}
-                    className={`p-3 rounded-md border transition-colors ${
-                      tenant.invitation_status
-                        ? "border-border opacity-60 cursor-not-allowed"
-                        : selectedTenant?.id === tenant.id
-                          ? "border-primary bg-primary/5 cursor-pointer"
-                          : "border-border hover:bg-muted cursor-pointer"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium">{tenant.full_name}</p>
-                        <p className="text-sm text-muted-foreground">{tenant.phone}</p>
+                {results.map((tenant) => {
+                  const isClickable = !tenant.invitation_status || tenant.invitation_status === "rejected";
+                  return (
+                    <div
+                      key={tenant.id}
+                      onClick={() => isClickable && setSelectedTenant(tenant)}
+                      className={`p-3 rounded-md border transition-colors ${
+                        !isClickable
+                          ? "border-border opacity-60 cursor-not-allowed"
+                          : selectedTenant?.id === tenant.id
+                            ? "border-primary bg-primary/5 cursor-pointer"
+                            : "border-border hover:bg-muted cursor-pointer"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-medium">{tenant.full_name}</p>
+                          <p className="text-sm text-muted-foreground">{tenant.phone}</p>
+                        </div>
+                        {getStatusBadge(tenant.invitation_status)}
                       </div>
-                      {getStatusBadge(tenant.invitation_status)}
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}
@@ -196,13 +201,15 @@ const LinkTenantDialog = ({ open, onOpenChange, availableRooms }: LinkTenantDial
             </div>
           )}
 
-          {/* Invite button */}
+          {/* Invite / Re-invite button */}
           {canInvite && (
             <Button onClick={handleInvite} disabled={sending || !selectedRoom || availableRooms.length === 0} className="w-full">
-              <Send className="h-4 w-4 mr-2" />
+              {isReinvite ? <RefreshCw className="h-4 w-4 mr-2" /> : <Send className="h-4 w-4 mr-2" />}
               {sending
                 ? (language === "bn" ? "পাঠানো হচ্ছে..." : "Sending...")
-                : (language === "bn" ? `${selectedTenant.full_name} কে ইনভিটেশন পাঠান` : `Send invitation to ${selectedTenant.full_name}`)}
+                : isReinvite
+                  ? (language === "bn" ? `${selectedTenant.full_name} কে পুনরায় ইনভিটেশন পাঠান` : `Re-send invitation to ${selectedTenant.full_name}`)
+                  : (language === "bn" ? `${selectedTenant.full_name} কে ইনভিটেশন পাঠান` : `Send invitation to ${selectedTenant.full_name}`)}
             </Button>
           )}
 
@@ -212,9 +219,9 @@ const LinkTenantDialog = ({ open, onOpenChange, availableRooms }: LinkTenantDial
               {language === "bn" ? "ইনভিটেশন ইতিমধ্যে পাঠানো হয়েছে। ভাড়াটিয়ার গ্রহণের জন্য অপেক্ষা করুন।" : "Invitation already sent. Waiting for tenant to accept."}
             </p>
           )}
-          {selectedTenant?.invitation_status === "rejected" && (
-            <p className="text-sm text-destructive text-center">
-              {language === "bn" ? "ভাড়াটিয়া আপনার ইনভিটেশন প্রত্যাখ্যান করেছে।" : "Tenant has rejected your invitation."}
+          {isReinvite && (
+            <p className="text-sm text-amber-600 text-center">
+              {language === "bn" ? "পূর্বের ইনভিটেশন প্রত্যাখ্যান হয়েছে। পুনরায় পাঠাতে পারবেন।" : "Previous invitation was rejected. You can re-send."}
             </p>
           )}
         </div>

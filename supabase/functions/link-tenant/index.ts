@@ -41,7 +41,6 @@ Deno.serve(async (req) => {
 
     // ─── ACTION: SEARCH ───────────────────────────────
     if (action === "search") {
-      // Check caller is a landlord
       const { data: roleData } = await adminClient
         .from("user_roles")
         .select("role")
@@ -63,6 +62,18 @@ Deno.serve(async (req) => {
         });
       }
 
+      // Get blocks involving this landlord
+      const { data: blocks } = await adminClient
+        .from("user_blocks")
+        .select("blocker_id, blocked_id")
+        .or(`blocker_id.eq.${user.id},blocked_id.eq.${user.id}`);
+
+      const blockedUserIds = new Set<string>();
+      for (const b of blocks || []) {
+        if (b.blocker_id === user.id) blockedUserIds.add(b.blocked_id);
+        if (b.blocked_id === user.id) blockedUserIds.add(b.blocker_id);
+      }
+
       const { data: matchingProfiles } = await adminClient
         .from("profiles")
         .select("user_id, full_name, phone")
@@ -73,6 +84,11 @@ Deno.serve(async (req) => {
       const seenTenantIds = new Set<string>();
 
       for (const profile of matchingProfiles || []) {
+        // Skip blocked users
+        if (blockedUserIds.has(profile.user_id)) {
+          continue;
+        }
+
         const { data: tenantRole } = await adminClient
           .from("user_roles")
           .select("user_id")
@@ -134,7 +150,6 @@ Deno.serve(async (req) => {
 
     // ─── ACTION: INVITE ───────────────────────────────
     if (action === "invite") {
-      // Check caller is a landlord
       const { data: roleData } = await adminClient
         .from("user_roles")
         .select("role")
@@ -170,6 +185,20 @@ Deno.serve(async (req) => {
         });
       }
 
+      // Check blocks
+      const { data: blockExists } = await adminClient
+        .from("user_blocks")
+        .select("id")
+        .or(`and(blocker_id.eq.${user.id},blocked_id.eq.${tenant.user_id}),and(blocker_id.eq.${tenant.user_id},blocked_id.eq.${user.id})`)
+        .maybeSingle();
+
+      if (blockExists) {
+        return new Response(JSON.stringify({ error: "Cannot invite — user is blocked" }), {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
       // Check if invitation already exists
       const { data: existingInvite } = await adminClient
         .from("tenant_invitations")
@@ -185,17 +214,18 @@ Deno.serve(async (req) => {
             headers: { ...corsHeaders, "Content-Type": "application/json" },
           });
         }
-        if (existingInvite.status === "rejected") {
-          return new Response(JSON.stringify({ error: "Tenant has rejected your invitation. You cannot re-invite." }), {
-            status: 400,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          });
-        }
         if (existingInvite.status === "accepted") {
           return new Response(JSON.stringify({ error: "Tenant already accepted your invitation" }), {
             status: 400,
             headers: { ...corsHeaders, "Content-Type": "application/json" },
           });
+        }
+        // If rejected → delete old invitation so we can re-send
+        if (existingInvite.status === "rejected") {
+          await adminClient
+            .from("tenant_invitations")
+            .delete()
+            .eq("id", existingInvite.id);
         }
       }
 
@@ -239,7 +269,6 @@ Deno.serve(async (req) => {
         });
       }
 
-      // Get the invitation
       const { data: invite } = await adminClient
         .from("tenant_invitations")
         .select("*")
@@ -255,14 +284,12 @@ Deno.serve(async (req) => {
         });
       }
 
-      // Update invitation status
       await adminClient
         .from("tenant_invitations")
         .update({ status: response })
         .eq("id", invitation_id);
 
       if (response === "accepted") {
-        // Link tenant: update owner_id
         const updateData: any = { owner_id: invite.landlord_id };
         if (invite.room_id) {
           updateData.room_id = invite.room_id;
@@ -274,7 +301,6 @@ Deno.serve(async (req) => {
           .eq("id", invite.tenant_id);
 
         if (updateError) {
-          // Rollback invitation status
           await adminClient
             .from("tenant_invitations")
             .update({ status: "pending" })
@@ -285,7 +311,6 @@ Deno.serve(async (req) => {
           });
         }
 
-        // If room assigned, mark room as occupied
         if (invite.room_id) {
           await adminClient
             .from("rooms")
@@ -293,7 +318,6 @@ Deno.serve(async (req) => {
             .eq("id", invite.room_id);
         }
 
-        // Notify landlord
         await adminClient.from("notifications").insert({
           user_id: invite.landlord_id,
           title: "Invitation Accepted",
@@ -301,7 +325,6 @@ Deno.serve(async (req) => {
           type: "tenant_invitation_accepted",
         });
       } else {
-        // Notify landlord of rejection
         await adminClient.from("notifications").insert({
           user_id: invite.landlord_id,
           title: "Invitation Rejected",

@@ -79,6 +79,7 @@ const SaleListingDetail = lazy(() => import("./pages/SaleListingDetail"));
 const MyListings = lazy(() => import("./pages/MyListings"));
 // SaleMessages merged into Messages page
 const AdminSaleListings = lazy(() => import("./pages/admin/AdminSaleListings"));
+const AdminBlocks = lazy(() => import("./pages/admin/AdminBlocks"));
 const Leases = lazy(() => import("./pages/Leases"));
 
 const queryClient = new QueryClient();
@@ -179,6 +180,7 @@ const App = () => (
               <Route path="/admin/ads" element={<AdminRoute><AdminAds /></AdminRoute>} />
               <Route path="/admin/landing" element={<AdminRoute><AdminLanding /></AdminRoute>} />
               <Route path="/admin/sale-listings" element={<AdminRoute><AdminSaleListings /></AdminRoute>} />
+              <Route path="/admin/blocks" element={<AdminRoute><AdminBlocks /></AdminRoute>} />
               <Route path="/page/:slug" element={<Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>}><CMSPage /></Suspense>} />
               <Route path="*" element={<NotFound />} />
             </Routes>

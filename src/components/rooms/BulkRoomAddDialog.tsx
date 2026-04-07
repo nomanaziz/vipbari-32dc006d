@@ -576,7 +576,21 @@ const BulkRoomAddDialog = ({ properties, onSuccess }: Props) => {
               </div>
             </div>
 
-            {/* SAME MODE */}
+            {/* Mode toggle */}
+            <div className="space-y-2">
+              <Label className="text-base">{t("bulk.unit_templates") || "Unit Templates"}</Label>
+              <RadioGroup value={unitMode} onValueChange={(v) => handleModeChange(v as "same" | "different")} className="flex gap-4">
+                <div className="flex items-center gap-2">
+                  <RadioGroupItem value="same" id="mode-same" />
+                  <Label htmlFor="mode-same" className="text-sm font-normal cursor-pointer">{t("bulk.same_units") || "Same units on all floors"}</Label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <RadioGroupItem value="different" id="mode-different" />
+                  <Label htmlFor="mode-different" className="text-sm font-normal cursor-pointer">{t("bulk.different_units") || "আলাদা আলাদা ইউনিট / Different unit types"}</Label>
+                </div>
+              </RadioGroup>
+            </div>
+
             {unitMode === "same" && (
               <div className="space-y-3">
                 {/* Units per floor input */}

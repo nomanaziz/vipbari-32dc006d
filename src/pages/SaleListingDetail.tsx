@@ -148,6 +148,9 @@ export default function SaleListingDetail() {
     flat: language === "bn" ? "ফ্ল্যাট" : "Flat",
     apartment: language === "bn" ? "অ্যাপার্টমেন্ট" : "Apartment",
     land: language === "bn" ? "জমি" : "Land",
+    house: language === "bn" ? "বাড়ি" : "House",
+    shop: language === "bn" ? "দোকান" : "Shop",
+    tin_shed: language === "bn" ? "টিনশেড" : "Tin Shed",
   };
 
   return (

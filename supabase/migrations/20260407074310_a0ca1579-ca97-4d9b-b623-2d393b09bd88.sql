@@ -1,0 +1,1 @@
+ALTER TABLE public.tenants ADD COLUMN IF NOT EXISTS released_at timestamptz, ADD COLUMN IF NOT EXISTS release_reason text DEFAULT '', ADD COLUMN IF NOT EXISTS release_notes text DEFAULT '';

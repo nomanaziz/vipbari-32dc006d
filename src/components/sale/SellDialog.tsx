@@ -118,7 +118,7 @@ export function SellDialog({ open, onOpenChange, sourceType, sourceData, propert
         const p = sourceData;
         title = `${p.name} - ${p.property_type}`;
         description = "";
-        property_type = p.property_type === "apartment" ? "apartment" : "flat";
+        property_type = p.property_type || "flat";
         division = p.division || "";
         district = p.district || "";
         thana = p.thana || "";

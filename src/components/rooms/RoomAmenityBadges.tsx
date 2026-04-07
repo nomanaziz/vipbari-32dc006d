@@ -10,14 +10,18 @@ interface RoomAmenityBadgesProps {
 const RoomAmenityBadges = ({ room, property, compact = false }: RoomAmenityBadgesProps) => {
   const { t, language } = useLanguage();
 
+  const isTinShed = property?.property_type === "tin_shed";
+
   const items: string[] = [];
-  if (room.bedrooms > 0) items.push(`${room.bedrooms} ${t("room.bedrooms")}`);
-  if (room.bathrooms > 0) items.push(`${room.bathrooms} ${t("room.bathrooms")}`);
-  if (room.has_kitchen) items.push(t("room.kitchen"));
-  if (room.has_drawing_room) items.push(t("room.drawing_room"));
-  if (room.has_dining_room) items.push(t("room.dining_room"));
-  if (room.balconies > 0) items.push(`${room.balconies} ${t("room.balcony")}`);
-  if (room.has_roof_access) items.push(t("room.roof_access"));
+  if (!isTinShed) {
+    if (room.bedrooms > 0) items.push(`${room.bedrooms} ${t("room.bedrooms")}`);
+    if (room.bathrooms > 0) items.push(`${room.bathrooms} ${t("room.bathrooms")}`);
+    if (room.has_kitchen) items.push(t("room.kitchen"));
+    if (room.has_drawing_room) items.push(t("room.drawing_room"));
+    if (room.has_dining_room) items.push(t("room.dining_room"));
+    if (room.balconies > 0) items.push(`${room.balconies} ${t("room.balcony")}`);
+    if (room.has_roof_access) items.push(t("room.roof_access"));
+  }
 
   // Property-level facilities
   const facilities: string[] = [];
@@ -41,7 +45,7 @@ const RoomAmenityBadges = ({ room, property, compact = false }: RoomAmenityBadge
     return (
       <p className="text-xs text-muted-foreground mt-1">
         {[...items, ...facilities].join(" · ")}
-        {room.area_sqft > 0 && ` · ${room.area_sqft} sqft`}
+        {!isTinShed && room.area_sqft > 0 && ` · ${room.area_sqft} sqft`}
       </p>
     );
   }
@@ -53,7 +57,7 @@ const RoomAmenityBadges = ({ room, property, compact = false }: RoomAmenityBadge
           {item}
         </Badge>
       ))}
-      {room.area_sqft > 0 && (
+      {!isTinShed && room.area_sqft > 0 && (
         <Badge variant="outline" className="text-xs">{room.area_sqft} sqft</Badge>
       )}
       {facilities.map((fac) => (

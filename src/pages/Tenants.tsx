@@ -23,12 +23,7 @@ import LinkTenantDialog from "@/components/tenants/LinkTenantDialog";
 import TenantReleaseDialog from "@/components/tenants/TenantReleaseDialog";
 
 const Tenants = () => {
-  const { language } = useLanguage();
-  const t = (key: string) => {
-    // Simple pass-through; we use inline text mostly
-    const { t: translate } = useLanguage();
-    return translate(key);
-  };
+  const { language, t } = useLanguage();
   const { user, effectiveOwnerId } = useAuth();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);

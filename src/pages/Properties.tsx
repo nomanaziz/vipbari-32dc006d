@@ -375,6 +375,11 @@ const Properties = () => {
       has_security: !!p.has_security, has_cctv: !!p.has_cctv, has_lift: !!p.has_lift,
       has_generator: !!p.has_generator, has_parking: !!p.has_parking, has_gas_supply: !!p.has_gas_supply,
       has_water_supply: !!p.has_water_supply, has_rooftop_access: !!p.has_rooftop_access,
+      common_bathrooms: (p as any).common_bathrooms || 0,
+      common_washrooms: (p as any).common_washrooms || 0,
+      common_kitchens: (p as any).common_kitchens || 0,
+      common_stoves: (p as any).common_stoves || 0,
+      utilities_included: !!(p as any).utilities_included,
     });
     setSelectedStaff(getStaffForProperty(p.id).map(ps => ps.staff_user_id));
     setOpen(true);

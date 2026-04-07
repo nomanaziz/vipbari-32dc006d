@@ -521,6 +521,50 @@ const BulkRoomAddDialog = ({ properties, onSuccess }: Props) => {
               </Select>
             </div>
 
+            {/* Simple mode for tin_shed / house / shop */}
+            {isSimpleMode && (
+              <div className="space-y-4">
+                <div className="rounded-lg border border-blue-300 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-800 p-3">
+                  <p className="text-sm font-medium text-blue-700 dark:text-blue-400">
+                    {effectivePropertyType === "shop" 
+                      ? (language === "bn" ? "📦 একসাথে একাধিক দোকান যোগ করুন" : "📦 Add multiple shops at once")
+                      : (language === "bn" ? "🏠 একসাথে একাধিক রুম যোগ করুন" : "🏠 Add multiple rooms at once")}
+                  </p>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>{language === "bn" ? `${simpleLabel} সংখ্যা` : `Number of ${simpleLabel}s`}</Label>
+                    <Input 
+                      type="number" 
+                      min="1" 
+                      max="50" 
+                      value={simpleRoomCount} 
+                      onChange={e => setSimpleRoomCount(e.target.value)} 
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>{language === "bn" ? `প্রতি ${simpleLabel} ভাড়া (৳)` : `Rent per ${simpleLabel} (৳)`}</Label>
+                    <Input 
+                      type="number" 
+                      min="0" 
+                      value={simpleRent} 
+                      onChange={e => setSimpleRent(e.target.value)} 
+                    />
+                  </div>
+                </div>
+                {effectivePropertyType === "tin_shed" && (
+                  <div className="rounded-lg border border-emerald-300 bg-emerald-50 dark:bg-emerald-900/20 dark:border-emerald-800 p-3">
+                    <p className="text-sm text-emerald-700 dark:text-emerald-400">
+                      ⚡ {language === "bn" ? "সব ইউটিলিটি ভাড়ায় অন্তর্ভুক্ত · বাথরুম, রান্নাঘর কমন/শেয়ার্ড" : "All utilities included · Bathroom, kitchen common/shared"}
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Building mode: Floor range */}
+            {!isSimpleMode && (
+              <>
             {/* Floor range */}
             <div className="space-y-2">
               <Label>{t("bulk.floor_range") || "Floor Range"}</Label>
@@ -530,21 +574,6 @@ const BulkRoomAddDialog = ({ properties, onSuccess }: Props) => {
                 <Input type="number" value={floorTo} onChange={e => handleFloorChange(floorFrom.toString(), e.target.value)} placeholder={t("bulk.to") || "to"} className="w-24" />
                 <span className="text-sm text-muted-foreground">({floorCount} {t("bulk.floors") || "floors"})</span>
               </div>
-            </div>
-
-            {/* Mode toggle */}
-            <div className="space-y-2">
-              <Label className="text-base">{t("bulk.unit_templates") || "Unit Templates"}</Label>
-              <RadioGroup value={unitMode} onValueChange={(v) => handleModeChange(v as "same" | "different")} className="flex gap-4">
-                <div className="flex items-center gap-2">
-                  <RadioGroupItem value="same" id="mode-same" />
-                  <Label htmlFor="mode-same" className="text-sm font-normal cursor-pointer">{t("bulk.same_units") || "Same units on all floors"}</Label>
-                </div>
-                <div className="flex items-center gap-2">
-                  <RadioGroupItem value="different" id="mode-different" />
-                  <Label htmlFor="mode-different" className="text-sm font-normal cursor-pointer">{t("bulk.different_units") || "আলাদা আলাদা ইউনিট / Different unit types"}</Label>
-                </div>
-              </RadioGroup>
             </div>
 
             {/* SAME MODE */}

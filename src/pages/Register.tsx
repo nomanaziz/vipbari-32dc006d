@@ -231,43 +231,19 @@ const Register = () => {
               </div>
 
               <div className="space-y-2">
-                <Label>{t("auth.date_of_birth")} <span className="text-destructive">*</span></Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal",
-                        !dateOfBirth && "text-muted-foreground"
-                      )}
-                    >
-                      <CalendarDays className="mr-2 h-4 w-4" />
-                      {dateOfBirth ? format(dateOfBirth, "dd/MM/yyyy") : t("auth.select_dob")}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0 max-w-[calc(100vw-2rem)]" align="center">
-                    <Calendar
-                      mode="single"
-                      selected={dateOfBirth}
-                      onSelect={setDateOfBirth}
-                      disabled={(date) =>
-                        date > new Date() || date < new Date("1920-01-01")
-                      }
-                      initialFocus
-                      className={cn("p-3 pointer-events-auto")}
-                      captionLayout="dropdown-buttons"
-                      fromYear={1920}
-                      toYear={new Date().getFullYear()}
-                      classNames={{
-                        caption: "flex justify-center pt-1 relative items-center gap-1",
-                        caption_dropdowns: "flex gap-1",
-                        dropdown: "text-xs px-1 py-0.5 rounded border bg-background",
-                        dropdown_month: "mr-1",
-                        vhidden: "hidden",
-                      }}
-                    />
-                  </PopoverContent>
-                </Popover>
+                <Label htmlFor="dob">{t("auth.date_of_birth")} <span className="text-destructive">*</span></Label>
+                <div className="relative">
+                  <CalendarDays className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="dob"
+                    placeholder="DD-MM-YYYY"
+                    value={dateOfBirth}
+                    onChange={(e) => handleDobChange(e.target.value)}
+                    className="pl-10"
+                    maxLength={10}
+                    required
+                  />
+                </div>
               </div>
 
               <div className="space-y-2">

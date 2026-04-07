@@ -18,7 +18,7 @@ interface LinkTenantDialogProps {
 }
 
 const LinkTenantDialog = ({ open, onOpenChange, availableRooms }: LinkTenantDialogProps) => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [phone, setPhone] = useState("");

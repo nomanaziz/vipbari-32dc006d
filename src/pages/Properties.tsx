@@ -672,6 +672,48 @@ const Properties = () => {
                 </div>
               </div>
 
+              {/* Common Facilities - only for Tin Shed */}
+              {form.property_type === "tin_shed" && (
+                <div className="space-y-3 rounded-lg border p-4 bg-muted/30">
+                  <Label className="text-base font-semibold">
+                    {language === "bn" ? "🔁 কমন সুবিধাসমূহ" : "🔁 Common Facilities"}
+                  </Label>
+                  <p className="text-xs text-muted-foreground">
+                    {language === "bn" ? "এই সুবিধাগুলো সব রুমের জন্য শেয়ার্ড" : "These facilities are shared across all rooms"}
+                  </p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <Label className="text-sm">{language === "bn" ? "বাথরুম সংখ্যা" : "Bathrooms"}</Label>
+                      <Input type="number" min="0" value={form.common_bathrooms} onChange={e => setForm(f => ({ ...f, common_bathrooms: parseInt(e.target.value) || 0 }))} />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-sm">{language === "bn" ? "ওয়াশরুম সংখ্যা" : "Washrooms"}</Label>
+                      <Input type="number" min="0" value={form.common_washrooms} onChange={e => setForm(f => ({ ...f, common_washrooms: parseInt(e.target.value) || 0 }))} />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-sm">{language === "bn" ? "রান্নাঘর সংখ্যা" : "Kitchens"}</Label>
+                      <Input type="number" min="0" value={form.common_kitchens} onChange={e => setForm(f => ({ ...f, common_kitchens: parseInt(e.target.value) || 0 }))} />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-sm">{language === "bn" ? "চুলা সংখ্যা" : "Stoves (Chula)"}</Label>
+                      <Input type="number" min="0" value={form.common_stoves} onChange={e => setForm(f => ({ ...f, common_stoves: parseInt(e.target.value) || 0 }))} />
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between rounded-lg border p-3">
+                    <div>
+                      <Label className="text-sm font-medium">{language === "bn" ? "ইউটিলিটি অন্তর্ভুক্ত" : "Utilities Included"}</Label>
+                      <p className="text-xs text-muted-foreground">
+                        {language === "bn" ? "গ্যাস, পানি, বিদ্যুৎ ভাড়ায় অন্তর্ভুক্ত" : "Gas, water, electricity included in rent"}
+                      </p>
+                    </div>
+                    <Switch
+                      checked={form.utilities_included}
+                      onCheckedChange={(checked) => setForm(f => ({ ...f, utilities_included: checked }))}
+                    />
+                  </div>
+                </div>
+              )}
+
               {(staffMembers && staffMembers.length > 0) && (
                 <div className="space-y-3">
                   <Label className="text-base font-semibold flex items-center gap-1.5">

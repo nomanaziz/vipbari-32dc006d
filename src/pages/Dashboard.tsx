@@ -201,7 +201,7 @@ const TenantDashboard = () => {
       {/* Financial Summary Cards */}
       {myTenant && (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <Card className="bg-gradient-to-br from-red-50 to-red-100 border-0 shadow-sm">
+          <Card className="bg-gradient-to-br from-red-50 to-red-100 dark:from-red-950/40 dark:to-red-900/20 border-0 shadow-sm">
             <CardContent className="p-3 flex items-center gap-3">
               <div className="h-9 w-9 rounded-lg bg-red-500 flex items-center justify-center">
                 <AlertCircle className="h-4 w-4 text-white" />
@@ -212,7 +212,7 @@ const TenantDashboard = () => {
               </div>
             </CardContent>
           </Card>
-          <Card className="bg-gradient-to-br from-emerald-50 to-emerald-100 border-0 shadow-sm">
+          <Card className="bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-950/40 dark:to-emerald-900/20 border-0 shadow-sm">
             <CardContent className="p-3 flex items-center gap-3">
               <div className="h-9 w-9 rounded-lg bg-emerald-500 flex items-center justify-center">
                 <CheckCircle2 className="h-4 w-4 text-white" />
@@ -223,7 +223,7 @@ const TenantDashboard = () => {
               </div>
             </CardContent>
           </Card>
-          <Card className="bg-gradient-to-br from-violet-50 to-violet-100 border-0 shadow-sm">
+          <Card className="bg-gradient-to-br from-violet-50 to-violet-100 dark:from-violet-950/40 dark:to-violet-900/20 border-0 shadow-sm">
             <CardContent className="p-3 flex items-center gap-3">
               <div className="h-9 w-9 rounded-lg bg-violet-500 flex items-center justify-center">
                 <TrendingUp className="h-4 w-4 text-white" />
@@ -238,7 +238,7 @@ const TenantDashboard = () => {
       )}
       {/* Quick Actions */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-0 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
+        <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/40 dark:to-blue-900/20 border-0 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="h-10 w-10 rounded-xl bg-blue-500 flex items-center justify-center"><Home className="h-5 w-5 text-white" /></div>
             <div className="flex-1">
@@ -248,7 +248,7 @@ const TenantDashboard = () => {
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-0 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
+        <Card className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950/40 dark:to-purple-900/20 border-0 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="h-10 w-10 rounded-xl bg-purple-500 flex items-center justify-center"><Bell className="h-5 w-5 text-white" /></div>
             <div className="flex-1">
@@ -258,7 +258,7 @@ const TenantDashboard = () => {
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-rose-50 to-rose-100 border-0 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
+        <Card className="bg-gradient-to-br from-rose-50 to-rose-100 dark:from-rose-950/40 dark:to-rose-900/20 border-0 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="h-10 w-10 rounded-xl bg-rose-500 flex items-center justify-center"><AlertTriangle className="h-5 w-5 text-white" /></div>
             <div className="flex-1">
@@ -269,7 +269,7 @@ const TenantDashboard = () => {
         </Card>
 
         {myTenant && (
-          <Card className="bg-gradient-to-br from-fuchsia-50 to-fuchsia-100 border-0 shadow-sm hover:shadow-md transition-shadow">
+          <Card className="bg-gradient-to-br from-fuchsia-50 to-fuchsia-100 dark:from-fuchsia-950/40 dark:to-fuchsia-900/20 border-0 shadow-sm hover:shadow-md transition-shadow">
             <CardContent className="p-4 flex items-center gap-3">
               <div className="h-10 w-10 rounded-xl bg-fuchsia-500 flex items-center justify-center"><DoorOpen className="h-5 w-5 text-white" /></div>
               <div>
@@ -458,10 +458,10 @@ const LandlordDashboard = () => {
   })();
 
   const propertyStats = [
-    { label: t("dashboard.total_properties"), value: String(properties?.length || 0), icon: Building2, iconBg: "bg-pink-500", bg: "from-pink-50 to-pink-100" },
-    { label: t("dashboard.total_rooms"), value: String(totalRooms), icon: DoorOpen, iconBg: "bg-purple-500", bg: "from-purple-50 to-purple-100" },
-    { label: t("dashboard.occupied"), value: String(occupiedRooms), icon: TrendingUp, iconBg: "bg-emerald-500", bg: "from-emerald-50 to-emerald-100" },
-    { label: t("dashboard.vacant"), value: String(vacantRooms), icon: AlertCircle, iconBg: "bg-amber-500", bg: "from-amber-50 to-amber-100" },
+    { label: t("dashboard.total_properties"), value: String(properties?.length || 0), icon: Building2, iconBg: "bg-pink-500", bg: "from-pink-50 to-pink-100 dark:from-pink-950/40 dark:to-pink-900/20" },
+    { label: t("dashboard.total_rooms"), value: String(totalRooms), icon: DoorOpen, iconBg: "bg-purple-500", bg: "from-purple-50 to-purple-100 dark:from-purple-950/40 dark:to-purple-900/20" },
+    { label: t("dashboard.occupied"), value: String(occupiedRooms), icon: TrendingUp, iconBg: "bg-emerald-500", bg: "from-emerald-50 to-emerald-100 dark:from-emerald-950/40 dark:to-emerald-900/20" },
+    { label: t("dashboard.vacant"), value: String(vacantRooms), icon: AlertCircle, iconBg: "bg-amber-500", bg: "from-amber-50 to-amber-100 dark:from-amber-950/40 dark:to-amber-900/20" },
   ];
 
   const totalGarages = garages?.length || 0;
@@ -469,17 +469,17 @@ const LandlordDashboard = () => {
   const freeGarages = garages?.filter(g => g.status === "vacant").length || 0;
 
   const financialStats = [
-    { label: t("dashboard.total_tenants"), value: String(activeTenants), icon: Users, iconBg: "bg-violet-500", bg: "from-violet-50 to-violet-100" },
-    { label: language === "bn" ? "মোট বকেয়া" : "Total Due", value: `৳${totalDue.toLocaleString()}`, icon: AlertCircle, iconBg: "bg-red-500", bg: "from-red-50 to-red-100" },
-    { label: language === "bn" ? "মাসিক বিল" : "Monthly Bill", value: `৳${monthlyBill.toLocaleString()}`, icon: CreditCard, iconBg: "bg-blue-500", bg: "from-blue-50 to-blue-100" },
-    { label: language === "bn" ? "মোট আদায়" : "Total Received", value: `৳${totalReceived.toLocaleString()}`, icon: CheckCircle2, iconBg: "bg-emerald-500", bg: "from-emerald-50 to-emerald-100" },
-    { label: language === "bn" ? "মোট খরচ" : "Total Expense", value: `৳${totalExpense.toLocaleString()}`, icon: TrendingUp, iconBg: "bg-orange-500", bg: "from-orange-50 to-orange-100" },
+    { label: t("dashboard.total_tenants"), value: String(activeTenants), icon: Users, iconBg: "bg-violet-500", bg: "from-violet-50 to-violet-100 dark:from-violet-950/40 dark:to-violet-900/20" },
+    { label: language === "bn" ? "মোট বকেয়া" : "Total Due", value: `৳${totalDue.toLocaleString()}`, icon: AlertCircle, iconBg: "bg-red-500", bg: "from-red-50 to-red-100 dark:from-red-950/40 dark:to-red-900/20" },
+    { label: language === "bn" ? "মাসিক বিল" : "Monthly Bill", value: `৳${monthlyBill.toLocaleString()}`, icon: CreditCard, iconBg: "bg-blue-500", bg: "from-blue-50 to-blue-100 dark:from-blue-950/40 dark:to-blue-900/20" },
+    { label: language === "bn" ? "মোট আদায়" : "Total Received", value: `৳${totalReceived.toLocaleString()}`, icon: CheckCircle2, iconBg: "bg-emerald-500", bg: "from-emerald-50 to-emerald-100 dark:from-emerald-950/40 dark:to-emerald-900/20" },
+    { label: language === "bn" ? "মোট খরচ" : "Total Expense", value: `৳${totalExpense.toLocaleString()}`, icon: TrendingUp, iconBg: "bg-orange-500", bg: "from-orange-50 to-orange-100 dark:from-orange-950/40 dark:to-orange-900/20" },
   ];
 
   const garageStats = [
-    { label: language === "bn" ? "মোট গ্যারেজ" : "Total Garages", value: String(totalGarages), icon: Car, iconBg: "bg-pink-500", bg: "from-pink-50 to-pink-100" },
-    { label: language === "bn" ? "ব্যবহৃত" : "Active", value: String(activeGarages), icon: Car, iconBg: "bg-emerald-500", bg: "from-emerald-50 to-emerald-100" },
-    { label: language === "bn" ? "খালি" : "Free", value: String(freeGarages), icon: Car, iconBg: "bg-amber-500", bg: "from-amber-50 to-amber-100" },
+    { label: language === "bn" ? "মোট গ্যারেজ" : "Total Garages", value: String(totalGarages), icon: Car, iconBg: "bg-pink-500", bg: "from-pink-50 to-pink-100 dark:from-pink-950/40 dark:to-pink-900/20" },
+    { label: language === "bn" ? "ব্যবহৃত" : "Active", value: String(activeGarages), icon: Car, iconBg: "bg-emerald-500", bg: "from-emerald-50 to-emerald-100 dark:from-emerald-950/40 dark:to-emerald-900/20" },
+    { label: language === "bn" ? "খালি" : "Free", value: String(freeGarages), icon: Car, iconBg: "bg-amber-500", bg: "from-amber-50 to-amber-100 dark:from-amber-950/40 dark:to-amber-900/20" },
   ];
 
   return (

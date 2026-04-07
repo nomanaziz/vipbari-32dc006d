@@ -100,6 +100,9 @@ export function NotificationBell() {
       case "request_rejected": return "❌";
       case "new_request": return "📩";
       case "room_assigned": return "🏠";
+      case "tenant_invitation": return "📨";
+      case "tenant_invitation_accepted": return "✅";
+      case "tenant_invitation_rejected": return "❌";
       default: return "🔔";
     }
   };

@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Building2, Phone, Mail, Home, MapPin, DoorOpen, User, Info, CheckCircle2, XCircle, Send } from "lucide-react";
+import { Building2, Phone, Mail, Home, MapPin, DoorOpen, User, Info, CheckCircle2, XCircle, Send, ShieldBan } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";

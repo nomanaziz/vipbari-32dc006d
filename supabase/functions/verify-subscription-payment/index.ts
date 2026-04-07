@@ -273,29 +273,3 @@ async function createSubscription(
 }
 
 async function handleFreeTolet(adminClient: any, userId: string, planId: string) {
-  const { data: prevTolet } = await adminClient
-    .from("user_subscriptions")
-    .select("id")
-    .eq("user_id", userId)
-    .eq("product_type", "tolet")
-    .limit(1);
-
-  // Only give free slots if this is the very first tolet subscription (the one we just inserted)
-  if (prevTolet && prevTolet.length <= 1) {
-    const freeExpiry = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
-    await adminClient.from("user_subscriptions").insert({
-      user_id: userId,
-      plan_id: planId,
-      starts_at: new Date().toISOString(),
-      expires_at: freeExpiry.toISOString(),
-      status: "active",
-      product_type: "tolet",
-      tolet_count: 2,
-      tolet_price_per_unit: 0,
-      room_count: 0,
-      duration_months: 1,
-      discount_percent: 0,
-      coupon_code: null,
-    });
-  }
-}

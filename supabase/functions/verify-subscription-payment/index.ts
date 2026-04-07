@@ -271,5 +271,3 @@ async function createSubscription(
     coupon_code: couponCode,
   });
 }
-
-async function handleFreeTolet(adminClient: any, userId: string, planId: string) {

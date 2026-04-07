@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Link, Phone } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Search, Send, Phone, Clock, XCircle, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 
 interface LinkTenantDialogProps {
@@ -26,11 +27,11 @@ const LinkTenantDialog = ({ open, onOpenChange, availableRooms }: LinkTenantDial
   const [searching, setSearching] = useState(false);
   const [selectedTenant, setSelectedTenant] = useState<any>(null);
   const [selectedRoom, setSelectedRoom] = useState("");
-  const [linking, setLinking] = useState(false);
+  const [sending, setSending] = useState(false);
 
   const handleSearch = async () => {
     if (!phone || phone.length < 4) {
-      toast.error(t("tenant.phone_too_short") || "Enter at least 4 digits");
+      toast.error(language === "bn" ? "কমপক্ষে ৪ ডিজিট দিন" : "Enter at least 4 digits");
       return;
     }
     setSearching(true);
@@ -42,7 +43,7 @@ const LinkTenantDialog = ({ open, onOpenChange, availableRooms }: LinkTenantDial
       if (error) throw error;
       setResults(data?.tenants || []);
       if (!data?.tenants?.length) {
-        toast.info(t("tenant.no_unassigned") || "No unassigned tenants found with this phone");
+        toast.info(language === "bn" ? "এই নম্বরে কোনো অনির্ধারিত ভাড়াটিয়া পাওয়া যায়নি" : "No unassigned tenants found with this phone");
       }
     } catch (e: any) {
       toast.error(e.message);
@@ -51,28 +52,29 @@ const LinkTenantDialog = ({ open, onOpenChange, availableRooms }: LinkTenantDial
     }
   };
 
-  const handleLink = async () => {
+  const handleInvite = async () => {
     if (!selectedTenant) return;
-    setLinking(true);
+    setSending(true);
     try {
       const { data, error } = await supabase.functions.invoke("link-tenant", {
         body: {
-          action: "link",
+          action: "invite",
           tenant_id: selectedTenant.id,
           room_id: selectedRoom || null,
         },
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
-      toast.success(t("tenant.linked") || "Tenant linked successfully!");
-      queryClient.invalidateQueries({ queryKey: ["tenants"] });
-      queryClient.invalidateQueries({ queryKey: ["rooms"] });
+      toast.success(language === "bn"
+        ? "ইনভিটেশন পাঠানো হয়েছে! ভাড়াটিয়ার গ্রহণের জন্য অপেক্ষা করুন।"
+        : "Invitation sent! Waiting for tenant to accept.");
+      queryClient.invalidateQueries({ queryKey: ["tenant-invitations"] });
       onOpenChange(false);
       resetState();
     } catch (e: any) {
       toast.error(e.message);
     } finally {
-      setLinking(false);
+      setSending(false);
     }
   };
 
@@ -83,20 +85,45 @@ const LinkTenantDialog = ({ open, onOpenChange, availableRooms }: LinkTenantDial
     setSelectedRoom("");
   };
 
+  const getStatusBadge = (status: string | null) => {
+    if (!status) return null;
+    if (status === "pending") return (
+      <Badge variant="secondary" className="text-xs gap-1">
+        <Clock className="h-3 w-3" />
+        {language === "bn" ? "অপেক্ষমাণ" : "Pending"}
+      </Badge>
+    );
+    if (status === "rejected") return (
+      <Badge variant="destructive" className="text-xs gap-1">
+        <XCircle className="h-3 w-3" />
+        {language === "bn" ? "প্রত্যাখ্যাত" : "Rejected"}
+      </Badge>
+    );
+    if (status === "accepted") return (
+      <Badge className="text-xs gap-1 bg-emerald-500">
+        <CheckCircle2 className="h-3 w-3" />
+        {language === "bn" ? "গৃহীত" : "Accepted"}
+      </Badge>
+    );
+    return null;
+  };
+
+  const canInvite = selectedTenant && !selectedTenant.invitation_status;
+
   return (
     <Dialog open={open} onOpenChange={(v) => { onOpenChange(v); if (!v) resetState(); }}>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Link className="h-5 w-5" />
-            {t("tenant.link_existing") || "Link Existing Tenant"}
+            <Send className="h-5 w-5" />
+            {language === "bn" ? "বিদ্যমান ভাড়াটিয়া যুক্ত করুন" : "Link Existing Tenant"}
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
           {/* Search by phone */}
           <div className="space-y-2">
-            <Label>{t("tenant.search_by_phone") || "Search by phone number"}</Label>
+            <Label>{language === "bn" ? "ফোন নম্বর দিয়ে খুঁজুন" : "Search by phone number"}</Label>
             <div className="flex gap-2">
               <div className="relative flex-1">
                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -117,20 +144,27 @@ const LinkTenantDialog = ({ open, onOpenChange, availableRooms }: LinkTenantDial
           {/* Results */}
           {results.length > 0 && (
             <div className="space-y-2">
-              <Label>{language === "bn" ? "লিংক করতে ভাড়াটিয়া নির্বাচন করুন" : "Select tenant to link"}</Label>
+              <Label>{language === "bn" ? "ভাড়াটিয়া নির্বাচন করুন" : "Select tenant"}</Label>
               <div className="space-y-2 max-h-48 overflow-y-auto">
                 {results.map((tenant) => (
                   <div
                     key={tenant.id}
-                    onClick={() => setSelectedTenant(tenant)}
-                    className={`p-3 rounded-md border cursor-pointer transition-colors ${
-                      selectedTenant?.id === tenant.id
-                        ? "border-primary bg-primary/5"
-                        : "border-border hover:bg-muted"
+                    onClick={() => !tenant.invitation_status && setSelectedTenant(tenant)}
+                    className={`p-3 rounded-md border transition-colors ${
+                      tenant.invitation_status
+                        ? "border-border opacity-60 cursor-not-allowed"
+                        : selectedTenant?.id === tenant.id
+                          ? "border-primary bg-primary/5 cursor-pointer"
+                          : "border-border hover:bg-muted cursor-pointer"
                     }`}
                   >
-                    <p className="font-medium">{tenant.full_name}</p>
-                    <p className="text-sm text-muted-foreground">{tenant.phone}</p>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-medium">{tenant.full_name}</p>
+                        <p className="text-sm text-muted-foreground">{tenant.phone}</p>
+                      </div>
+                      {getStatusBadge(tenant.invitation_status)}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -138,15 +172,15 @@ const LinkTenantDialog = ({ open, onOpenChange, availableRooms }: LinkTenantDial
           )}
 
           {/* Room assignment (optional) */}
-          {selectedTenant && (
+          {canInvite && (
             <div className="space-y-2">
               <Label>{language === "bn" ? "রুম নির্ধারণ করুন (ঐচ্ছিক)" : "Assign room (optional)"}</Label>
               <Select value={selectedRoom} onValueChange={setSelectedRoom}>
                 <SelectTrigger>
-                  <SelectValue placeholder={t("tenant.no_room") || "No room"} />
+                  <SelectValue placeholder={language === "bn" ? "রুম নেই" : "No room"} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">{t("tenant.no_room") || "No room"}</SelectItem>
+                  <SelectItem value="none">{language === "bn" ? "রুম নেই" : "No room"}</SelectItem>
                   {availableRooms.map((r: any) => (
                     <SelectItem key={r.id} value={r.id}>
                       {r.room_number} — {r.properties?.name}
@@ -157,14 +191,26 @@ const LinkTenantDialog = ({ open, onOpenChange, availableRooms }: LinkTenantDial
             </div>
           )}
 
-          {/* Link button */}
-          {selectedTenant && (
-            <Button onClick={handleLink} disabled={linking} className="w-full">
-              <Link className="h-4 w-4 mr-2" />
-              {linking
-                ? (t("common.loading") || "Loading...")
-                : (language === "bn" ? `${selectedTenant.full_name} লিংক করুন` : `Link ${selectedTenant.full_name}`)}
+          {/* Invite button */}
+          {canInvite && (
+            <Button onClick={handleInvite} disabled={sending} className="w-full">
+              <Send className="h-4 w-4 mr-2" />
+              {sending
+                ? (language === "bn" ? "পাঠানো হচ্ছে..." : "Sending...")
+                : (language === "bn" ? `${selectedTenant.full_name} কে ইনভিটেশন পাঠান` : `Send invitation to ${selectedTenant.full_name}`)}
             </Button>
+          )}
+
+          {/* Show message if tenant has existing invitation status */}
+          {selectedTenant?.invitation_status === "pending" && (
+            <p className="text-sm text-amber-600 text-center">
+              {language === "bn" ? "ইনভিটেশন ইতিমধ্যে পাঠানো হয়েছে। ভাড়াটিয়ার গ্রহণের জন্য অপেক্ষা করুন।" : "Invitation already sent. Waiting for tenant to accept."}
+            </p>
+          )}
+          {selectedTenant?.invitation_status === "rejected" && (
+            <p className="text-sm text-destructive text-center">
+              {language === "bn" ? "ভাড়াটিয়া আপনার ইনভিটেশন প্রত্যাখ্যান করেছে।" : "Tenant has rejected your invitation."}
+            </p>
           )}
         </div>
       </DialogContent>

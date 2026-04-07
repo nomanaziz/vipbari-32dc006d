@@ -546,7 +546,7 @@ const Rooms = () => {
             {hasRoomSub ? (
               <>
                 <div className="text-[10px] sm:text-xs text-muted-foreground mb-1 space-y-0.5">
-                  <div>{t("room.used_of") || "Used"} {totalRooms}/{totalRoomSlots} ({freeRoomSlots}+{paidRoomSlots})</div>
+                  <div>{t("room.used_of") || "Used"} {totalRooms}/{totalRoomSlots}</div>
                   <div className="text-right">
                     {totalRooms > totalRoomSlots ? (
                       <span className="text-destructive font-medium">{t("room.over_limit") || "Over limit"}</span>

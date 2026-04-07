@@ -2307,6 +2307,9 @@ export type Database = {
           present_division: string | null
           present_thana: string | null
           present_village: string | null
+          release_notes: string | null
+          release_reason: string | null
+          released_at: string | null
           room_id: string | null
           secondary_phone: string | null
           status: string
@@ -2345,6 +2348,9 @@ export type Database = {
           present_division?: string | null
           present_thana?: string | null
           present_village?: string | null
+          release_notes?: string | null
+          release_reason?: string | null
+          released_at?: string | null
           room_id?: string | null
           secondary_phone?: string | null
           status?: string
@@ -2383,6 +2389,9 @@ export type Database = {
           present_division?: string | null
           present_thana?: string | null
           present_village?: string | null
+          release_notes?: string | null
+          release_reason?: string | null
+          released_at?: string | null
           room_id?: string | null
           secondary_phone?: string | null
           status?: string

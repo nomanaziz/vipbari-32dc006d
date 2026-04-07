@@ -165,7 +165,6 @@ async function activateCartItems(adminClient: any, userId: string, cartItems: an
         discountPercent: discount_percent || 0,
         couponCode: coupon_code || null,
       });
-      }
     } else if (type === "boost_3_day" || type === "boost_7_day") {
       const boostType = type === "boost_3_day" ? "3_day" : "7_day";
       // Check existing balance

@@ -34,8 +34,11 @@ const TenantProfile = () => {
   const { user, profile: authProfile, refreshProfile } = useAuth();
   const queryClient = useQueryClient();
   const frontRef = useRef<HTMLInputElement>(null);
+  const frontCamRef = useRef<HTMLInputElement>(null);
   const backRef = useRef<HTMLInputElement>(null);
+  const backCamRef = useRef<HTMLInputElement>(null);
   const avatarRef = useRef<HTMLInputElement>(null);
+  const avatarCamRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState<string | null>(null);
 
   const { data: tenant, isLoading } = useQuery({

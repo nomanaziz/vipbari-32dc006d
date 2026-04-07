@@ -80,7 +80,7 @@ const Rooms = () => {
   const { data: properties } = useQuery({
     queryKey: ["properties", effectiveOwnerId],
     queryFn: async () => {
-      const { data } = await supabase.from("properties").select("id, name").eq("owner_id", effectiveOwnerId!);
+      const { data } = await supabase.from("properties").select("id, name, property_type, common_bathrooms, common_washrooms, common_kitchens, common_stoves, utilities_included").eq("owner_id", effectiveOwnerId!);
       return data || [];
     },
     enabled: !!effectiveOwnerId,

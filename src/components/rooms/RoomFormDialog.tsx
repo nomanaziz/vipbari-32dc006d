@@ -179,7 +179,11 @@ const RoomFormDialog = ({ open, onOpenChange, editing, properties, onSubmit, isP
           {/* Property */}
           <div className="space-y-2">
             <Label>{t("room.property") || "Property"}</Label>
-            <Select value={form.property_id} onValueChange={v => setForm(f => ({ ...f, property_id: v }))}>
+            <Select value={form.property_id} onValueChange={v => {
+              const pType = properties.find(p => p.id === v)?.property_type;
+              const config = roomTypeConfig[pType || ""] || { options: ["room", "flat", "shop"], default: "room" };
+              setForm(f => ({ ...f, property_id: v, room_type: config.default }));
+            }}>
               <SelectTrigger><SelectValue placeholder="Select property" /></SelectTrigger>
               <SelectContent>
                 {properties?.map(p => (

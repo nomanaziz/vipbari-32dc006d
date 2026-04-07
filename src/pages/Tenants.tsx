@@ -70,6 +70,26 @@ const Tenants = () => {
     enabled: !!effectiveOwnerId,
   });
 
+  // Query approved family member counts per tenant
+  const { data: memberCounts } = useQuery({
+    queryKey: ["tenant-member-counts", effectiveOwnerId],
+    queryFn: async () => {
+      const tenantIds = tenants?.map((t: any) => t.id) || [];
+      if (tenantIds.length === 0) return {};
+      const { data } = await supabase
+        .from("tenant_members")
+        .select("tenant_id")
+        .in("tenant_id", tenantIds)
+        .eq("status", "approved");
+      const counts: Record<string, number> = {};
+      (data || []).forEach((m: any) => {
+        counts[m.tenant_id] = (counts[m.tenant_id] || 0) + 1;
+      });
+      return counts;
+    },
+    enabled: !!tenants && tenants.length > 0,
+  });
+
   // Query bill counts per tenant for delete protection
   const { data: tenantBillCounts } = useQuery({
     queryKey: ["tenant-bill-counts", effectiveOwnerId],

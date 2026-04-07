@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Trash2, UserPlus, Users, Edit2, X, Clock, CheckCircle2, XCircle, Upload, Loader2, Camera } from "lucide-react";
+import { Trash2, UserPlus, Users, Edit2, X, Clock, CheckCircle2, XCircle, Upload, Loader2, Camera, ImagePlus } from "lucide-react";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 

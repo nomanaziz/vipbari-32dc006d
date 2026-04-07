@@ -168,9 +168,7 @@ const Rooms = () => {
         .gte("expires_at", new Date().toISOString());
       const paidSlots = (activeSubs || []).reduce((sum, s) => sum + s.room_count, 0);
 
-      // 4 free rooms total per landlord
-      const freeSlots = 4;
-      const totalSlots = paidSlots + freeSlots;
+      const totalSlots = paidSlots;
 
       const isOverLimit = activeCount >= totalSlots;
       const insertPayload = isOverLimit ? { ...payload, status: "inactive" } : payload;

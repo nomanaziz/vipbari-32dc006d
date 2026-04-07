@@ -66,9 +66,19 @@ Deno.serve(async (req) => {
 
       const { data: tenants } = await adminClient
         .from("tenants")
-        .select("id, full_name, phone, user_id, owner_id")
+        .select("id, full_name, phone, user_id, owner_id, status")
         .ilike("phone", `%${phone}%`)
+        .eq("status", "active")
         .limit(10);
+
+      // Also verify the user account still exists
+      const validTenants: any[] = [];
+      for (const t of (tenants || []).filter((t: any) => t.user_id && t.owner_id === t.user_id)) {
+        const { data: authUser } = await adminClient.auth.admin.getUserById(t.user_id);
+        if (authUser?.user) {
+          validTenants.push(t);
+        }
+      }
 
       // Filter to only unassigned (owner_id = user_id) tenants
       const unassigned = (tenants || []).filter(

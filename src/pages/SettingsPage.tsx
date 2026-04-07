@@ -236,8 +236,9 @@ const SettingsPage = () => {
                     </Button>
                   </div>
                 </div>
-                <input ref={cameraRef} type="file" accept="image/*" capture="user" className="hidden" onChange={handleAvatarUpload} disabled={uploadingAvatar} />
-                <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} disabled={uploadingAvatar} />
+                <input ref={cameraRef} type="file" accept="image/*" capture="user" className="hidden" onChange={handleAvatarSelect} disabled={uploadingAvatar} />
+                <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarSelect} disabled={uploadingAvatar} />
+                <ImageCropDialog file={cropFile} open={cropOpen} onClose={() => { setCropOpen(false); setCropFile(null); }} onCropComplete={handleCroppedUpload} />
               </div>
 
               <div className="space-y-4">

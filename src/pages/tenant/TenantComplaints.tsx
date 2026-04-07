@@ -223,7 +223,7 @@ const TenantComplaints = () => {
         <h1 className="text-2xl font-bold">{t("tenant.complaints")}</h1>
         <Dialog open={dialogOpen} onOpenChange={(open) => { if (!open) closeDialog(); else { setEditingId(null); setForm(emptyForm); setDialogOpen(true); } }}>
           <DialogTrigger asChild>
-            <Button className="gap-2">
+            <Button className="gap-2" disabled={!!isUnlinked}>
               <Plus className="h-4 w-4" />
               {t("tenant.add_complaint")}
             </Button>

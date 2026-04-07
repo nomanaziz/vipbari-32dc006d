@@ -38,6 +38,21 @@ const AdminRooms = () => {
   });
   const profileMap = new Map((profiles || []).map(p => [p.user_id, p.full_name]));
 
+  const getDeleteErrorMessage = (err: any) => {
+    const msg = err?.message || "";
+    if (msg.includes("tenants_room_id_fkey")) {
+      return language === "bn"
+        ? "এই রুমে ভাড়াটিয়া আছে। প্রথমে ভাড়াটিয়া সরান।"
+        : "This room has a tenant assigned. Remove the tenant first.";
+    }
+    if (msg.includes("foreign key constraint")) {
+      return language === "bn"
+        ? "এই রুমের সাথে অন্যান্য তথ্য যুক্ত আছে। প্রথমে সেগুলো সরান।"
+        : "This room has linked data. Remove linked records first.";
+    }
+    return msg;
+  };
+
   const deleteRoom = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase.from("rooms").delete().eq("id", id);
@@ -47,14 +62,21 @@ const AdminRooms = () => {
       queryClient.invalidateQueries({ queryKey: ["admin-rooms"] });
       toast.success(t("room.deleted"));
     },
+    onError: (e: any) => toast.error(getDeleteErrorMessage(e)),
   });
 
   const handleBulkDelete = async () => {
+    let failed = 0;
     for (const id of selectedIds) {
-      await supabase.from("rooms").delete().eq("id", id);
+      const { error } = await supabase.from("rooms").delete().eq("id", id);
+      if (error) {
+        failed++;
+        toast.error(getDeleteErrorMessage(error));
+      }
     }
     queryClient.invalidateQueries({ queryKey: ["admin-rooms"] });
-    toast.success(language === "bn" ? `${selectedIds.size}টি মুছে ফেলা হয়েছে` : `${selectedIds.size} deleted`);
+    const deleted = selectedIds.size - failed;
+    if (deleted > 0) toast.success(language === "bn" ? `${deleted}টি মুছে ফেলা হয়েছে` : `${deleted} deleted`);
     setSelectedIds(new Set());
     setBulkDelete(false);
   };

@@ -233,6 +233,26 @@ const Rooms = () => {
     onError: (e) => toast.error(e.message),
   });
 
+  const getDeleteErrorMessage = (err: any) => {
+    const msg = err?.message || "";
+    if (msg.includes("tenants_room_id_fkey")) {
+      return language === "bn"
+        ? "এই রুমে ভাড়াটিয়া আছে। প্রথমে ভাড়াটিয়া সরান, তারপর রুম মুছুন।"
+        : "This room has a tenant assigned. Please remove the tenant first before deleting.";
+    }
+    if (msg.includes("bills_room_id_fkey")) {
+      return language === "bn"
+        ? "এই রুমের বিল আছে। প্রথমে বিল মুছুন।"
+        : "This room has bills. Please delete the bills first.";
+    }
+    if (msg.includes("foreign key constraint")) {
+      return language === "bn"
+        ? "এই রুমের সাথে অন্যান্য তথ্য যুক্ত আছে। প্রথমে সেগুলো সরান।"
+        : "This room has linked data. Please remove linked records first.";
+    }
+    return msg;
+  };
+
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
       const { data, error } = await supabase.from("rooms").delete().eq("id", id).select();
@@ -243,7 +263,7 @@ const Rooms = () => {
       queryClient.invalidateQueries({ queryKey: ["rooms"] });
       toast.success(t("room.deleted") || "Room deleted");
     },
-    onError: (e) => toast.error(e.message),
+    onError: (e: any) => toast.error(getDeleteErrorMessage(e)),
   });
 
   const toggleToLetMutation = useMutation({

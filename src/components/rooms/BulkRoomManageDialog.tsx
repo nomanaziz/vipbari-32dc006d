@@ -67,6 +67,16 @@ const BulkRoomManageDialog = ({ rooms, onSuccess }: Props) => {
     }
   };
 
+  const getDeleteErrorMessage = (msg: string) => {
+    if (msg.includes("tenants_room_id_fkey")) {
+      return t("room.delete_has_tenant") || "Some rooms have tenants assigned. Remove tenants first.";
+    }
+    if (msg.includes("foreign key constraint")) {
+      return t("room.delete_has_linked") || "Some rooms have linked data. Remove linked records first.";
+    }
+    return msg;
+  };
+
   const handleBulkDelete = async () => {
     if (selected.size === 0) return;
     setIsPending(true);
@@ -79,7 +89,7 @@ const BulkRoomManageDialog = ({ rooms, onSuccess }: Props) => {
       setDeleteConfirmOpen(false);
       onSuccess();
     } catch (err: any) {
-      toast.error(err.message);
+      toast.error(getDeleteErrorMessage(err.message || ""));
     } finally {
       setIsPending(false);
     }

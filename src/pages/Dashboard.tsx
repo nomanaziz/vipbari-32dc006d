@@ -477,9 +477,9 @@ const LandlordDashboard = () => {
   ];
 
   const garageStats = [
-    { label: language === "bn" ? "মোট গ্যারেজ" : "Total Garages", value: String(totalGarages), icon: Car, iconBg: "bg-pink-500", bg: "from-pink-50 to-pink-100" },
-    { label: language === "bn" ? "ব্যবহৃত" : "Active", value: String(activeGarages), icon: Car, iconBg: "bg-emerald-500", bg: "from-emerald-50 to-emerald-100" },
-    { label: language === "bn" ? "খালি" : "Free", value: String(freeGarages), icon: Car, iconBg: "bg-amber-500", bg: "from-amber-50 to-amber-100" },
+    { label: language === "bn" ? "মোট গ্যারেজ" : "Total Garages", value: String(totalGarages), icon: Car, iconBg: "bg-pink-500", bg: "from-pink-50 to-pink-100 dark:from-pink-950/40 dark:to-pink-900/20" },
+    { label: language === "bn" ? "ব্যবহৃত" : "Active", value: String(activeGarages), icon: Car, iconBg: "bg-emerald-500", bg: "from-emerald-50 to-emerald-100 dark:from-emerald-950/40 dark:to-emerald-900/20" },
+    { label: language === "bn" ? "খালি" : "Free", value: String(freeGarages), icon: Car, iconBg: "bg-amber-500", bg: "from-amber-50 to-amber-100 dark:from-amber-950/40 dark:to-amber-900/20" },
   ];
 
   return (

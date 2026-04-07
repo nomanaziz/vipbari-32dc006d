@@ -128,9 +128,9 @@ const FamilyMembersDialog = ({ tenant, onClose }: Props) => {
   };
 
   const getStatusBadge = (status: string) => {
-    if (status === "approved") return <Badge className="text-xs bg-emerald-500/10 text-emerald-600 border-emerald-200"><CheckCircle2 className="h-3 w-3 mr-1" />{t("tenant.approved")}</Badge>;
-    if (status === "rejected") return <Badge variant="destructive" className="text-xs"><XCircle className="h-3 w-3 mr-1" />{t("tenant.rejected")}</Badge>;
-    return <Badge variant="secondary" className="text-xs"><Clock className="h-3 w-3 mr-1" />{t("tenant.pending_approval")}</Badge>;
+    if (status === "approved") return <Badge className="text-xs bg-emerald-500/10 text-emerald-600 border-emerald-200"><CheckCircle2 className="h-3 w-3 mr-1" />{language === "bn" ? "অনুমোদিত" : "Approved"}</Badge>;
+    if (status === "rejected") return <Badge variant="destructive" className="text-xs"><XCircle className="h-3 w-3 mr-1" />{language === "bn" ? "প্রত্যাখ্যাত" : "Rejected"}</Badge>;
+    return <Badge variant="secondary" className="text-xs"><Clock className="h-3 w-3 mr-1" />{language === "bn" ? "অনুমোদনের অপেক্ষায়" : "Pending Approval"}</Badge>;
   };
 
   return (

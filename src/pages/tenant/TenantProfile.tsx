@@ -241,18 +241,30 @@ const TenantProfile = () => {
         {/* Profile Picture */}
         <Card>
           <CardContent className="py-6 flex flex-col items-center gap-3">
-            <div className="relative group cursor-pointer" onClick={() => avatarRef.current?.click()}>
+            <div className="relative">
               <Avatar className="h-24 w-24">
                 {authProfile?.avatar_url && <AvatarImage src={authProfile.avatar_url} alt={authProfile?.full_name || ""} />}
                 <AvatarFallback className="bg-primary text-primary-foreground text-2xl font-bold">
                   {authProfile?.full_name?.charAt(0)?.toUpperCase() || "U"}
                 </AvatarFallback>
               </Avatar>
-              <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                {uploading === "avatar" ? <Loader2 className="h-6 w-6 text-white animate-spin" /> : <Camera className="h-6 w-6 text-white" />}
-              </div>
+              {uploading === "avatar" && (
+                <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center">
+                  <Loader2 className="h-6 w-6 text-white animate-spin" />
+                </div>
+              )}
             </div>
-            <p className="text-sm text-muted-foreground">{language === "bn" ? "ছবি পরিবর্তন করতে ক্লিক করুন" : "Click to change photo"}</p>
+            <div className="flex gap-2">
+              <Button type="button" variant="outline" size="sm" onClick={() => avatarCamRef.current?.click()} disabled={!!uploading}>
+                <Camera className="h-4 w-4 mr-1" />
+                {language === "bn" ? "ক্যামেরা" : "Camera"}
+              </Button>
+              <Button type="button" variant="outline" size="sm" onClick={() => avatarRef.current?.click()} disabled={!!uploading}>
+                <ImagePlus className="h-4 w-4 mr-1" />
+                {language === "bn" ? "গ্যালারি" : "Gallery"}
+              </Button>
+            </div>
+            <input ref={avatarCamRef} type="file" accept="image/*" capture="user" className="hidden" onChange={(e) => e.target.files?.[0] && uploadAvatar(e.target.files[0])} />
             <input ref={avatarRef} type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && uploadAvatar(e.target.files[0])} />
           </CardContent>
         </Card>

@@ -8,8 +8,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Slider } from "@/components/ui/slider";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   Dialog,
   DialogContent,
@@ -19,8 +17,6 @@ import {
 } from "@/components/ui/dialog";
 import {
   Crown,
-  Minus,
-  Plus,
   Clock,
   History,
   Info,
@@ -38,10 +34,13 @@ import {
   Flame,
   ShoppingBag,
   MessageSquare,
+  ChevronUp,
+  ChevronDown,
 } from "lucide-react";
 import { toast } from "sonner";
 import ManualPaymentDialog from "@/components/subscription/ManualPaymentDialog";
 import CartDrawer from "@/components/subscription/CartDrawer";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ActiveSub {
   id: string;
@@ -68,7 +67,14 @@ const PRICE_PER_TOLET = 50;
 const PRICE_PER_SALE_LISTING = 200;
 const BOOST_PRICES: Record<string, number> = { "3_day": 30, "7_day": 50 };
 const PRICE_PER_SMS = 0.5;
-const SMS_PACKAGES = [100, 200, 500, 1000];
+
+const ROOM_CHIPS = [0, 5, 10, 15, 20, 30, 50];
+const TOLET_CHIPS = [0, 1, 2, 3, 5, 10];
+const SALE_CHIPS = [0, 1, 2, 3, 5];
+const DURATION_CHIPS = [1, 3, 6, 12, 24, 36];
+const BOOST3_CHIPS = [0, 1, 3, 5, 10];
+const BOOST7_CHIPS = [0, 1, 3, 5, 10];
+const SMS_CHIPS = [0, 100, 200, 500, 1000];
 
 const getDurationDiscount = (months: number): number =>
   months < 6 ? 0 : Math.min(35, Math.round(5 + (months - 6)));
@@ -86,26 +92,48 @@ const getDurationLabel = (months: number, language: string): string => {
   return `${months} Month${months > 1 ? "s" : ""}`;
 };
 
+/* ─── Chip Selector Component ─── */
+const ChipSelector = ({
+  chips,
+  value,
+  onChange,
+  suffix,
+}: {
+  chips: number[];
+  value: number;
+  onChange: (v: number) => void;
+  suffix?: string;
+}) => (
+  <div className="flex flex-wrap gap-2">
+    {chips.map((chip) => (
+      <button
+        key={chip}
+        onClick={() => onChange(chip)}
+        className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-all ${
+          value === chip
+            ? "bg-primary text-primary-foreground border-primary shadow-sm"
+            : "bg-muted/50 text-foreground border-border hover:border-primary/50"
+        }`}
+      >
+        {chip === 0 ? "—" : `${chip}${suffix || ""}`}
+      </button>
+    ))}
+  </div>
+);
+
 const Subscription = () => {
   const { language } = useLanguage();
   const { user } = useAuth();
   const { addItem, cartCount, setIsCartOpen } = useCart();
   const [searchParams, setSearchParams] = useSearchParams();
+  const isMobile = useIsMobile();
+
   const [activeRoomSub, setActiveRoomSub] = useState<ActiveSub | null>(null);
   const [activeToletSub, setActiveToletSub] = useState<ActiveSub | null>(null);
   const [activeSaleSub, setActiveSaleSub] = useState<ActiveSub | null>(null);
   const [history, setHistory] = useState<HistorySub[]>([]);
   const [loading, setLoading] = useState(true);
-  const [subscribing, setSubscribing] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
-  const [productTab, setProductTab] = useState(() => {
-    const tab = searchParams.get("tab");
-    if (tab === "tolet") return "tolet";
-    if (tab === "boosting") return "boosting";
-    if (tab === "sale_listing") return "sale_listing";
-    if (tab === "sms") return "sms";
-    return "room_management";
-  });
   const [verifying, setVerifying] = useState(false);
   const [paymentResult, setPaymentResult] = useState<"success" | "cancel" | "failed" | null>(null);
   const [manualPayOpen, setManualPayOpen] = useState(false);
@@ -114,32 +142,21 @@ const Subscription = () => {
   const [paymentHistory, setPaymentHistory] = useState<any[]>([]);
   const [landlordDiscount, setLandlordDiscount] = useState<{ discount_type: string; discount_percent: number } | null>(null);
 
-  // Boost state
+  // Boost & SMS balances
   const [boostBalances, setBoostBalances] = useState<any[]>([]);
-  const [boostType, setBoostType] = useState<"3_day" | "7_day">("3_day");
-  const [boostCount, setBoostCount] = useState(1);
-
-  // Room configurator state
-  const [roomCount, setRoomCount] = useState(5);
-  const [roomDuration, setRoomDuration] = useState(1);
-  const [roomCoupon, setRoomCoupon] = useState("");
-
-  // To-Let configurator state
-  const [toletCount, setToletCount] = useState(1);
-  const [toletDuration, setToletDuration] = useState(1);
-  const [toletCoupon, setToletCoupon] = useState("");
-
-  // Sale listing configurator state
-  const [saleCount, setSaleCount] = useState(1);
-  const [saleDuration, setSaleDuration] = useState(1);
-  const [saleCoupon, setSaleCoupon] = useState("");
-
-  // Sale listing used count
+  const [smsBalance, setSmsBalance] = useState({ total: 0, used: 0 });
   const [saleUsedCount, setSaleUsedCount] = useState(0);
 
-  // SMS state
-  const [smsCount, setSmsCount] = useState(100);
-  const [smsBalance, setSmsBalance] = useState({ total: 0, used: 0 });
+  // ─── Configurator State ───
+  const [roomCount, setRoomCount] = useState(0);
+  const [toletCount, setToletCount] = useState(0);
+  const [saleCount, setSaleCount] = useState(0);
+  const [duration, setDuration] = useState(1);
+  const [boost3Count, setBoost3Count] = useState(0);
+  const [boost7Count, setBoost7Count] = useState(0);
+  const [smsCount, setSmsCount] = useState(0);
+  const [couponCode, setCouponCode] = useState("");
+  const [mobileSummaryExpanded, setMobileSummaryExpanded] = useState(false);
 
   const hasAnyToletSub = useMemo(
     () => history.some((h) => h.product_type === "tolet"),
@@ -151,151 +168,58 @@ const Subscription = () => {
     setLoading(true);
 
     const [subsRes, payRes, discountRes, boostRes, smsRes] = await Promise.all([
-      supabase
-        .from("user_subscriptions")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false }),
-      supabase
-        .from("subscription_payments")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false }),
-      supabase
-        .from("landlord_discounts")
-        .select("discount_type, discount_percent")
-        .eq("user_id", user.id)
-        .eq("is_active", true)
-        .limit(1),
-      supabase
-        .from("boost_balances")
-        .select("*")
-        .eq("user_id", user.id),
-      supabase
-        .from("sms_balances")
-        .select("*")
-        .eq("user_id", user.id),
+      supabase.from("user_subscriptions").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
+      supabase.from("subscription_payments").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
+      supabase.from("landlord_discounts").select("discount_type, discount_percent").eq("user_id", user.id).eq("is_active", true).limit(1),
+      supabase.from("boost_balances").select("*").eq("user_id", user.id),
+      supabase.from("sms_balances").select("*").eq("user_id", user.id),
     ]);
 
     const allSubs = subsRes.data;
     if (allSubs) {
       const now = new Date();
-      const activeRoom = allSubs.find(
-        (s: any) =>
-          s.product_type === "room_management" &&
-          s.status === "active" &&
-          (!s.expires_at || new Date(s.expires_at) > now)
-      );
-      const activeTolet = allSubs.find(
-        (s: any) =>
-          s.product_type === "tolet" &&
-          s.status === "active" &&
-          (!s.expires_at || new Date(s.expires_at) > now)
-      );
-      const activeSale = allSubs.find(
-        (s: any) =>
-          s.product_type === "sale_listing" &&
-          s.status === "active" &&
-          (!s.expires_at || new Date(s.expires_at) > now)
-      );
+      const activeRoom = allSubs.find((s: any) => s.product_type === "room_management" && s.status === "active" && (!s.expires_at || new Date(s.expires_at) > now));
+      const activeTolet = allSubs.find((s: any) => s.product_type === "tolet" && s.status === "active" && (!s.expires_at || new Date(s.expires_at) > now));
+      const activeSale = allSubs.find((s: any) => s.product_type === "sale_listing" && s.status === "active" && (!s.expires_at || new Date(s.expires_at) > now));
       setActiveRoomSub((activeRoom as ActiveSub) || null);
       setActiveToletSub((activeTolet as ActiveSub) || null);
       setActiveSaleSub((activeSale as ActiveSub) || null);
       setHistory(allSubs as HistorySub[]);
     }
 
-    // Fetch sale listing used count
-    const { data: usedSaleListings } = await supabase
-      .from("sale_listings")
-      .select("id")
-      .eq("owner_id", user.id)
-      .eq("sale_slot_used", true);
+    const { data: usedSaleListings } = await supabase.from("sale_listings").select("id").eq("owner_id", user.id).eq("sale_slot_used", true);
     setSaleUsedCount(usedSaleListings?.length || 0);
-
     setPaymentHistory(payRes.data || []);
     setBoostBalances(boostRes.data || []);
 
-    // SMS balance
     const smsData = smsRes.data || [];
-    const totalSms = smsData.reduce((s: number, b: any) => s + b.total_count, 0);
-    const usedSms = smsData.reduce((s: number, b: any) => s + b.used_count, 0);
-    setSmsBalance({ total: totalSms, used: usedSms });
-    
-    // Set landlord discount
+    setSmsBalance({ total: smsData.reduce((s: number, b: any) => s + b.total_count, 0), used: smsData.reduce((s: number, b: any) => s + b.used_count, 0) });
+
     if (discountRes.data && discountRes.data.length > 0) {
       setLandlordDiscount(discountRes.data[0]);
     } else {
       setLandlordDiscount(null);
     }
-    
     setLoading(false);
   };
 
-  // Boost balance calculations
-  const boost3DayTotal = boostBalances.filter((b: any) => b.boost_type === "3_day").reduce((s: number, b: any) => s + b.total_count, 0);
-  const boost3DayUsed = boostBalances.filter((b: any) => b.boost_type === "3_day").reduce((s: number, b: any) => s + b.used_count, 0);
-  const boost7DayTotal = boostBalances.filter((b: any) => b.boost_type === "7_day").reduce((s: number, b: any) => s + b.total_count, 0);
-  const boost7DayUsed = boostBalances.filter((b: any) => b.boost_type === "7_day").reduce((s: number, b: any) => s + b.used_count, 0);
-  const boost3DayRemaining = boost3DayTotal - boost3DayUsed;
-  const boost7DayRemaining = boost7DayTotal - boost7DayUsed;
-  const boostTotalPrice = BOOST_PRICES[boostType] * boostCount;
-  // SMS pricing
-  const smsTotalPrice = Math.round(smsCount * PRICE_PER_SMS);
-  const smsRemaining = smsBalance.total - smsBalance.used;
+  useEffect(() => { fetchData(); }, [user]);
 
-  // Add to cart handlers
-  const handleAddToCart = (
-    type: "room_management" | "tolet" | "sale_listing" | "boost_3_day" | "boost_7_day" | "sms",
-    label: string,
-    labelBn: string,
-    count: number,
-    durationMonths: number,
-    unitPrice: number,
-    discountPercent: number,
-    couponCode: string,
-    lineTotal: number,
-  ) => {
-    addItem({ type, label, labelBn, count, durationMonths, unitPrice, discountPercent, couponCode, lineTotal });
-    toast.success(language === "bn" ? "কার্টে যোগ হয়েছে!" : "Added to cart!");
-    setIsCartOpen(true);
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, [user]);
-
-  // Handle payment callback from URL params
+  // Payment callback
   useEffect(() => {
     const payment = searchParams.get("payment");
     const transactionId = searchParams.get("transactionId") || searchParams.get("transaction_id");
-
     if (payment === "success" && transactionId && user) {
       setVerifying(true);
       setPaymentResult(null);
-
-      supabase.functions
-        .invoke("verify-subscription-payment", {
-          body: { transaction_id: transactionId },
-        })
-        .then(({ data, error }) => {
-          if (error) {
-            setPaymentResult("failed");
-            toast.error(language === "bn" ? "পেমেন্ট ভেরিফিকেশন ব্যর্থ" : "Payment verification failed");
-          } else if (data?.status === "completed") {
-            setPaymentResult("success");
-            toast.success(language === "bn" ? "সাবস্ক্রিপশন সফলভাবে সক্রিয় হয়েছে!" : "Subscription activated successfully!");
-            fetchData();
-          } else if (data?.status === "pending") {
-            setPaymentResult("success");
-            toast.info(language === "bn" ? "পেমেন্ট প্রসেসিং হচ্ছে..." : "Payment is being processed...");
-          } else {
-            setPaymentResult("failed");
-            toast.error(data?.message || "Payment verification failed");
-          }
-          setVerifying(false);
-          // Clean URL params
-          setSearchParams({}, { replace: true });
-        });
+      supabase.functions.invoke("verify-subscription-payment", { body: { transaction_id: transactionId } }).then(({ data, error }) => {
+        if (error) { setPaymentResult("failed"); toast.error(language === "bn" ? "পেমেন্ট ভেরিফিকেশন ব্যর্থ" : "Payment verification failed"); }
+        else if (data?.status === "completed") { setPaymentResult("success"); toast.success(language === "bn" ? "সাবস্ক্রিপশন সফলভাবে সক্রিয় হয়েছে!" : "Subscription activated successfully!"); fetchData(); }
+        else if (data?.status === "pending") { setPaymentResult("success"); toast.info(language === "bn" ? "পেমেন্ট প্রসেসিং হচ্ছে..." : "Payment is being processed..."); }
+        else { setPaymentResult("failed"); toast.error(data?.message || "Payment verification failed"); }
+        setVerifying(false);
+        setSearchParams({}, { replace: true });
+      });
     } else if (payment === "cancel") {
       setPaymentResult("cancel");
       toast.error(language === "bn" ? "পেমেন্ট বাতিল করা হয়েছে" : "Payment was cancelled");
@@ -303,144 +227,73 @@ const Subscription = () => {
     }
   }, [searchParams, user]);
 
-  // Landlord special discount
+  // ─── Pricing Calculations ───
   const isFreeForever = landlordDiscount?.discount_type === "free_forever";
   const specialDiscountPct = landlordDiscount ? landlordDiscount.discount_percent : 0;
+  const durationDiscountPct = getDurationDiscount(duration);
 
-  // Room pricing
-  const roomDurationDiscountPct = getDurationDiscount(roomDuration);
-  const roomBasePrice = roomCount * PRICE_PER_ROOM * roomDuration;
-  const roomDurationDiscountAmount = Math.round(roomBasePrice * (roomDurationDiscountPct / 100));
-  const roomAfterDurationDiscount = roomBasePrice - roomDurationDiscountAmount;
-  const roomSpecialDiscountAmount = isFreeForever ? roomAfterDurationDiscount : Math.round(roomAfterDurationDiscount * (specialDiscountPct / 100));
-  const roomTotalPrice = roomAfterDurationDiscount - roomSpecialDiscountAmount;
-  const roomDiscountPct = roomDurationDiscountPct;
-  const roomDiscountAmount = roomDurationDiscountAmount;
+  const calcLinePrice = (count: number, unitPrice: number, useDuration: boolean) => {
+    if (count === 0) return { base: 0, durationDiscount: 0, specialDiscount: 0, total: 0 };
+    const base = count * unitPrice * (useDuration ? duration : 1);
+    const durationDiscountAmt = useDuration ? Math.round(base * (durationDiscountPct / 100)) : 0;
+    const afterDuration = base - durationDiscountAmt;
+    const specialDiscountAmt = isFreeForever ? afterDuration : Math.round(afterDuration * (specialDiscountPct / 100));
+    const total = afterDuration - specialDiscountAmt;
+    return { base, durationDiscount: durationDiscountAmt, specialDiscount: specialDiscountAmt, total };
+  };
 
-  const roomCurrentExpiry = activeRoomSub?.expires_at ? new Date(activeRoomSub.expires_at) : new Date();
-  const roomNewExpiry = new Date(roomCurrentExpiry.getTime() + roomDuration * 30 * 24 * 60 * 60 * 1000);
-  const roomDaysRemaining = activeRoomSub?.expires_at
-    ? Math.max(0, Math.ceil((new Date(activeRoomSub.expires_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
-    : 0;
+  const roomPrice = calcLinePrice(roomCount, PRICE_PER_ROOM, true);
+  const toletPrice = calcLinePrice(toletCount, PRICE_PER_TOLET, true);
+  const salePrice = calcLinePrice(saleCount, PRICE_PER_SALE_LISTING, true);
+  const boost3Price = calcLinePrice(boost3Count, BOOST_PRICES["3_day"], false);
+  const boost7Price = calcLinePrice(boost7Count, BOOST_PRICES["7_day"], false);
+  const smsPrice = calcLinePrice(smsCount, PRICE_PER_SMS, false);
 
-  // To-Let pricing
-  const toletDurationDiscountPct = getDurationDiscount(toletDuration);
-  const toletBasePrice = toletCount * PRICE_PER_TOLET * toletDuration;
-  const toletDurationDiscountAmount = Math.round(toletBasePrice * (toletDurationDiscountPct / 100));
-  const toletAfterDurationDiscount = toletBasePrice - toletDurationDiscountAmount;
-  const toletSpecialDiscountAmount = isFreeForever ? toletAfterDurationDiscount : Math.round(toletAfterDurationDiscount * (specialDiscountPct / 100));
-  const toletTotalPrice = toletAfterDurationDiscount - toletSpecialDiscountAmount;
-  const toletDiscountPct = toletDurationDiscountPct;
-  const toletDiscountAmount = toletDurationDiscountAmount;
+  const grandTotal = roomPrice.total + toletPrice.total + salePrice.total + boost3Price.total + boost7Price.total + smsPrice.total;
+  const totalBase = roomPrice.base + toletPrice.base + salePrice.base + boost3Price.base + boost7Price.base + smsPrice.base;
+  const totalDiscount = totalBase - grandTotal;
+  const hasSelection = roomCount > 0 || toletCount > 0 || saleCount > 0 || boost3Count > 0 || boost7Count > 0 || smsCount > 0;
 
-  const toletCurrentExpiry = activeToletSub?.expires_at ? new Date(activeToletSub.expires_at) : new Date();
-  const toletNewExpiry = new Date(toletCurrentExpiry.getTime() + toletDuration * 30 * 24 * 60 * 60 * 1000);
-  const toletDaysRemaining = activeToletSub?.expires_at
-    ? Math.max(0, Math.ceil((new Date(activeToletSub.expires_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
-    : 0;
-
-  // Sale Listing pricing
-  const saleDurationDiscountPct = getDurationDiscount(saleDuration);
-  const saleBasePrice = saleCount * PRICE_PER_SALE_LISTING * saleDuration;
-  const saleDurationDiscountAmount = Math.round(saleBasePrice * (saleDurationDiscountPct / 100));
-  const saleAfterDurationDiscount = saleBasePrice - saleDurationDiscountAmount;
-  const saleSpecialDiscountAmount = isFreeForever ? saleAfterDurationDiscount : Math.round(saleAfterDurationDiscount * (specialDiscountPct / 100));
-  const saleTotalPrice = saleAfterDurationDiscount - saleSpecialDiscountAmount;
-  const saleDiscountPct = saleDurationDiscountPct;
-  const saleDiscountAmount = saleDurationDiscountAmount;
-
-  const saleCurrentExpiry = activeSaleSub?.expires_at ? new Date(activeSaleSub.expires_at) : new Date();
-  const saleNewExpiry = new Date(saleCurrentExpiry.getTime() + saleDuration * 30 * 24 * 60 * 60 * 1000);
-  const saleDaysRemaining = activeSaleSub?.expires_at
-    ? Math.max(0, Math.ceil((new Date(activeSaleSub.expires_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
-    : 0;
-
-  // Sale listing balance
+  // Active sub stats
+  const boost3DayTotal = boostBalances.filter((b: any) => b.boost_type === "3_day").reduce((s: number, b: any) => s + b.total_count, 0);
+  const boost3DayUsed = boostBalances.filter((b: any) => b.boost_type === "3_day").reduce((s: number, b: any) => s + b.used_count, 0);
+  const boost7DayTotal = boostBalances.filter((b: any) => b.boost_type === "7_day").reduce((s: number, b: any) => s + b.total_count, 0);
+  const boost7DayUsed = boostBalances.filter((b: any) => b.boost_type === "7_day").reduce((s: number, b: any) => s + b.used_count, 0);
+  const smsRemaining = smsBalance.total - smsBalance.used;
   const saleSubs = history.filter(s => s.product_type === "sale_listing" && s.status === "active" && (!s.expires_at || new Date(s.expires_at) > new Date()));
   const saleTotalSlots = saleSubs.reduce((sum, s) => sum + (s.sale_listing_count || 0), 0);
   const saleRemainingSlots = Math.max(0, saleTotalSlots - saleUsedCount);
 
-  const handleSubscribe = async (type: "room_management" | "tolet" | "sale_listing") => {
-    if (!user) return;
-    setSubscribing(true);
-
-    try {
-      const isRoom = type === "room_management";
-      const isTolet = type === "tolet";
-      const isSale = type === "sale_listing";
-      const count = isRoom ? roomCount : isTolet ? toletCount : saleCount;
-      const duration = isRoom ? roomDuration : isTolet ? toletDuration : saleDuration;
-      const discountPct = isRoom ? roomDiscountPct : isTolet ? toletDiscountPct : saleDiscountPct;
-      const coupon = isRoom ? roomCoupon : isTolet ? toletCoupon : saleCoupon;
-      const total = isRoom ? roomTotalPrice : isTolet ? toletTotalPrice : saleTotalPrice;
-
-      // Get the current site URL for redirect
-      const siteUrl = window.location.origin;
-
-      const { data, error } = await supabase.functions.invoke("create-subscription-payment", {
-        body: {
-          product_type: type,
-          room_count: isRoom ? count : 0,
-          tolet_count: isTolet ? count : 0,
-          sale_listing_count: isSale ? count : 0,
-          duration_months: duration,
-          discount_percent: discountPct,
-          coupon_code: coupon || null,
-          success_url: `${siteUrl}/dashboard/subscription?payment=success`,
-          cancel_url: `${siteUrl}/dashboard/subscription?payment=cancel`,
-        },
-      });
-
-      if (error) throw new Error(error.message || "Payment creation failed");
-      if (!data?.payment_url) throw new Error(data?.error || "No payment URL received");
-
-      // Redirect to payment gateway
-      window.location.href = data.payment_url;
-    } catch (err: any) {
-      toast.error(err.message || "Failed to initiate payment");
-      setSubscribing(false);
-    }
-  };
-
-  const handleBoostPurchase = async () => {
-    if (!user) return;
-    setSubscribing(true);
-    try {
-      const siteUrl = window.location.origin;
-      const { data, error } = await supabase.functions.invoke("create-boost-payment", {
-        body: {
-          boost_type: boostType,
-          count: boostCount,
-          success_url: `${siteUrl}/dashboard/subscription?payment=success&tab=boosting`,
-          cancel_url: `${siteUrl}/dashboard/subscription?payment=cancel&tab=boosting`,
-        },
-      });
-      if (error) throw new Error(error.message || "Payment creation failed");
-      if (!data?.payment_url) throw new Error(data?.error || "No payment URL received");
-      window.location.href = data.payment_url;
-    } catch (err: any) {
-      toast.error(err.message || "Failed to initiate payment");
-      setSubscribing(false);
-    }
-  };
+  const roomDaysRemaining = activeRoomSub?.expires_at ? Math.max(0, Math.ceil((new Date(activeRoomSub.expires_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24))) : 0;
+  const toletDaysRemaining = activeToletSub?.expires_at ? Math.max(0, Math.ceil((new Date(activeToletSub.expires_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24))) : 0;
+  const saleDaysRemaining = activeSaleSub?.expires_at ? Math.max(0, Math.ceil((new Date(activeSaleSub.expires_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24))) : 0;
 
   const formatDate = (dateStr: string) =>
-    new Date(dateStr).toLocaleDateString(language === "bn" ? "bn-BD" : "en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
+    new Date(dateStr).toLocaleDateString(language === "bn" ? "bn-BD" : "en-US", { year: "numeric", month: "short", day: "numeric" });
 
+  // ─── Add all to cart ───
+  const handleAddAllToCart = () => {
+    if (!hasSelection) return;
+    let added = 0;
+    if (roomCount > 0) { addItem({ type: "room_management", label: "Room/Flat", labelBn: "রুম/ফ্ল্যাট", count: roomCount, durationMonths: duration, unitPrice: PRICE_PER_ROOM, discountPercent: durationDiscountPct, couponCode, lineTotal: roomPrice.total }); added++; }
+    if (toletCount > 0) { addItem({ type: "tolet", label: "To-Let", labelBn: "টু-লেট", count: toletCount, durationMonths: duration, unitPrice: PRICE_PER_TOLET, discountPercent: durationDiscountPct, couponCode, lineTotal: toletPrice.total }); added++; }
+    if (saleCount > 0) { addItem({ type: "sale_listing", label: "Sale Listing", labelBn: "বিক্রয় লিস্টিং", count: saleCount, durationMonths: duration, unitPrice: PRICE_PER_SALE_LISTING, discountPercent: durationDiscountPct, couponCode, lineTotal: salePrice.total }); added++; }
+    if (boost3Count > 0) { addItem({ type: "boost_3_day", label: "3-Day Boost", labelBn: "৩ দিনের বুস্ট", count: boost3Count, durationMonths: 0, unitPrice: BOOST_PRICES["3_day"], discountPercent: 0, couponCode: "", lineTotal: boost3Price.total }); added++; }
+    if (boost7Count > 0) { addItem({ type: "boost_7_day", label: "7-Day Boost", labelBn: "৭ দিনের বুস্ট", count: boost7Count, durationMonths: 0, unitPrice: BOOST_PRICES["7_day"], discountPercent: 0, couponCode: "", lineTotal: boost7Price.total }); added++; }
+    if (smsCount > 0) { addItem({ type: "sms", label: "SMS", labelBn: "SMS", count: smsCount, durationMonths: 0, unitPrice: PRICE_PER_SMS, discountPercent: 0, couponCode: "", lineTotal: smsPrice.total }); added++; }
+    if (added > 0) {
+      toast.success(language === "bn" ? `${added}টি আইটেম কার্টে যোগ হয়েছে!` : `${added} item(s) added to cart!`);
+      setIsCartOpen(true);
+    }
+  };
+
+  // ─── Early returns ───
   if (verifying) {
     return (
       <div className="flex flex-col items-center justify-center p-12 space-y-4">
         <Loader2 className="h-10 w-10 animate-spin text-primary" />
-        <p className="text-lg font-medium text-foreground">
-          {language === "bn" ? "পেমেন্ট ভেরিফাই হচ্ছে..." : "Verifying payment..."}
-        </p>
-        <p className="text-sm text-muted-foreground">
-          {language === "bn" ? "অনুগ্রহ করে অপেক্ষা করুন" : "Please wait"}
-        </p>
+        <p className="text-lg font-medium text-foreground">{language === "bn" ? "পেমেন্ট ভেরিফাই হচ্ছে..." : "Verifying payment..."}</p>
+        <p className="text-sm text-muted-foreground">{language === "bn" ? "অনুগ্রহ করে অপেক্ষা করুন" : "Please wait"}</p>
       </div>
     );
   }
@@ -449,12 +302,8 @@ const Subscription = () => {
     return (
       <div className="flex flex-col items-center justify-center p-12 space-y-4">
         <XCircle className="h-10 w-10 text-destructive" />
-        <p className="text-lg font-medium text-foreground">
-          {language === "bn" ? "পেমেন্ট বাতিল হয়েছে" : "Payment Cancelled"}
-        </p>
-        <Button onClick={() => setPaymentResult(null)}>
-          {language === "bn" ? "আবার চেষ্টা করুন" : "Try Again"}
-        </Button>
+        <p className="text-lg font-medium text-foreground">{language === "bn" ? "পেমেন্ট বাতিল হয়েছে" : "Payment Cancelled"}</p>
+        <Button onClick={() => setPaymentResult(null)}>{language === "bn" ? "আবার চেষ্টা করুন" : "Try Again"}</Button>
       </div>
     );
   }
@@ -463,12 +312,8 @@ const Subscription = () => {
     return (
       <div className="flex flex-col items-center justify-center p-12 space-y-4">
         <XCircle className="h-10 w-10 text-destructive" />
-        <p className="text-lg font-medium text-foreground">
-          {language === "bn" ? "পেমেন্ট ব্যর্থ হয়েছে" : "Payment Failed"}
-        </p>
-        <Button onClick={() => setPaymentResult(null)}>
-          {language === "bn" ? "আবার চেষ্টা করুন" : "Try Again"}
-        </Button>
+        <p className="text-lg font-medium text-foreground">{language === "bn" ? "পেমেন্ট ব্যর্থ হয়েছে" : "Payment Failed"}</p>
+        <Button onClick={() => setPaymentResult(null)}>{language === "bn" ? "আবার চেষ্টা করুন" : "Try Again"}</Button>
       </div>
     );
   }
@@ -481,251 +326,62 @@ const Subscription = () => {
     );
   }
 
-  const renderCountSelector = (
-    count: number,
-    setCount: (v: number) => void,
-    max: number,
-    labelEn: string,
-    labelBn: string,
-    pricePerUnit: number,
-    unitEn: string,
-    unitBn: string
-  ) => (
+  /* ─── Summary Line Items ─── */
+  const summaryLines: { label: string; detail: string; price: number }[] = [];
+  if (roomCount > 0) summaryLines.push({ label: language === "bn" ? "রুম/ফ্ল্যাট" : "Room/Flat", detail: `${roomCount} × ${getDurationLabel(duration, language)}`, price: roomPrice.total });
+  if (toletCount > 0) summaryLines.push({ label: language === "bn" ? "টু-লেট" : "To-Let", detail: `${toletCount} × ${getDurationLabel(duration, language)}`, price: toletPrice.total });
+  if (saleCount > 0) summaryLines.push({ label: language === "bn" ? "বিক্রয় লিস্টিং" : "Sale Listing", detail: `${saleCount} × ${getDurationLabel(duration, language)}`, price: salePrice.total });
+  if (boost3Count > 0) summaryLines.push({ label: language === "bn" ? "৩ দিনের বুস্ট" : "3-Day Boost", detail: `× ${boost3Count}`, price: boost3Price.total });
+  if (boost7Count > 0) summaryLines.push({ label: language === "bn" ? "৭ দিনের বুস্ট" : "7-Day Boost", detail: `× ${boost7Count}`, price: boost7Price.total });
+  if (smsCount > 0) summaryLines.push({ label: "SMS", detail: `× ${smsCount}`, price: smsPrice.total });
+
+  /* ─── Summary Panel (reused desktop + mobile) ─── */
+  const SummaryContent = () => (
     <div className="space-y-3">
-      <label className="text-sm font-medium text-foreground">
-        {language === "bn" ? labelBn : labelEn}
-      </label>
-        <div className="flex items-center gap-2 sm:gap-4">
-          <Button
-            variant="outline"
-            size="icon"
-            className="h-8 w-8 sm:h-10 sm:w-10"
-            onClick={() => setCount(Math.max(1, count - 1))}
-            disabled={count <= 1}
-          >
-            <Minus className="h-4 w-4" />
-          </Button>
-          <div className="flex-1">
-            <Slider
-              value={[count]}
-              onValueChange={(v) => setCount(v[0])}
-              min={1}
-              max={max}
-              step={1}
-            />
-          </div>
-          <Button
-            variant="outline"
-            size="icon"
-            className="h-8 w-8 sm:h-10 sm:w-10"
-            onClick={() => setCount(Math.min(max, count + 1))}
-            disabled={count >= max}
-          >
-            <Plus className="h-4 w-4" />
-          </Button>
-          <div className="min-w-[40px] sm:min-w-[60px] text-right">
-            <span className="text-xl sm:text-2xl font-bold text-primary">{count}</span>
-          </div>
-        </div>
-      <p className="text-xs text-muted-foreground flex items-center gap-1">
-        <Info className="h-3 w-3" />
-        {language === "bn"
-          ? `৳${pricePerUnit}/${unitBn}/মাস`
-          : `৳${pricePerUnit}/${unitEn}/month`}
-      </p>
-    </div>
-  );
-
-  const renderDurationSelector = (
-    selected: number,
-    setSelected: (v: number) => void
-  ) => {
-    const discount = getDurationDiscount(selected);
-    return (
-      <div className="space-y-3">
-        <label className="text-sm font-medium text-foreground">
-          {language === "bn" ? "সময়কাল নির্বাচন করুন" : "Select Duration"}
-        </label>
-        <div className="flex items-center gap-2 sm:gap-4">
-          <Button
-            variant="outline"
-            size="icon"
-            className="h-8 w-8 sm:h-10 sm:w-10"
-            onClick={() => setSelected(Math.max(1, selected - 1))}
-            disabled={selected <= 1}
-          >
-            <Minus className="h-4 w-4" />
-          </Button>
-          <div className="flex-1">
-            <Slider
-              value={[selected]}
-              onValueChange={(v) => setSelected(v[0])}
-              min={1}
-              max={36}
-              step={1}
-            />
-          </div>
-          <Button
-            variant="outline"
-            size="icon"
-            className="h-8 w-8 sm:h-10 sm:w-10"
-            onClick={() => setSelected(Math.min(36, selected + 1))}
-            disabled={selected >= 36}
-          >
-            <Plus className="h-4 w-4" />
-          </Button>
-          <div className="min-w-[60px] sm:min-w-[80px] text-right">
-            <span className="text-lg sm:text-2xl font-bold text-primary">
-              {getDurationLabel(selected, language)}
-            </span>
-          </div>
-        </div>
-        {discount > 0 && (
-          <div className="flex items-center gap-2">
-            <Badge className="bg-green-500 text-white hover:bg-green-500">
-              <Tag className="h-3 w-3 mr-1" />
-              {discount}% {language === "bn" ? "ছাড়" : "OFF"}
-            </Badge>
-            <span className="text-xs text-muted-foreground">
-              {language === "bn" ? "৬ মাস থেকে ৩৬ মাস পর্যন্ত ৫%-৩৫% ছাড়" : "5%-35% discount for 6-36 months"}
-            </span>
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  const renderPriceSummary = (
-    count: number,
-    duration: number,
-    pricePerUnit: number,
-    discountPct: number,
-    base: number,
-    discountAmt: number,
-    total: number,
-    unitEn: string,
-    unitBn: string,
-    specialDiscountAmt?: number
-  ) => (
-    <div className="bg-muted/50 rounded-lg p-3 sm:p-4 space-y-2">
-      <div className="flex justify-between text-sm">
-        <span className="text-muted-foreground">
-          {language === "bn"
-            ? `${count} ${unitBn} × ${duration} মাস × ৳${pricePerUnit}`
-            : `${count} ${unitEn} × ${duration} months × ৳${pricePerUnit}`}
-        </span>
-        <span className="text-foreground font-medium">৳{base}</span>
-      </div>
-      {discountAmt > 0 && (
-        <div className="flex justify-between text-sm">
-          <span className="text-green-600 flex items-center gap-1">
-            <Tag className="h-3 w-3" />
-            {language === "bn" ? `ছাড় (${discountPct}%)` : `Discount (${discountPct}%)`}
-          </span>
-          <span className="text-green-600 font-medium">-৳{discountAmt}</span>
-        </div>
-      )}
-      {(specialDiscountAmt !== undefined && specialDiscountAmt > 0) && (
-        <div className="flex justify-between text-sm">
-          <span className="text-purple-600 flex items-center gap-1">
-            <Gift className="h-3 w-3" />
-            {isFreeForever
-              ? (language === "bn" ? "বিশেষ ছাড় (ফ্রি)" : "Special Discount (Free)")
-              : (language === "bn" ? `বিশেষ ছাড় (${specialDiscountPct}%)` : `Special Discount (${specialDiscountPct}%)`)}
-          </span>
-          <span className="text-purple-600 font-medium">-৳{specialDiscountAmt}</span>
-        </div>
-      )}
-      <div className="border-t border-border pt-2 flex justify-between">
-        <span className="font-semibold text-foreground">
-          {language === "bn" ? "মোট" : "Total"}
-        </span>
-        <span className="text-xl font-bold text-primary">৳{total}</span>
-      </div>
-    </div>
-  );
-
-  const renderRenewalDates = (
-    currentExp: string | null | undefined,
-    newExp: Date
-  ) => (
-    <div className="bg-muted/30 rounded-lg p-3 space-y-1.5 text-sm">
-      <div className="flex justify-between">
-        <span className="text-muted-foreground">
-          {language === "bn" ? "বর্তমান মেয়াদ:" : "Current Expiry:"}
-        </span>
-        <span className="text-foreground">
-          {currentExp ? formatDate(currentExp) : language === "bn" ? "আজ" : "Today"}
-        </span>
-      </div>
-      <div className="flex justify-between">
-        <span className="text-muted-foreground">
-          {language === "bn" ? "নতুন মেয়াদ:" : "New Expiry:"}
-        </span>
-        <span className="text-primary font-medium">
-          {newExp.toLocaleDateString(language === "bn" ? "bn-BD" : "en-US", {
-            year: "numeric",
-            month: "short",
-            day: "numeric",
-          })}
-        </span>
-      </div>
-    </div>
-  );
-
-  const renderActivePackLine = (
-    sub: ActiveSub | null,
-    daysLeft: number,
-    iconEl: React.ReactNode,
-    labelEn: string,
-    labelBn: string,
-    countLabel: string
-  ) => {
-    if (!sub) return null;
-    return (
-      <div className="bg-background/60 rounded-lg p-4 border border-green-500/10">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              {iconEl}
-              <span className="font-medium text-foreground">{countLabel}</span>
-              <Badge variant="outline" className="text-xs">
-                {language === "bn" ? labelBn : labelEn}
-              </Badge>
+      {summaryLines.length === 0 ? (
+        <p className="text-sm text-muted-foreground text-center py-4">
+          {language === "bn" ? "আইটেম নির্বাচন করুন" : "Select items to see summary"}
+        </p>
+      ) : (
+        <>
+          {summaryLines.map((line, i) => (
+            <div key={i} className="flex justify-between text-sm">
+              <div>
+                <span className="font-medium text-foreground">{line.label}</span>
+                <span className="text-muted-foreground ml-1 text-xs">{line.detail}</span>
+              </div>
+              <span className="font-medium text-foreground">৳{line.price}</span>
             </div>
-            <div className="text-sm text-muted-foreground flex items-center gap-1">
-              <Clock className="h-3.5 w-3.5" />
-              {language === "bn" ? "মেয়াদ:" : "Expires:"}{" "}
-              {sub.expires_at ? formatDate(sub.expires_at) : "N/A"}
+          ))}
+          {totalDiscount > 0 && (
+            <div className="flex justify-between text-sm text-green-600">
+              <span className="flex items-center gap-1"><Tag className="h-3 w-3" />{language === "bn" ? "মোট ছাড়" : "Total Discount"}</span>
+              <span>-৳{totalDiscount}</span>
             </div>
+          )}
+          <div className="border-t border-border pt-3 flex justify-between items-center">
+            <span className="font-semibold text-foreground">{language === "bn" ? "সর্বমোট" : "Grand Total"}</span>
+            <span className="text-2xl font-bold text-primary">৳{grandTotal}</span>
           </div>
-          <Badge className="bg-primary/10 text-primary border-primary/20 hover:bg-primary/10">
-            <Hourglass className="h-3 w-3 mr-1" />
-            {daysLeft} {language === "bn" ? "দিন বাকি" : "days remaining"}
-          </Badge>
-        </div>
-      </div>
-    );
-  };
+        </>
+      )}
+    </div>
+  );
 
   return (
-    <div className="space-y-6 max-w-3xl mx-auto">
+    <div className="space-y-6 max-w-6xl mx-auto pb-28 lg:pb-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <Crown className="h-7 w-7 text-primary" />
-          <h1 className="text-2xl font-bold text-foreground">
-            {language === "bn" ? "সাবস্ক্রিপশন" : "Subscription"}
-          </h1>
+          <h1 className="text-2xl font-bold text-foreground">{language === "bn" ? "সাবস্ক্রিপশন" : "Subscription"}</h1>
         </div>
         <div className="flex gap-2 flex-wrap">
           {cartCount > 0 && (
             <Button variant="outline" size="sm" className="gap-2 relative" onClick={() => setIsCartOpen(true)}>
               <ShoppingCart className="h-4 w-4" />
               {language === "bn" ? "কার্ট" : "Cart"}
-              <Badge variant="destructive" className="ml-1 h-5 w-5 p-0 flex items-center justify-center text-[10px]">
-                {cartCount}
-              </Badge>
+              <Badge variant="destructive" className="ml-1 h-5 w-5 p-0 flex items-center justify-center text-[10px]">{cartCount}</Badge>
             </Button>
           )}
           <Dialog open={paymentStatusOpen} onOpenChange={setPaymentStatusOpen}>
@@ -740,16 +396,11 @@ const Subscription = () => {
             </DialogTrigger>
             <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle className="flex items-center gap-2">
-                  <Banknote className="h-5 w-5" />
-                  {language === "bn" ? "পেমেন্ট স্ট্যাটাস" : "Payment Status"}
-                </DialogTitle>
+                <DialogTitle className="flex items-center gap-2"><Banknote className="h-5 w-5" />{language === "bn" ? "পেমেন্ট স্ট্যাটাস" : "Payment Status"}</DialogTitle>
               </DialogHeader>
               <div className="space-y-3 mt-2">
                 {paymentHistory.length === 0 ? (
-                  <p className="text-muted-foreground text-center py-8">
-                    {language === "bn" ? "কোনো পেমেন্ট নেই" : "No payments found"}
-                  </p>
+                  <p className="text-muted-foreground text-center py-8">{language === "bn" ? "কোনো পেমেন্ট নেই" : "No payments found"}</p>
                 ) : (
                   paymentHistory.map((p) => {
                     const statusConfig: Record<string, { label: string; labelBn: string; className: string }> = {
@@ -764,46 +415,13 @@ const Subscription = () => {
                       <Card key={p.id} className="border">
                         <CardContent className="p-4 space-y-2">
                           <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              {p.product_type === "tolet" ? (
-                                <Megaphone className="h-4 w-4 text-orange-500" />
-                              ) : (
-                                <Package className="h-4 w-4 text-primary" />
-                              )}
-                              <span className="font-medium text-sm">
-                                {p.product_type === "tolet"
-                                  ? `${p.tolet_count} ${language === "bn" ? "টু-লেট" : "To-Let"}`
-                                  : `${p.room_count} ${language === "bn" ? "রুম" : "Rooms"}`}
-                              </span>
-                              <span className="text-muted-foreground text-xs">
-                                × {p.duration_months} {language === "bn" ? "মাস" : "mo"}
-                              </span>
-                            </div>
-                            <Badge className={`${sc.className} hover:${sc.className}`}>
-                              {language === "bn" ? sc.labelBn : sc.label}
-                            </Badge>
+                            <span className="font-medium text-sm">{p.product_type === "tolet" ? `${p.tolet_count} ${language === "bn" ? "টু-লেট" : "To-Let"}` : `${p.room_count} ${language === "bn" ? "রুম" : "Rooms"}`} × {p.duration_months} {language === "bn" ? "মাস" : "mo"}</span>
+                            <Badge className={`${sc.className} hover:${sc.className}`}>{language === "bn" ? sc.labelBn : sc.label}</Badge>
                           </div>
                           <div className="text-sm text-muted-foreground space-y-1">
-                            <div className="flex justify-between">
-                              <span>{language === "bn" ? "পরিমাণ:" : "Amount:"}</span>
-                              <span className="font-medium text-foreground">৳{Number(p.amount).toLocaleString()}</span>
-                            </div>
-                            {p.payment_method && (
-                              <div className="flex justify-between">
-                                <span>{language === "bn" ? "পদ্ধতি:" : "Method:"}</span>
-                                <span>{p.payment_method}</span>
-                              </div>
-                            )}
-                            {p.transaction_id && (
-                              <div className="flex justify-between">
-                                <span>{language === "bn" ? "TXN ID:" : "TXN ID:"}</span>
-                                <span className="font-mono text-xs">{p.transaction_id}</span>
-                              </div>
-                            )}
-                            <div className="flex justify-between">
-                              <span>{language === "bn" ? "তারিখ:" : "Date:"}</span>
-                              <span>{formatDate(p.created_at)}</span>
-                            </div>
+                            <div className="flex justify-between"><span>{language === "bn" ? "পরিমাণ:" : "Amount:"}</span><span className="font-medium text-foreground">৳{Number(p.amount).toLocaleString()}</span></div>
+                            {p.transaction_id && <div className="flex justify-between"><span>TXN ID:</span><span className="font-mono text-xs">{p.transaction_id}</span></div>}
+                            <div className="flex justify-between"><span>{language === "bn" ? "তারিখ:" : "Date:"}</span><span>{formatDate(p.created_at)}</span></div>
                           </div>
                         </CardContent>
                       </Card>
@@ -814,653 +432,296 @@ const Subscription = () => {
             </DialogContent>
           </Dialog>
 
-        <Dialog open={historyOpen} onOpenChange={setHistoryOpen}>
-          <DialogTrigger asChild>
-            <Button variant="outline" size="sm" className="gap-2">
-              <History className="h-4 w-4" />
-              {language === "bn" ? "ক্রয়ের ইতিহাস" : "Purchase History"}
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <History className="h-5 w-5" />
-                {language === "bn" ? "ক্রয়ের ইতিহাস" : "Purchase History"}
-              </DialogTitle>
-            </DialogHeader>
-            <div className="space-y-3 mt-2">
-              {history.length === 0 ? (
-                <p className="text-muted-foreground text-center py-8">
-                  {language === "bn" ? "কোনো ইতিহাস নেই" : "No purchase history"}
-                </p>
-              ) : (
-                history.map((sub) => (
-                  <Card key={sub.id} className="border">
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          {sub.product_type === "tolet" ? (
-                            <Megaphone className="h-4 w-4 text-orange-500" />
-                          ) : (
-                            <Package className="h-4 w-4 text-primary" />
-                          )}
-                          <span className="font-medium">
-                            {sub.product_type === "tolet"
-                              ? `${sub.tolet_count} ${language === "bn" ? "টু-লেট" : "To-Let"}`
-                              : `${sub.room_count || 1} ${language === "bn" ? "রুম" : "Rooms"}`}
+          <Dialog open={historyOpen} onOpenChange={setHistoryOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm" className="gap-2"><History className="h-4 w-4" />{language === "bn" ? "ক্রয়ের ইতিহাস" : "Purchase History"}</Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
+              <DialogHeader><DialogTitle className="flex items-center gap-2"><History className="h-5 w-5" />{language === "bn" ? "ক্রয়ের ইতিহাস" : "Purchase History"}</DialogTitle></DialogHeader>
+              <div className="space-y-3 mt-2">
+                {history.length === 0 ? (
+                  <p className="text-muted-foreground text-center py-8">{language === "bn" ? "কোনো ইতিহাস নেই" : "No purchase history"}</p>
+                ) : (
+                  history.map((sub) => (
+                    <Card key={sub.id} className="border">
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="font-medium text-sm">
+                            {sub.product_type === "tolet" ? `${sub.tolet_count} ${language === "bn" ? "টু-লেট" : "To-Let"}` : sub.product_type === "sale_listing" ? `${sub.sale_listing_count} ${language === "bn" ? "বিক্রয়" : "Sale"}` : `${sub.room_count || 1} ${language === "bn" ? "রুম" : "Rooms"}`} × {sub.duration_months || 1} {language === "bn" ? "মাস" : "mo"}
                           </span>
-                          <Badge variant="outline" className="text-[10px]">
-                            {sub.product_type === "tolet"
-                              ? language === "bn" ? "টু-লেট" : "To-Let"
-                              : language === "bn" ? "রুম" : "Room"}
+                          <Badge className={sub.status === "active" ? "bg-green-500/10 text-green-600 border-green-500/20 hover:bg-green-500/10" : "bg-muted text-muted-foreground"}>
+                            {sub.status === "active" ? (language === "bn" ? "সক্রিয়" : "Active") : (language === "bn" ? "মেয়াদোত্তীর্ণ" : "Expired")}
                           </Badge>
-                          <span className="text-muted-foreground text-sm">
-                            × {sub.duration_months || 1} {language === "bn" ? "মাস" : "mo"}
-                          </span>
                         </div>
-                        <Badge
-                          className={
-                            sub.status === "active"
-                              ? "bg-green-500/10 text-green-600 border-green-500/20 hover:bg-green-500/10"
-                              : sub.status === "cancelled"
-                              ? "bg-red-500/10 text-red-600 border-red-500/20 hover:bg-red-500/10"
-                              : "bg-muted text-muted-foreground"
-                          }
-                        >
-                          {sub.status === "active"
-                            ? language === "bn" ? "সক্রিয়" : "Active"
-                            : sub.status === "cancelled"
-                            ? language === "bn" ? "বাতিল" : "Cancelled"
-                            : language === "bn" ? "মেয়াদোত্তীর্ণ" : "Expired"}
-                        </Badge>
-                      </div>
-                      <div className="text-sm text-muted-foreground space-y-1">
-                        <div className="flex justify-between">
-                          <span>{language === "bn" ? "শুরু:" : "Start:"}</span>
-                          <span>{formatDate(sub.starts_at)}</span>
+                        <div className="text-sm text-muted-foreground space-y-1">
+                          <div className="flex justify-between"><span>{language === "bn" ? "শুরু:" : "Start:"}</span><span>{formatDate(sub.starts_at)}</span></div>
+                          {sub.expires_at && <div className="flex justify-between"><span>{language === "bn" ? "মেয়াদ:" : "Expires:"}</span><span>{formatDate(sub.expires_at)}</span></div>}
                         </div>
-                        {sub.expires_at && (
-                          <div className="flex justify-between">
-                            <span>{language === "bn" ? "মেয়াদ:" : "Expires:"}</span>
-                            <span>{formatDate(sub.expires_at)}</span>
-                          </div>
-                        )}
-                        {sub.tolet_price_per_unit === 0 && sub.product_type === "tolet" && (
-                          <Badge className="bg-green-500/10 text-green-600 border-green-500/20 hover:bg-green-500/10 text-[10px]">
-                            <Gift className="h-3 w-3 mr-1" />
-                            {language === "bn" ? "ফ্রি" : "Free"}
-                          </Badge>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))
-              )}
-            </div>
-          </DialogContent>
-        </Dialog>
+                      </CardContent>
+                    </Card>
+                  ))
+                )}
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
 
       {/* Special Discount Banner */}
       {landlordDiscount && (
-        <Card className="border-purple-500/30 bg-gradient-to-r from-purple-500/5 to-purple-600/10">
+        <Card className="border-purple-500/30 bg-gradient-to-r from-purple-500/5 to-purple-600/10 dark:from-purple-950/30 dark:to-purple-900/20">
           <CardContent className="p-4 flex items-center gap-3">
             <Gift className="h-5 w-5 text-purple-600" />
-            <div>
-              <p className="font-semibold text-foreground">
-                {isFreeForever
-                  ? (language === "bn" ? "🎉 আপনার অ্যাকাউন্টে চিরকাল ফ্রি সুবিধা সক্রিয়!" : "🎉 Free Forever discount is active on your account!")
-                  : (language === "bn" ? `🎉 আপনার সব কেনাকাটায় ${specialDiscountPct}% বিশেষ ছাড় সক্রিয়!` : `🎉 ${specialDiscountPct}% special discount is active on all your purchases!`)}
-              </p>
+            <p className="font-semibold text-foreground">
+              {isFreeForever
+                ? (language === "bn" ? "🎉 আপনার অ্যাকাউন্টে চিরকাল ফ্রি সুবিধা সক্রিয়!" : "🎉 Free Forever discount is active on your account!")
+                : (language === "bn" ? `🎉 আপনার সব কেনাকাটায় ${specialDiscountPct}% বিশেষ ছাড় সক্রিয়!` : `🎉 ${specialDiscountPct}% special discount is active on all your purchases!`)}
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Active Subscriptions — compact */}
+      {(activeRoomSub || activeToletSub || activeSaleSub || boost3DayTotal > 0 || boost7DayTotal > 0 || smsBalance.total > 0) && (
+        <Card className="border-green-500/30 bg-gradient-to-r from-green-500/5 to-green-600/10 dark:from-green-950/30 dark:to-green-900/20">
+          <CardContent className="p-4">
+            <h2 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-3">
+              <CheckCircle2 className="h-4 w-4 text-green-500" />
+              {language === "bn" ? "সক্রিয় ব্যালেন্স" : "Active Balance"}
+            </h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              {activeRoomSub && (
+                <div className="bg-background/60 rounded-lg p-2.5 border text-center">
+                  <Package className="h-4 w-4 mx-auto text-primary mb-1" />
+                  <p className="text-lg font-bold text-foreground">{activeRoomSub.room_count}</p>
+                  <p className="text-[10px] text-muted-foreground">{language === "bn" ? "রুম" : "Rooms"} · {roomDaysRemaining}{language === "bn" ? " দিন" : "d"}</p>
+                </div>
+              )}
+              {activeToletSub && (
+                <div className="bg-background/60 rounded-lg p-2.5 border text-center">
+                  <Megaphone className="h-4 w-4 mx-auto text-orange-500 mb-1" />
+                  <p className="text-lg font-bold text-foreground">{activeToletSub.tolet_count}</p>
+                  <p className="text-[10px] text-muted-foreground">{language === "bn" ? "টু-লেট" : "To-Let"} · {toletDaysRemaining}{language === "bn" ? " দিন" : "d"}</p>
+                </div>
+              )}
+              {activeSaleSub && (
+                <div className="bg-background/60 rounded-lg p-2.5 border text-center">
+                  <ShoppingBag className="h-4 w-4 mx-auto text-purple-600 mb-1" />
+                  <p className="text-lg font-bold text-foreground">{saleRemainingSlots}</p>
+                  <p className="text-[10px] text-muted-foreground">{language === "bn" ? "বিক্রয়" : "Sale"} · {saleDaysRemaining}{language === "bn" ? " দিন" : "d"}</p>
+                </div>
+              )}
+              {(boost3DayTotal > 0 || boost7DayTotal > 0) && (
+                <div className="bg-background/60 rounded-lg p-2.5 border text-center">
+                  <Flame className="h-4 w-4 mx-auto text-orange-500 mb-1" />
+                  <p className="text-lg font-bold text-foreground">{(boost3DayTotal - boost3DayUsed) + (boost7DayTotal - boost7DayUsed)}</p>
+                  <p className="text-[10px] text-muted-foreground">{language === "bn" ? "বুস্ট বাকি" : "Boosts Left"}</p>
+                </div>
+              )}
+              {smsBalance.total > 0 && (
+                <div className="bg-background/60 rounded-lg p-2.5 border text-center">
+                  <MessageSquare className="h-4 w-4 mx-auto text-blue-500 mb-1" />
+                  <p className="text-lg font-bold text-foreground">{smsRemaining}</p>
+                  <p className="text-[10px] text-muted-foreground">{language === "bn" ? "SMS বাকি" : "SMS Left"}</p>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
       )}
 
-      <Card className="border-green-500/30 bg-gradient-to-r from-green-500/5 to-green-600/10">
-        <CardContent className="p-5">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
-            <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
-              <CheckCircle2 className="h-5 w-5 text-green-500" />
-              {language === "bn" ? "সক্রিয় সাবস্ক্রিপশন" : "Active Subscriptions"}
-            </h2>
-            <div className="flex items-center gap-2">
-              {activeRoomSub && (
-                <Badge className="bg-green-500/10 text-green-600 border-green-500/20 hover:bg-green-500/10">
-                  <Home className="h-3 w-3 mr-1" />
-                  {activeRoomSub.room_count} {language === "bn" ? "রুম" : "Rooms"}
-                </Badge>
-              )}
-              {activeToletSub && (
-                <Badge className="bg-orange-500/10 text-orange-600 border-orange-500/20 hover:bg-orange-500/10">
-                  <Megaphone className="h-3 w-3 mr-1" />
-                  {activeToletSub.tolet_count} {language === "bn" ? "টু-লেট" : "To-Let"}
-                </Badge>
-              )}
-              {activeSaleSub && (
-                <Badge className="bg-purple-500/10 text-purple-600 border-purple-500/20 hover:bg-purple-500/10">
-                  <ShoppingBag className="h-3 w-3 mr-1" />
-                  {saleRemainingSlots} {language === "bn" ? "বিক্রয় লিস্টিং" : "Sale Listings"}
-                </Badge>
-              )}
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            {renderActivePackLine(
-              activeRoomSub,
-              roomDaysRemaining,
-              <Package className="h-4 w-4 text-primary" />,
-              "Room Mgmt",
-              "রুম ম্যানেজমেন্ট",
-              `${activeRoomSub?.room_count || 0} ${language === "bn" ? "রুম" : "Rooms"}`
-            )}
-            {renderActivePackLine(
-              activeToletSub,
-              toletDaysRemaining,
-              <Megaphone className="h-4 w-4 text-orange-500" />,
-              "To-Let",
-              "টু-লেট",
-              `${activeToletSub?.tolet_count || 0} ${language === "bn" ? "টু-লেট" : "To-Let"}`
-            )}
-            {renderActivePackLine(
-              activeSaleSub,
-              saleDaysRemaining,
-              <ShoppingBag className="h-4 w-4 text-purple-600" />,
-              "Sale Listing",
-              "বিক্রয় লিস্টিং",
-              `${saleRemainingSlots} ${language === "bn" ? "বিক্রয় লিস্টিং বাকি" : "Sale Listings Left"}`
-            )}
-            {!activeRoomSub && !activeToletSub && !activeSaleSub && (
-              <div className="bg-background/60 rounded-lg p-4 border text-center">
-                <p className="text-muted-foreground">
-                  {language === "bn"
-                    ? "কোনো সক্রিয় সাবস্ক্রিপশন নেই। নিচে থেকে একটি প্ল্যান কিনুন।"
-                    : "No active subscription. Purchase a plan below."}
-                </p>
+      {/* ─── Main Configurator Layout ─── */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left: Product Sections */}
+        <div className="lg:col-span-2 space-y-5">
+          {/* Room/Flat */}
+          <Card>
+            <CardContent className="p-4 space-y-3">
+              <div className="flex items-center gap-2">
+                <Home className="h-5 w-5 text-primary" />
+                <h3 className="font-semibold text-foreground">{language === "bn" ? "রুম/ফ্ল্যাট" : "Room/Flat"}</h3>
+                <span className="text-xs text-muted-foreground ml-auto">৳{PRICE_PER_ROOM}/{language === "bn" ? "রুম" : "room"}/{language === "bn" ? "মাস" : "mo"}</span>
               </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+              <ChipSelector chips={ROOM_CHIPS} value={roomCount} onChange={setRoomCount} />
+            </CardContent>
+          </Card>
 
-      {/* Section 2: Subscription Configurator with Tabs */}
-      <Card>
-        <CardContent className="p-6 space-y-6">
-          <Tabs value={productTab} onValueChange={setProductTab}>
-            <TabsList className="w-full grid grid-cols-5">
-              <TabsTrigger value="room_management" className="gap-1 text-xs sm:text-sm">
-                <Home className="h-4 w-4" />
-                <span className="hidden sm:inline">{language === "bn" ? "রুম" : "Room"}</span>
-              </TabsTrigger>
-              <TabsTrigger value="tolet" className="gap-1 text-xs sm:text-sm">
-                <Megaphone className="h-4 w-4" />
-                <span className="hidden sm:inline">{language === "bn" ? "টু-লেট" : "To-Let"}</span>
-              </TabsTrigger>
-              <TabsTrigger value="sale_listing" className="gap-1 text-xs sm:text-sm">
-                <ShoppingBag className="h-4 w-4" />
-                <span className="hidden sm:inline">{language === "bn" ? "বিক্রয়" : "Sale"}</span>
-              </TabsTrigger>
-              <TabsTrigger value="boosting" className="gap-1 text-xs sm:text-sm">
-                <Flame className="h-4 w-4" />
-                <span className="hidden sm:inline">{language === "bn" ? "বুস্ট" : "Boost"}</span>
-              </TabsTrigger>
-              <TabsTrigger value="sms" className="gap-1 text-xs sm:text-sm">
-                <MessageSquare className="h-4 w-4" />
-                <span className="hidden sm:inline">SMS</span>
-              </TabsTrigger>
-            </TabsList>
-
-            {/* Room Management Tab */}
-            <TabsContent value="room_management" className="space-y-6 mt-6">
-              {renderCountSelector(
-                roomCount, setRoomCount, 50,
-                "Select Number of Rooms", "রুম সংখ্যা নির্বাচন করুন",
-                PRICE_PER_ROOM, "room", "রুম"
-              )}
-              {renderDurationSelector(roomDuration, setRoomDuration)}
-              {renderPriceSummary(
-                roomCount, roomDuration, PRICE_PER_ROOM,
-                roomDiscountPct, roomBasePrice, roomDiscountAmount, roomTotalPrice,
-                "rooms", "রুম", roomSpecialDiscountAmount
-              )}
-              {renderRenewalDates(activeRoomSub?.expires_at, roomNewExpiry)}
-
-              <div className="flex gap-2">
-                <Input
-                  placeholder={language === "bn" ? "কুপন কোড (ঐচ্ছিক)" : "Coupon code (optional)"}
-                  value={roomCoupon}
-                  onChange={(e) => setRoomCoupon(e.target.value)}
-                  className="flex-1"
-                />
-                <Button variant="outline" disabled={!roomCoupon}>
-                  {language === "bn" ? "প্রয়োগ" : "Apply"}
-                </Button>
+          {/* To-Let */}
+          <Card>
+            <CardContent className="p-4 space-y-3">
+              <div className="flex items-center gap-2">
+                <Megaphone className="h-5 w-5 text-orange-500" />
+                <h3 className="font-semibold text-foreground">{language === "bn" ? "টু-লেট" : "To-Let"}</h3>
+                <span className="text-xs text-muted-foreground ml-auto">৳{PRICE_PER_TOLET}/{language === "bn" ? "স্লট" : "slot"}/{language === "bn" ? "মাস" : "mo"}</span>
               </div>
-
-              <Button
-                className="w-full h-12 text-base gap-2 bg-primary hover:bg-primary/90 text-primary-foreground"
-                onClick={() => handleAddToCart("room_management", "Room/Flat", "রুম/ফ্ল্যাট", roomCount, roomDuration, PRICE_PER_ROOM, roomDiscountPct, roomCoupon, roomTotalPrice)}
-              >
-                <ShoppingCart className="h-5 w-5" />
-                {language === "bn" ? `৳${roomTotalPrice} — কার্টে যোগ করুন` : `৳${roomTotalPrice} — Add to Cart`}
-              </Button>
-              <Button
-                variant="outline"
-                className="w-full h-10 gap-2"
-                onClick={() => { setManualPayType("room_management"); setManualPayOpen(true); }}
-              >
-                <Banknote className="h-4 w-4" />
-                {language === "bn" ? "ম্যানুয়াল পেমেন্ট" : "Pay Manually"}
-              </Button>
-            </TabsContent>
-
-            {/* To-Let Tab */}
-            <TabsContent value="tolet" className="space-y-6 mt-6">
-              {/* Free offer banner */}
               {!hasAnyToletSub && (
-                <div className="bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20 rounded-lg p-4 flex items-start gap-3">
-                  <Gift className="h-6 w-6 text-primary shrink-0 mt-0.5" />
-                  <div>
-                    <h3 className="font-semibold text-foreground text-sm">
-                      {language === "bn"
-                        ? "🎉 প্রথম ক্রয়ে ২টি ফ্রি টু-লেট!"
-                        : "🎉 2 Free To-Let on First Purchase!"}
-                    </h3>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {language === "bn"
-                        ? "আপনার প্রথম টু-লেট সাবস্ক্রিপশনে ২টি ফ্রি টু-লেট ব্যালেন্স পাবেন (১ মাসের জন্য)। প্রথম মাসেই ব্যবহার করতে হবে।"
-                        : "Get 2 free to-let slots with your first to-let subscription (valid for 1 month). Must be used within the first month."}
-                    </p>
+                <div className="bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded-lg p-2.5 flex items-start gap-2">
+                  <Gift className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                  <p className="text-xs text-foreground">{language === "bn" ? "🎉 প্রথম ক্রয়ে ২টি ফ্রি টু-লেট!" : "🎉 2 Free To-Let on First Purchase!"}</p>
+                </div>
+              )}
+              <ChipSelector chips={TOLET_CHIPS} value={toletCount} onChange={setToletCount} />
+            </CardContent>
+          </Card>
+
+          {/* Sale Listing */}
+          <Card>
+            <CardContent className="p-4 space-y-3">
+              <div className="flex items-center gap-2">
+                <ShoppingBag className="h-5 w-5 text-purple-600" />
+                <h3 className="font-semibold text-foreground">{language === "bn" ? "বিক্রয় লিস্টিং" : "Sale Listing"}</h3>
+                <span className="text-xs text-muted-foreground ml-auto">৳{PRICE_PER_SALE_LISTING}/{language === "bn" ? "লিস্টিং" : "listing"}/{language === "bn" ? "মাস" : "mo"}</span>
+              </div>
+              <ChipSelector chips={SALE_CHIPS} value={saleCount} onChange={setSaleCount} />
+            </CardContent>
+          </Card>
+
+          {/* Duration (shared) */}
+          {(roomCount > 0 || toletCount > 0 || saleCount > 0) && (
+            <Card className="border-primary/20">
+              <CardContent className="p-4 space-y-3">
+                <div className="flex items-center gap-2">
+                  <Clock className="h-5 w-5 text-primary" />
+                  <h3 className="font-semibold text-foreground">{language === "bn" ? "মেয়াদ" : "Duration"}</h3>
+                </div>
+                <ChipSelector
+                  chips={DURATION_CHIPS}
+                  value={duration}
+                  onChange={setDuration}
+                  suffix={language === "bn" ? " মাস" : " mo"}
+                />
+                {durationDiscountPct > 0 && (
+                  <div className="flex items-center gap-2">
+                    <Badge className="bg-green-500 text-white hover:bg-green-500"><Tag className="h-3 w-3 mr-1" />{durationDiscountPct}% {language === "bn" ? "ছাড়" : "OFF"}</Badge>
+                    <span className="text-xs text-muted-foreground">{language === "bn" ? "৬+ মাসে ৫%-৩৫% ছাড়" : "5%-35% discount for 6+ months"}</span>
                   </div>
-                </div>
-              )}
+                )}
+              </CardContent>
+            </Card>
+          )}
 
-              {renderCountSelector(
-                toletCount, setToletCount, 50,
-                "Select Number of To-Let Slots", "টু-লেট স্লট সংখ্যা নির্বাচন করুন",
-                PRICE_PER_TOLET, "to-let", "টু-লেট"
-              )}
-              {renderDurationSelector(toletDuration, setToletDuration)}
-              {renderPriceSummary(
-                toletCount, toletDuration, PRICE_PER_TOLET,
-                toletDiscountPct, toletBasePrice, toletDiscountAmount, toletTotalPrice,
-                "to-let", "টু-লেট", toletSpecialDiscountAmount
-              )}
-              {renderRenewalDates(activeToletSub?.expires_at, toletNewExpiry)}
-
-              <div className="flex gap-2">
-                <Input
-                  placeholder={language === "bn" ? "কুপন কোড (ঐচ্ছিক)" : "Coupon code (optional)"}
-                  value={toletCoupon}
-                  onChange={(e) => setToletCoupon(e.target.value)}
-                  className="flex-1"
-                />
-                <Button variant="outline" disabled={!toletCoupon}>
-                  {language === "bn" ? "প্রয়োগ" : "Apply"}
-                </Button>
+          {/* Boost */}
+          <Card>
+            <CardContent className="p-4 space-y-4">
+              <div className="flex items-center gap-2">
+                <Flame className="h-5 w-5 text-orange-500" />
+                <h3 className="font-semibold text-foreground">{language === "bn" ? "বুস্ট" : "Boost"}</h3>
               </div>
-
-              <Button
-                className="w-full h-12 text-base gap-2 bg-primary hover:bg-primary/90 text-primary-foreground"
-                onClick={() => handleAddToCart("tolet", "To-Let", "টু-লেট", toletCount, toletDuration, PRICE_PER_TOLET, toletDiscountPct, toletCoupon, toletTotalPrice)}
-              >
-                <ShoppingCart className="h-5 w-5" />
-                {language === "bn" ? `৳${toletTotalPrice} — কার্টে যোগ করুন` : `৳${toletTotalPrice} — Add to Cart`}
-              </Button>
-              <Button
-                variant="outline"
-                className="w-full h-10 gap-2"
-                onClick={() => { setManualPayType("tolet"); setManualPayOpen(true); }}
-              >
-                <Banknote className="h-4 w-4" />
-                {language === "bn" ? "ম্যানুয়াল পেমেন্ট" : "Pay Manually"}
-              </Button>
-            </TabsContent>
-
-            {/* Sale Listing Tab */}
-            <TabsContent value="sale_listing" className="space-y-6 mt-6">
-              {/* Sale listing balance */}
-              <div className="bg-muted/50 rounded-lg p-4 text-center">
-                <ShoppingBag className="h-5 w-5 mx-auto mb-1 text-purple-600" />
-                <p className="text-2xl font-bold text-foreground">{saleRemainingSlots}</p>
-                <p className="text-xs text-muted-foreground">
-                  {language === "bn" ? "বিক্রয় লিস্টিং বাকি" : "Sale Listings Remaining"}
-                </p>
-              </div>
-
-              {renderCountSelector(
-                saleCount, setSaleCount, 50,
-                "Number of Sale Listings", "বিক্রয় লিস্টিং সংখ্যা",
-                PRICE_PER_SALE_LISTING, "listing", "লিস্টিং"
-              )}
-              {renderDurationSelector(saleDuration, setSaleDuration)}
-              {renderPriceSummary(
-                saleCount, saleDuration, PRICE_PER_SALE_LISTING,
-                saleDiscountPct, saleBasePrice, saleDiscountAmount, saleTotalPrice,
-                "listings", "লিস্টিং", saleSpecialDiscountAmount
-              )}
-              {renderRenewalDates(activeSaleSub?.expires_at, saleNewExpiry)}
-
-              <div className="flex gap-2">
-                <Input
-                  placeholder={language === "bn" ? "কুপন কোড (ঐচ্ছিক)" : "Coupon code (optional)"}
-                  value={saleCoupon}
-                  onChange={(e) => setSaleCoupon(e.target.value)}
-                  className="flex-1"
-                />
-                <Button variant="outline" disabled={!saleCoupon}>
-                  {language === "bn" ? "প্রয়োগ" : "Apply"}
-                </Button>
-              </div>
-
-              <Button
-                className="w-full h-12 text-base gap-2 bg-primary hover:bg-primary/90 text-primary-foreground"
-                onClick={() => handleAddToCart("sale_listing", "Sale Listing", "বিক্রয় লিস্টিং", saleCount, saleDuration, PRICE_PER_SALE_LISTING, saleDiscountPct, saleCoupon, saleTotalPrice)}
-              >
-                <ShoppingCart className="h-5 w-5" />
-                {language === "bn" ? `৳${saleTotalPrice} — কার্টে যোগ করুন` : `৳${saleTotalPrice} — Add to Cart`}
-              </Button>
-              <Button
-                variant="outline"
-                className="w-full h-10 gap-2"
-                onClick={() => { setManualPayType("sale_listing"); setManualPayOpen(true); }}
-              >
-                <Banknote className="h-4 w-4" />
-                {language === "bn" ? "ম্যানুয়াল পেমেন্ট" : "Pay Manually"}
-              </Button>
-
-              <div className="bg-amber-500/5 border border-amber-500/20 rounded-lg p-3">
-                <p className="text-xs text-muted-foreground flex items-start gap-1.5">
-                  <Info className="h-3.5 w-3.5 mt-0.5 shrink-0 text-amber-500" />
-                  {language === "bn"
-                    ? "প্রতিটি বিক্রয় লিস্টিং ৳২০০। রুম বা প্রপার্টি পেজ থেকে বিক্রয়ে দিতে পারবেন।"
-                    : "Each sale listing costs ৳200. Create listings from Rooms or Properties page using the Sell button."}
-                </p>
-              </div>
-            </TabsContent>
-
-            {/* Boosting Tab */}
-            <TabsContent value="boosting" className="space-y-6 mt-6">
-              {/* Boost Balance Cards */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-muted/50 rounded-lg p-4 text-center">
-                  <Flame className="h-5 w-5 mx-auto mb-1 text-orange-500" />
-                  <p className="text-2xl font-bold text-foreground">{boost3DayRemaining}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {language === "bn" ? "৩ দিন বুস্ট বাকি" : "3-Day Boosts Left"}
-                  </p>
-                </div>
-                <div className="bg-muted/50 rounded-lg p-4 text-center">
-                  <Flame className="h-5 w-5 mx-auto mb-1 text-red-500" />
-                  <p className="text-2xl font-bold text-foreground">{boost7DayRemaining}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {language === "bn" ? "৭ দিন বুস্ট বাকি" : "7-Day Boosts Left"}
-                  </p>
-                </div>
-              </div>
-
-              {/* Boost Type Selector */}
               <div className="space-y-3">
-                <label className="text-sm font-medium text-foreground">
-                  {language === "bn" ? "বুস্ট টাইপ নির্বাচন করুন" : "Select Boost Type"}
-                </label>
-                <div className="grid grid-cols-2 gap-3">
-                  <Button
-                    variant={boostType === "3_day" ? "default" : "outline"}
-                    className="h-auto py-4 flex-col gap-1"
-                    onClick={() => setBoostType("3_day")}
-                  >
-                    <span className="font-bold">৩ {language === "bn" ? "দিন" : "Days"}</span>
-                    <span className="text-xs opacity-80">৳30/{language === "bn" ? "বুস্ট" : "boost"}</span>
-                  </Button>
-                  <Button
-                    variant={boostType === "7_day" ? "default" : "outline"}
-                    className="h-auto py-4 flex-col gap-1"
-                    onClick={() => setBoostType("7_day")}
-                  >
-                    <span className="font-bold">৭ {language === "bn" ? "দিন" : "Days"}</span>
-                    <span className="text-xs opacity-80">৳50/{language === "bn" ? "বুস্ট" : "boost"}</span>
-                  </Button>
-                </div>
-              </div>
-
-              {/* Count Selector */}
-              {renderCountSelector(
-                boostCount, setBoostCount, 20,
-                "Number of Boosts", "বুস্ট সংখ্যা",
-                BOOST_PRICES[boostType], "boost", "বুস্ট"
-              )}
-
-              {/* Price Summary */}
-              <div className="bg-muted/50 rounded-lg p-4 space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">
-                    {language === "bn"
-                      ? `${boostCount} বুস্ট × ৳${BOOST_PRICES[boostType]}`
-                      : `${boostCount} boost × ৳${BOOST_PRICES[boostType]}`}
-                  </span>
-                  <span className="text-foreground font-medium">৳{boostTotalPrice}</span>
-                </div>
-                <div className="border-t border-border pt-2 flex justify-between">
-                  <span className="font-semibold text-foreground">
-                    {language === "bn" ? "মোট" : "Total"}
-                  </span>
-                  <span className="text-xl font-bold text-primary">৳{boostTotalPrice}</span>
-                </div>
-              </div>
-
-              <Button
-                className="w-full h-12 text-base gap-2 bg-primary hover:bg-primary/90 text-primary-foreground"
-                onClick={() => handleAddToCart(boostType === "3_day" ? "boost_3_day" : "boost_7_day", `${boostType === "3_day" ? "3" : "7"}-Day Boost`, `${boostType === "3_day" ? "৩" : "৭"} দিন বুস্ট`, boostCount, 0, BOOST_PRICES[boostType], 0, "", boostTotalPrice)}
-              >
-                <ShoppingCart className="h-5 w-5" />
-                {language === "bn" ? `৳${boostTotalPrice} — কার্টে যোগ করুন` : `৳${boostTotalPrice} — Add to Cart`}
-              </Button>
-              <Button
-                variant="outline"
-                className="w-full h-10 gap-2"
-                onClick={() => { setManualPayType("boost"); setManualPayOpen(true); }}
-              >
-                <Banknote className="h-4 w-4" />
-                {language === "bn" ? "ম্যানুয়াল পেমেন্ট" : "Pay Manually"}
-              </Button>
-
-              <div className="bg-amber-500/5 border border-amber-500/20 rounded-lg p-3">
-                <p className="text-xs text-muted-foreground flex items-start gap-1.5">
-                  <Info className="h-3.5 w-3.5 mt-0.5 shrink-0 text-amber-500" />
-                  {language === "bn"
-                    ? "বুস্ট ব্যবহার করলে আপনার টু-লেট লিস্টিং সবার উপরে দেখাবে। Rooms পেজ থেকে বুস্ট অ্যাপ্লাই করতে পারবেন।"
-                    : "Boosted listings appear at the top of To-Let page. Apply boosts from the Rooms page."}
-                </p>
-              </div>
-            </TabsContent>
-
-            {/* SMS Tab */}
-            <TabsContent value="sms" className="space-y-6 mt-6">
-              {/* SMS Balance */}
-              <div className="bg-muted/50 rounded-lg p-4 text-center">
-                <MessageSquare className="h-5 w-5 mx-auto mb-1 text-blue-500" />
-                <p className="text-2xl font-bold text-foreground">{smsRemaining}</p>
-                <p className="text-xs text-muted-foreground">
-                  {language === "bn" ? "SMS ব্যালেন্স বাকি" : "SMS Balance Remaining"}
-                </p>
-              </div>
-
-              {/* SMS Package Selector */}
-              <div className="space-y-3">
-                <label className="text-sm font-medium text-foreground">
-                  {language === "bn" ? "SMS প্যাকেজ নির্বাচন করুন" : "Select SMS Package"}
-                </label>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  {SMS_PACKAGES.map((pkg) => (
-                    <Button
-                      key={pkg}
-                      variant={smsCount === pkg ? "default" : "outline"}
-                      className="h-auto py-4 flex-col gap-1"
-                      onClick={() => setSmsCount(pkg)}
-                    >
-                      <span className="font-bold">{pkg}</span>
-                      <span className="text-xs opacity-80">৳{Math.round(pkg * PRICE_PER_SMS)}</span>
-                    </Button>
-                  ))}
-                </div>
-                <p className="text-xs text-muted-foreground flex items-center gap-1">
-                  <Info className="h-3 w-3" />
-                  {language === "bn" ? `৳${PRICE_PER_SMS}/SMS — সর্বনিম্ন ১০০ SMS` : `৳${PRICE_PER_SMS}/SMS — Minimum 100 SMS`}
-                </p>
-              </div>
-
-              {/* Custom count */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-foreground">
-                  {language === "bn" ? "অথবা কাস্টম সংখ্যা লিখুন" : "Or enter custom amount"}
-                </label>
-                <div className="flex gap-2">
-                  <Input
-                    type="number"
-                    min={100}
-                    step={10}
-                    value={smsCount}
-                    onChange={(e) => setSmsCount(Math.max(100, parseInt(e.target.value) || 100))}
-                    className="flex-1"
-                  />
-                  <span className="flex items-center text-sm text-muted-foreground">SMS</span>
-                </div>
-              </div>
-
-              {/* Price Summary */}
-              <div className="bg-muted/50 rounded-lg p-4 space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">
-                    {language === "bn" ? `${smsCount} SMS × ৳${PRICE_PER_SMS}` : `${smsCount} SMS × ৳${PRICE_PER_SMS}`}
-                  </span>
-                  <span className="text-foreground font-medium">৳{smsTotalPrice}</span>
-                </div>
-                <div className="border-t border-border pt-2 flex justify-between">
-                  <span className="font-semibold text-foreground">
-                    {language === "bn" ? "মোট" : "Total"}
-                  </span>
-                  <span className="text-xl font-bold text-primary">৳{smsTotalPrice}</span>
-                </div>
-              </div>
-
-              <Button
-                className="w-full h-12 text-base gap-2 bg-primary hover:bg-primary/90 text-primary-foreground"
-                onClick={() => handleAddToCart("sms", "SMS Package", "SMS প্যাকেজ", smsCount, 0, PRICE_PER_SMS, 0, "", smsTotalPrice)}
-              >
-                <ShoppingCart className="h-5 w-5" />
-                {language === "bn" ? `৳${smsTotalPrice} — কার্টে যোগ করুন` : `৳${smsTotalPrice} — Add to Cart`}
-              </Button>
-
-              <div className="bg-amber-500/5 border border-amber-500/20 rounded-lg p-3">
-                <p className="text-xs text-muted-foreground flex items-start gap-1.5">
-                  <Info className="h-3.5 w-3.5 mt-0.5 shrink-0 text-amber-500" />
-                  {language === "bn"
-                    ? "SMS ক্রেডিট মেয়াদহীন। বিল, নোটিশ, রিমাইন্ডার পাঠাতে ব্যবহার করতে পারবেন।"
-                    : "SMS credits never expire. Use them to send bills, notices, and reminders."}
-                </p>
-              </div>
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
-
-      {/* Section 3: How Subscription Works */}
-      <Card>
-        <CardContent className="p-6">
-          <h2 className="text-lg font-semibold text-foreground mb-4">
-            {language === "bn" ? "সাবস্ক্রিপশন কিভাবে কাজ করে" : "How Subscription Works"}
-          </h2>
-          <div className="space-y-4">
-            {[
-              {
-                step: 1,
-                titleEn: "Select Product Type",
-                titleBn: "প্রোডাক্ট টাইপ নির্বাচন করুন",
-                descEn: "Choose between Room/Flat Management (৳10/room/month) or To-Let listings (৳50/slot/month).",
-                descBn: "রুম/ফ্ল্যাট ম্যানেজমেন্ট (৳১০/রুম/মাস) অথবা টু-লেট লিস্টিং (৳৫০/স্লট/মাস) থেকে বেছে নিন।",
-              },
-              {
-                step: 2,
-                titleEn: "Configure & Pay",
-                titleBn: "কনফিগার করুন ও পেমেন্ট করুন",
-                descEn: "Select count and duration (2-12 months). Longer durations get up to 15% discount.",
-                descBn: "সংখ্যা ও সময়কাল নির্বাচন করুন (২-১২ মাস)। দীর্ঘ সময়কালে ১৫% পর্যন্ত ছাড়।",
-              },
-              {
-                step: 3,
-                titleEn: "To-Let Free Offer",
-                titleBn: "টু-লেট ফ্রি অফার",
-                descEn: "First-time to-let buyers get 2 free listing slots valid for 1 month. Use them before they expire!",
-                descBn: "প্রথমবার টু-লেট ক্রয়কারীরা ১ মাসের জন্য ২টি ফ্রি লিস্টিং স্লট পাবেন। মেয়াদ শেষের আগে ব্যবহার করুন!",
-              },
-              {
-                step: 4,
-                titleEn: "Manage Everything",
-                titleBn: "সবকিছু পরিচালনা করুন",
-                descEn: "After subscription, manage rooms, tenants, bills, payments, and to-let listings from the dashboard.",
-                descBn: "সাবস্ক্রিপশনের পর ড্যাশবোর্ড থেকে রুম, ভাড়াটিয়া, বিল, পেমেন্ট ও টু-লেট লিস্টিং পরিচালনা করুন।",
-              },
-            ].map((item) => (
-              <div key={item.step} className="flex gap-4">
-                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                  <span className="text-sm font-bold text-primary">{item.step}</span>
+                <div>
+                  <p className="text-sm text-foreground mb-2">{language === "bn" ? "৩ দিনের বুস্ট" : "3-Day Boost"} <span className="text-xs text-muted-foreground">(৳{BOOST_PRICES["3_day"]}/{language === "bn" ? "টি" : "ea"})</span></p>
+                  <ChipSelector chips={BOOST3_CHIPS} value={boost3Count} onChange={setBoost3Count} />
                 </div>
                 <div>
-                  <h3 className="font-medium text-foreground">
-                    {language === "bn" ? item.titleBn : item.titleEn}
-                  </h3>
-                  <p className="text-sm text-muted-foreground mt-0.5">
-                    {language === "bn" ? item.descBn : item.descEn}
-                  </p>
+                  <p className="text-sm text-foreground mb-2">{language === "bn" ? "৭ দিনের বুস্ট" : "7-Day Boost"} <span className="text-xs text-muted-foreground">(৳{BOOST_PRICES["7_day"]}/{language === "bn" ? "টি" : "ea"})</span></p>
+                  <ChipSelector chips={BOOST7_CHIPS} value={boost7Count} onChange={setBoost7Count} />
                 </div>
               </div>
-            ))}
-          </div>
-          <div className="mt-4 p-3 bg-amber-500/5 border border-amber-500/20 rounded-lg">
-            <p className="text-xs text-muted-foreground flex items-start gap-1.5">
-              <Info className="h-3.5 w-3.5 mt-0.5 shrink-0 text-amber-500" />
-              {language === "bn"
-                ? "দ্রষ্টব্য: প্রথম পেইড সাবস্ক্রিপশনের পর রুম/টু-লেট সংখ্যা পরিবর্তন করতে সাপোর্টে যোগাযোগ করুন।"
-                : "Note: After your first paid subscription, contact support to change room/to-let count."}
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
 
-      <ManualPaymentDialog
-        open={manualPayOpen}
-        onOpenChange={setManualPayOpen}
-        productType={manualPayType}
-        roomCount={manualPayType === "room_management" ? roomCount : 0}
-        toletCount={manualPayType === "tolet" ? toletCount : manualPayType === "sale_listing" ? saleCount : 0}
-        durationMonths={manualPayType === "boost" ? 0 : (manualPayType === "room_management" ? roomDuration : manualPayType === "tolet" ? toletDuration : saleDuration)}
-        discountPercent={manualPayType === "boost" ? 0 : (manualPayType === "room_management" ? roomDiscountPct : manualPayType === "tolet" ? toletDiscountPct : saleDiscountPct)}
-        couponCode={manualPayType === "boost" ? "" : (manualPayType === "room_management" ? roomCoupon : manualPayType === "tolet" ? toletCoupon : saleCoupon)}
-        totalPrice={manualPayType === "boost" ? boostTotalPrice : (manualPayType === "room_management" ? roomTotalPrice : manualPayType === "tolet" ? toletTotalPrice : saleTotalPrice)}
-        onSuccess={fetchData}
-        boostType={boostType}
-        boostCount={boostCount}
-      />
+          {/* SMS */}
+          <Card>
+            <CardContent className="p-4 space-y-3">
+              <div className="flex items-center gap-2">
+                <MessageSquare className="h-5 w-5 text-blue-500" />
+                <h3 className="font-semibold text-foreground">SMS</h3>
+                <span className="text-xs text-muted-foreground ml-auto">৳{PRICE_PER_SMS}/SMS</span>
+              </div>
+              <ChipSelector chips={SMS_CHIPS} value={smsCount} onChange={setSmsCount} />
+            </CardContent>
+          </Card>
 
-      {/* Floating Cart Button */}
-      {cartCount > 0 && (
-        <div className="fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-40">
-          <Button
-            size="lg"
-            className="rounded-full h-14 w-14 shadow-lg relative"
-            onClick={() => setIsCartOpen(true)}
-          >
-            <ShoppingCart className="h-6 w-6" />
-            <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
-              {cartCount}
-            </span>
-          </Button>
+          {/* Coupon */}
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex gap-2">
+                <Input
+                  placeholder={language === "bn" ? "কুপন কোড (ঐচ্ছিক)" : "Coupon code (optional)"}
+                  value={couponCode}
+                  onChange={(e) => setCouponCode(e.target.value)}
+                  className="flex-1"
+                />
+                <Button variant="outline" disabled={!couponCode}>{language === "bn" ? "প্রয়োগ" : "Apply"}</Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Right: Sticky Summary (Desktop) */}
+        <div className="hidden lg:block">
+          <div className="sticky top-4 space-y-4">
+            <Card className="border-primary/20">
+              <CardContent className="p-5 space-y-4">
+                <h3 className="font-semibold text-foreground flex items-center gap-2">
+                  <ShoppingCart className="h-5 w-5" />
+                  {language === "bn" ? "অর্ডার সারাংশ" : "Order Summary"}
+                </h3>
+                <SummaryContent />
+                <Button
+                  className="w-full h-12 text-base gap-2"
+                  onClick={handleAddAllToCart}
+                  disabled={!hasSelection}
+                >
+                  <ShoppingCart className="h-5 w-5" />
+                  {hasSelection
+                    ? (language === "bn" ? `৳${grandTotal} — কার্টে যোগ করুন` : `৳${grandTotal} — Add to Cart`)
+                    : (language === "bn" ? "আইটেম নির্বাচন করুন" : "Select Items")}
+                </Button>
+                <Button
+                  variant="outline"
+                  className="w-full gap-2"
+                  onClick={() => { setManualPayType("room_management"); setManualPayOpen(true); }}
+                >
+                  <Banknote className="h-4 w-4" />
+                  {language === "bn" ? "ম্যানুয়াল পেমেন্ট" : "Pay Manually"}
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile: Sticky Bottom Summary Bar */}
+      {isMobile && (
+        <div className="fixed bottom-16 inset-x-0 z-40 bg-background border-t border-border shadow-lg">
+          {mobileSummaryExpanded && (
+            <div className="p-4 border-b border-border max-h-60 overflow-y-auto">
+              <SummaryContent />
+              <Button
+                variant="outline"
+                className="w-full mt-3 gap-2"
+                size="sm"
+                onClick={() => { setManualPayType("room_management"); setManualPayOpen(true); }}
+              >
+                <Banknote className="h-3.5 w-3.5" />
+                {language === "bn" ? "ম্যানুয়াল পেমেন্ট" : "Pay Manually"}
+              </Button>
+            </div>
+          )}
+          <div className="flex items-center gap-3 px-4 py-3">
+            <button
+              onClick={() => setMobileSummaryExpanded(!mobileSummaryExpanded)}
+              className="flex items-center gap-1 text-sm"
+            >
+              {mobileSummaryExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
+              <span className="font-bold text-lg text-primary">৳{grandTotal}</span>
+              {totalDiscount > 0 && <span className="text-xs text-green-600 ml-1">(-৳{totalDiscount})</span>}
+            </button>
+            <Button
+              className="flex-1 h-10 gap-2"
+              onClick={handleAddAllToCart}
+              disabled={!hasSelection}
+            >
+              <ShoppingCart className="h-4 w-4" />
+              {language === "bn" ? "কার্টে যোগ করুন" : "Add to Cart"}
+            </Button>
+          </div>
         </div>
       )}
 
+      {/* Dialogs */}
+      <ManualPaymentDialog open={manualPayOpen} onOpenChange={setManualPayOpen} productType={manualPayType} onSuccess={() => fetchData()} />
       <CartDrawer />
     </div>
   );

@@ -1,62 +1,79 @@
 
 
-# Remove 4 Free Rooms & Add 1-Month Full Trial on Registration
+# Tin Shed / Common Rental System Module
 
-## Current State
-- Landlords get **4 free room slots** hardcoded in `Rooms.tsx` (lines 172, 326) and `BulkRoomAddDialog.tsx` (line 369)
-- First-time tolet buyers get **2 free tolet slots** in `verify-subscription-payment` and `approve-manual-payment`
-- No trial subscription is created on user registration
-- `handle_new_user` trigger only creates profile + role
+## Summary
+Add a new property type "tin_shed" that represents shared-facility rental properties common in Bangladesh. When selected, the system simplifies room creation (no flat/unit options), stores common facility counts on the property, and auto-includes utilities in billing.
 
-## What Changes
+## Database Changes (1 migration)
 
-### 1. Remove all "4 free rooms" logic
-- **`src/pages/Rooms.tsx`** — Change `freeSlots = 4` → `0` and `freeRoomSlots = 4` → `0` (lines 172, 326)
-- **`src/components/rooms/BulkRoomAddDialog.tsx`** — Change `freeSlots = 4` → `0` (line 369)
-- Update display text that shows "(4+paid)" breakdown
-
-### 2. Remove "2 free tolet on first purchase" logic
-- **`supabase/functions/verify-subscription-payment/index.ts`** — Remove `handleFreeTolet()` function and its call
-- **`supabase/functions/approve-manual-payment/index.ts`** — Remove the similar free tolet insertion block
-
-### 3. Add 1-Month Full Trial on Landlord Registration
-Create a **database trigger** (or modify `handle_new_user`) that automatically inserts a trial subscription when a **landlord** registers:
-
-**Trial includes:**
-- 1 property (max)
-- 20 rooms
-- 5 to-let slots
-- All features unlocked
-- Duration: 30 days from registration
-- Product type: `trial` (new) or insert multiple `user_subscriptions` rows
-
-**Approach**: Modify the `handle_new_user` trigger to insert a trial `user_subscriptions` row for landlords:
+**Add columns to `properties` table:**
 ```sql
-IF NEW.raw_user_meta_data->>'role' = 'landlord' THEN
-  INSERT INTO user_subscriptions (user_id, plan_id, starts_at, expires_at, status,
-    product_type, room_count, tolet_count, duration_months)
-  VALUES (NEW.id, <default_plan_id>, now(), now() + interval '30 days', 'active',
-    'room_management', 20, 0, 1);
-  -- Plus tolet trial row
-  INSERT INTO user_subscriptions (...)
-  VALUES (NEW.id, ..., 'tolet', 0, 5, 1);
-END IF;
+ALTER TABLE properties
+  ADD COLUMN common_bathrooms integer NOT NULL DEFAULT 0,
+  ADD COLUMN common_washrooms integer NOT NULL DEFAULT 0,
+  ADD COLUMN common_kitchens integer NOT NULL DEFAULT 0,
+  ADD COLUMN common_stoves integer NOT NULL DEFAULT 0,
+  ADD COLUMN utilities_included boolean NOT NULL DEFAULT false;
 ```
 
-### 4. Property limit enforcement (max 1 during trial)
-- **`src/pages/Properties.tsx`** — Add a check: if user only has trial subscription, limit to 1 property. After trial expires or they buy a plan, no property limit (property count is not a subscription item currently — it's unlimited for paid users).
+No new tables needed. The existing `properties` and `rooms` tables handle everything. The `common_facilities` data lives as columns on `properties` (simpler than JSON for queries/display).
 
-### 5. Update Landing Page text
-- **`src/contexts/LanguageContext.tsx`** — Update `landing.free_1` from "৫টি রুম" to "২০টি রুম", `landing.free_2` keep "সব ফিচার", add "৫টি টু-লেট", update FAQ answer
+## Frontend Changes
 
-### Files to Modify
+### 1. `src/pages/Properties.tsx`
+- Add `"tin_shed"` to property type dropdown with label "টিনশেড / কমন" / "Tin Shed / Common"
+- Add `typeLabels.tin_shed`
+- When `property_type === "tin_shed"`:
+  - Show **Common Facilities section** with number inputs: bathrooms, washrooms, kitchens, stoves
+  - Show **Utilities Included** toggle (default: on)
+  - Hide irrelevant facilities (lift, generator, CCTV, etc.) — keep only gas, water, electricity
+- Update `defaultForm` to include new fields: `common_bathrooms: 0`, `common_washrooms: 0`, `common_kitchens: 0`, `common_stoves: 0`, `utilities_included: false`
+- Save/update these fields in create/update mutations
+- On property cards: show "🏠 টিনশেড" badge and common facility summary when type is tin_shed
+- Show occupancy rate badge (e.g., "10/15 ভাড়া দেওয়া")
+
+### 2. `src/components/rooms/RoomFormDialog.tsx`
+- Accept a new prop: `propertyType?: string`
+- When `propertyType === "tin_shed"`:
+  - Force `room_type = "room"` (hide type selector, no flat/shop)
+  - Hide bedrooms, bathrooms, drawing room, dining room, kitchen, balconies, area_sqft fields
+  - Show only: Room Number, Floor, Rent Amount, Description
+  - Show read-only info: "সব ইউটিলিটি ভাড়ায় অন্তর্ভুক্ত" (Utilities included in rent)
+
+### 3. `src/pages/Rooms.tsx`
+- Pass `propertyType` to `RoomFormDialog` based on selected property
+- On room cards for tin_shed properties:
+  - Show "কমন সুবিধা" badge
+  - Display shared facility counts from property data
+  - Show "ইউটিলিটি অন্তর্ভুক্ত" badge
+
+### 4. `src/components/rooms/BulkRoomAddDialog.tsx`
+- When property is tin_shed type, simplify the bulk form (only room number prefix + count + rent)
+
+### 5. Bills Logic (`src/pages/Bills.tsx` / bill generation)
+- When generating bills for tin_shed property rooms:
+  - Auto-set electricity, gas, water charges to 0
+  - Only charge rent_amount + optional other_charges
+  - Show "ইউটিলিটি অন্তর্ভুক্ত" label on bill
+
+### 6. To-Let Listing Display
+- When listing tin_shed rooms on to-let, show common facilities and "utilities included" badge
+
+## Files to Modify
+
 | File | Change |
 |------|--------|
-| `src/pages/Rooms.tsx` | `freeSlots = 0`, `freeRoomSlots = 0` |
-| `src/components/rooms/BulkRoomAddDialog.tsx` | `freeSlots = 0` |
-| `supabase/functions/verify-subscription-payment/index.ts` | Remove `handleFreeTolet` |
-| `supabase/functions/approve-manual-payment/index.ts` | Remove free tolet block |
-| DB migration | Update `handle_new_user` to insert trial subscriptions for landlords |
-| `src/contexts/LanguageContext.tsx` | Update trial-related landing text |
-| `src/pages/Properties.tsx` | Add max-1-property check during trial |
+| DB migration | Add 5 columns to `properties` |
+| `src/pages/Properties.tsx` | Add tin_shed type, common facilities form section, badges |
+| `src/components/rooms/RoomFormDialog.tsx` | Simplified form when tin_shed |
+| `src/pages/Rooms.tsx` | Pass propertyType, show facility badges |
+| `src/components/rooms/BulkRoomAddDialog.tsx` | Simplified bulk add for tin_shed |
+| `src/pages/Bills.tsx` | Zero utility charges for tin_shed |
+| `src/contexts/LanguageContext.tsx` | Add translation keys for tin_shed labels |
+
+## Not Changing
+- Tenant management — already links tenant → room → property, works as-is
+- No new tables or RLS policies needed
+- Existing property_type is a text column, so adding "tin_shed" needs no enum change
 

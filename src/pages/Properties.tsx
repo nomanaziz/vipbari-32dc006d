@@ -319,7 +319,12 @@ const Properties = () => {
         tolet_phone: values.tolet_phone,
         map_url: values.map_url,
         ...facilityData,
-      }).eq("id", values.id);
+        common_bathrooms: values.common_bathrooms,
+        common_washrooms: values.common_washrooms,
+        common_kitchens: values.common_kitchens,
+        common_stoves: values.common_stoves,
+        utilities_included: values.utilities_included,
+      } as any).eq("id", values.id);
       if (error) throw error;
       const client = supabase as any;
       await client.from("property_staff").delete().eq("property_id", values.id);

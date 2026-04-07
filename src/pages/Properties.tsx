@@ -419,6 +419,7 @@ const Properties = () => {
     house: t("property.house") || "House",
     apartment: t("property.apartment") || "Apartment",
     shop: t("property.shop") || "Shop",
+    tin_shed: language === "bn" ? "টিনশেড / কমন" : "Tin Shed / Common",
   };
 
   return (

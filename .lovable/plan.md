@@ -1,21 +1,22 @@
 
 
-# Fix: Dynamic Room Type Based on Selected Property
+# Tin Shed: Hide Room-Level Amenities, Show Only Property Facilities
 
 ## Problem
-When adding a room, if `selectedProperty` filter is "all", `propertyType` is `undefined` — so the fallback shows all options (room, flat, shop) regardless of property type. Even when the user picks a tin_shed or house property inside the dialog, "flat" still appears.
+Tin Shed properties have shared/common amenities — no individual room amenities like Drawing Room, Dining Room, Kitchen, Balcony, Roof Access, Bedrooms, Bathrooms, or Area. Currently these still appear in both the room form and the amenity badges display.
 
-## Fix
+## Changes
 
-### `src/components/rooms/RoomFormDialog.tsx`
-- Change `properties` prop type from `{ id: string; name: string }[]` to `{ id: string; name: string; property_type?: string }[]`
-- Derive `effectivePropertyType` from the form's `property_id` by looking up the property type from the `properties` array: `properties.find(p => p.id === form.property_id)?.property_type`
-- Use `effectivePropertyType` (falling back to `propertyType` prop) for the room type config lookup
-- When user changes `property_id` in the form, auto-update `room_type` to the new property's default
+### 1. `src/components/rooms/RoomFormDialog.tsx`
+Already partially done — the form hides bedrooms/bathrooms, amenity checkboxes, balconies, and area for tin_shed. Verify `isTinShed` is derived from `effectivePropertyType` (it is). **No changes needed** — form already handles this correctly.
 
-### `src/pages/Rooms.tsx`
-- Pass `property_type` in the `properties` array to `RoomFormDialog` (currently only passes `id` and `name`)
+### 2. `src/components/rooms/RoomAmenityBadges.tsx`
+- Accept `propertyType` prop (or derive from `property?.property_type`)
+- When `property_type === "tin_shed"`, skip all room-level amenities (bedrooms, bathrooms, kitchen, drawing room, dining room, balconies, roof access, area_sqft)
+- Only show property-level facilities (garage, internet, CCTV, lift, etc.)
 
-### `src/pages/admin/AdminRooms.tsx`
-- No change needed (admin doesn't use RoomFormDialog)
+### Files to Modify
+| File | Change |
+|------|--------|
+| `src/components/rooms/RoomAmenityBadges.tsx` | Skip room-level amenities for tin_shed, only show property facilities |
 

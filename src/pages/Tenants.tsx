@@ -217,7 +217,7 @@ const Tenants = () => {
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold">{translate("nav.tenants")}</h1>
+          <h1 className="text-xl sm:text-2xl font-bold">{t("nav.tenants")}</h1>
           <p className="text-xs sm:text-sm text-muted-foreground">
             {language === "bn" ? "মোট" : "Total"}: {totalTenants} | {language === "bn" ? "সক্রিয়" : "Active"}: {activeTenants} | {language === "bn" ? "আর্কাইভ" : "Archived"}: {releasedTenants}
           </p>

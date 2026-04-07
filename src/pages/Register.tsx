@@ -66,6 +66,25 @@ const Register = () => {
     }
   };
 
+  const handleDobChange = (value: string) => {
+    // Remove non-digits
+    const digits = value.replace(/\D/g, "").slice(0, 8);
+    let formatted = "";
+    if (digits.length <= 2) formatted = digits;
+    else if (digits.length <= 4) formatted = digits.slice(0, 2) + "-" + digits.slice(2);
+    else formatted = digits.slice(0, 2) + "-" + digits.slice(2, 4) + "-" + digits.slice(4);
+    setDateOfBirth(formatted);
+  };
+
+  const parseDob = (dob: string): Date | null => {
+    if (dob.length !== 10) return null;
+    const parsed = parse(dob, "dd-MM-yyyy", new Date());
+    if (!isValid(parsed)) return null;
+    const year = parsed.getFullYear();
+    if (year < 1920 || parsed > new Date()) return null;
+    return parsed;
+  };
+
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!phone || !pin || !name || !email || !dateOfBirth) {
@@ -77,15 +96,26 @@ const Register = () => {
       return;
     }
 
+    const birthDate = parseDob(dateOfBirth);
+    if (!birthDate) {
+      toast.error("সঠিক জন্ম তারিখ দিন (DD-MM-YYYY)");
+      return;
+    }
+    const age = differenceInYears(new Date(), birthDate);
+    if (age < 14) {
+      toast.error("রেজিস্ট্রেশনের জন্য বয়স কমপক্ষে ১৪ বছর হতে হবে");
+      return;
+    }
+
     setLoading(true);
 
-    // Check for duplicates first
     const canProceed = await checkDuplicate();
     if (!canProceed) {
       setLoading(false);
       return;
     }
 
+    const dobFormatted = `${dateOfBirth.slice(6, 10)}-${dateOfBirth.slice(3, 5)}-${dateOfBirth.slice(0, 2)}`;
     const role = activeTab === "tenant" ? "tenant" : "landlord";
     const { error } = await supabase.auth.signUp({
       email,
@@ -97,7 +127,7 @@ const Register = () => {
           role,
           phone,
           email,
-          date_of_birth: format(dateOfBirth, "yyyy-MM-dd"),
+          date_of_birth: dobFormatted,
         },
       },
     });

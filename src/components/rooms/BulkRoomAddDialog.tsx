@@ -294,10 +294,18 @@ const BulkRoomAddDialog = ({ properties, onSuccess }: Props) => {
     setDiffUnits(prev => prev.map(u => u.id === id ? { ...u, ...patch } : u));
   }, []);
 
+  const simpleCount = Math.max(0, Math.min(50, parseInt(simpleRoomCount) || 0));
+
   const totalRooms = useMemo(() => {
+    if (isSimpleMode) return simpleCount;
     if (unitMode === "same") return floorCount * units.length;
     return floorCount * diffUnits.length;
-  }, [unitMode, floorCount, units.length, diffUnits.length]);
+  }, [isSimpleMode, simpleCount, unitMode, floorCount, units.length, diffUnits.length]);
+
+  const simpleRoomType = effectivePropertyType === "shop" ? "shop" : "room";
+  const simpleLabel = effectivePropertyType === "shop" 
+    ? (language === "bn" ? "দোকান" : "Shop") 
+    : (language === "bn" ? "রুম" : "Room");
 
   const generateRoomNumber = (floor: number, unitLabel: string) => `${floor}${unitLabel}`;
 

@@ -75,8 +75,8 @@ export const formFromRoom = (r: any): RoomFormData => ({
   status: r.status || "vacant",
 });
 
-const RoomFormDialog = ({ open, onOpenChange, editing, properties, onSubmit, isPending, onReset }: RoomFormDialogProps) => {
-  const { t } = useLanguage();
+const RoomFormDialog = ({ open, onOpenChange, editing, properties, onSubmit, isPending, onReset, propertyType }: RoomFormDialogProps) => {
+  const { t, language } = useLanguage();
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [form, setForm] = useState<RoomFormData>(getDefaultForm(properties?.[0]?.id));

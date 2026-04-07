@@ -458,10 +458,10 @@ const LandlordDashboard = () => {
   })();
 
   const propertyStats = [
-    { label: t("dashboard.total_properties"), value: String(properties?.length || 0), icon: Building2, iconBg: "bg-pink-500", bg: "from-pink-50 to-pink-100" },
-    { label: t("dashboard.total_rooms"), value: String(totalRooms), icon: DoorOpen, iconBg: "bg-purple-500", bg: "from-purple-50 to-purple-100" },
-    { label: t("dashboard.occupied"), value: String(occupiedRooms), icon: TrendingUp, iconBg: "bg-emerald-500", bg: "from-emerald-50 to-emerald-100" },
-    { label: t("dashboard.vacant"), value: String(vacantRooms), icon: AlertCircle, iconBg: "bg-amber-500", bg: "from-amber-50 to-amber-100" },
+    { label: t("dashboard.total_properties"), value: String(properties?.length || 0), icon: Building2, iconBg: "bg-pink-500", bg: "from-pink-50 to-pink-100 dark:from-pink-950/40 dark:to-pink-900/20" },
+    { label: t("dashboard.total_rooms"), value: String(totalRooms), icon: DoorOpen, iconBg: "bg-purple-500", bg: "from-purple-50 to-purple-100 dark:from-purple-950/40 dark:to-purple-900/20" },
+    { label: t("dashboard.occupied"), value: String(occupiedRooms), icon: TrendingUp, iconBg: "bg-emerald-500", bg: "from-emerald-50 to-emerald-100 dark:from-emerald-950/40 dark:to-emerald-900/20" },
+    { label: t("dashboard.vacant"), value: String(vacantRooms), icon: AlertCircle, iconBg: "bg-amber-500", bg: "from-amber-50 to-amber-100 dark:from-amber-950/40 dark:to-amber-900/20" },
   ];
 
   const totalGarages = garages?.length || 0;
@@ -469,11 +469,11 @@ const LandlordDashboard = () => {
   const freeGarages = garages?.filter(g => g.status === "vacant").length || 0;
 
   const financialStats = [
-    { label: t("dashboard.total_tenants"), value: String(activeTenants), icon: Users, iconBg: "bg-violet-500", bg: "from-violet-50 to-violet-100" },
-    { label: language === "bn" ? "মোট বকেয়া" : "Total Due", value: `৳${totalDue.toLocaleString()}`, icon: AlertCircle, iconBg: "bg-red-500", bg: "from-red-50 to-red-100" },
-    { label: language === "bn" ? "মাসিক বিল" : "Monthly Bill", value: `৳${monthlyBill.toLocaleString()}`, icon: CreditCard, iconBg: "bg-blue-500", bg: "from-blue-50 to-blue-100" },
-    { label: language === "bn" ? "মোট আদায়" : "Total Received", value: `৳${totalReceived.toLocaleString()}`, icon: CheckCircle2, iconBg: "bg-emerald-500", bg: "from-emerald-50 to-emerald-100" },
-    { label: language === "bn" ? "মোট খরচ" : "Total Expense", value: `৳${totalExpense.toLocaleString()}`, icon: TrendingUp, iconBg: "bg-orange-500", bg: "from-orange-50 to-orange-100" },
+    { label: t("dashboard.total_tenants"), value: String(activeTenants), icon: Users, iconBg: "bg-violet-500", bg: "from-violet-50 to-violet-100 dark:from-violet-950/40 dark:to-violet-900/20" },
+    { label: language === "bn" ? "মোট বকেয়া" : "Total Due", value: `৳${totalDue.toLocaleString()}`, icon: AlertCircle, iconBg: "bg-red-500", bg: "from-red-50 to-red-100 dark:from-red-950/40 dark:to-red-900/20" },
+    { label: language === "bn" ? "মাসিক বিল" : "Monthly Bill", value: `৳${monthlyBill.toLocaleString()}`, icon: CreditCard, iconBg: "bg-blue-500", bg: "from-blue-50 to-blue-100 dark:from-blue-950/40 dark:to-blue-900/20" },
+    { label: language === "bn" ? "মোট আদায়" : "Total Received", value: `৳${totalReceived.toLocaleString()}`, icon: CheckCircle2, iconBg: "bg-emerald-500", bg: "from-emerald-50 to-emerald-100 dark:from-emerald-950/40 dark:to-emerald-900/20" },
+    { label: language === "bn" ? "মোট খরচ" : "Total Expense", value: `৳${totalExpense.toLocaleString()}`, icon: TrendingUp, iconBg: "bg-orange-500", bg: "from-orange-50 to-orange-100 dark:from-orange-950/40 dark:to-orange-900/20" },
   ];
 
   const garageStats = [

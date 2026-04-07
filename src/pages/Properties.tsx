@@ -19,6 +19,7 @@ import { toast } from "sonner";
 import { DIVISIONS, DIVISIONS_BN, DISTRICTS, DISTRICTS_BN, THANAS, THANAS_BN, getBnLabel } from "@/data/bangladeshAddress";
 import ImageUploader from "@/components/ImageUploader";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 
 type Property = {
   id: string;
@@ -52,6 +53,11 @@ type Property = {
   has_water_supply: boolean;
   has_rooftop_access: boolean;
   map_url: string;
+  common_bathrooms: number;
+  common_washrooms: number;
+  common_kitchens: number;
+  common_stoves: number;
+  utilities_included: boolean;
 };
 
 type PropertyImage = { id: string; image_url: string; sort_order: number; property_id: string };
@@ -69,6 +75,7 @@ const defaultForm = {
   tolet_phone: "", map_url: "",
   has_garage: false, has_internet: false, has_dish: false, has_security: false, has_cctv: false,
   has_lift: false, has_generator: false, has_parking: false, has_gas_supply: false, has_water_supply: false, has_rooftop_access: false,
+  common_bathrooms: 0, common_washrooms: 0, common_kitchens: 0, common_stoves: 0, utilities_included: false,
 };
 
 const Properties = () => {
@@ -264,7 +271,12 @@ const Properties = () => {
         tolet_phone: values.tolet_phone,
         map_url: values.map_url,
         ...facilityData,
-      }).select("id").single();
+        common_bathrooms: values.common_bathrooms,
+        common_washrooms: values.common_washrooms,
+        common_kitchens: values.common_kitchens,
+        common_stoves: values.common_stoves,
+        utilities_included: values.utilities_included,
+      } as any).select("id").single();
       if (error) throw error;
       // Save staff assignments for new property
       if (selectedStaff.length > 0) {
@@ -308,7 +320,12 @@ const Properties = () => {
         tolet_phone: values.tolet_phone,
         map_url: values.map_url,
         ...facilityData,
-      }).eq("id", values.id);
+        common_bathrooms: values.common_bathrooms,
+        common_washrooms: values.common_washrooms,
+        common_kitchens: values.common_kitchens,
+        common_stoves: values.common_stoves,
+        utilities_included: values.utilities_included,
+      } as any).eq("id", values.id);
       if (error) throw error;
       const client = supabase as any;
       await client.from("property_staff").delete().eq("property_id", values.id);
@@ -369,6 +386,11 @@ const Properties = () => {
       has_security: !!p.has_security, has_cctv: !!p.has_cctv, has_lift: !!p.has_lift,
       has_generator: !!p.has_generator, has_parking: !!p.has_parking, has_gas_supply: !!p.has_gas_supply,
       has_water_supply: !!p.has_water_supply, has_rooftop_access: !!p.has_rooftop_access,
+      common_bathrooms: (p as any).common_bathrooms || 0,
+      common_washrooms: (p as any).common_washrooms || 0,
+      common_kitchens: (p as any).common_kitchens || 0,
+      common_stoves: (p as any).common_stoves || 0,
+      utilities_included: !!(p as any).utilities_included,
     });
     setSelectedStaff(getStaffForProperty(p.id).map(ps => ps.staff_user_id));
     setOpen(true);
@@ -413,6 +435,7 @@ const Properties = () => {
     house: t("property.house") || "House",
     apartment: t("property.apartment") || "Apartment",
     shop: t("property.shop") || "Shop",
+    tin_shed: language === "bn" ? "টিনশেড / কমন" : "Tin Shed / Common",
   };
 
   return (
@@ -439,11 +462,12 @@ const Properties = () => {
                 <Label>{t("property.type")}</Label>
                 <Select value={form.property_type} onValueChange={v => setForm(f => ({ ...f, property_type: v }))}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
+                <SelectContent>
                     <SelectItem value="building">{typeLabels.building}</SelectItem>
                     <SelectItem value="house">{typeLabels.house}</SelectItem>
                     <SelectItem value="apartment">{typeLabels.apartment}</SelectItem>
                     <SelectItem value="shop">{typeLabels.shop}</SelectItem>
+                    <SelectItem value="tin_shed">{typeLabels.tin_shed}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -648,6 +672,48 @@ const Properties = () => {
                 </div>
               </div>
 
+              {/* Common Facilities - only for Tin Shed */}
+              {form.property_type === "tin_shed" && (
+                <div className="space-y-3 rounded-lg border p-4 bg-muted/30">
+                  <Label className="text-base font-semibold">
+                    {language === "bn" ? "🔁 কমন সুবিধাসমূহ" : "🔁 Common Facilities"}
+                  </Label>
+                  <p className="text-xs text-muted-foreground">
+                    {language === "bn" ? "এই সুবিধাগুলো সব রুমের জন্য শেয়ার্ড" : "These facilities are shared across all rooms"}
+                  </p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <Label className="text-sm">{language === "bn" ? "বাথরুম সংখ্যা" : "Bathrooms"}</Label>
+                      <Input type="number" min="0" value={form.common_bathrooms} onChange={e => setForm(f => ({ ...f, common_bathrooms: parseInt(e.target.value) || 0 }))} />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-sm">{language === "bn" ? "ওয়াশরুম সংখ্যা" : "Washrooms"}</Label>
+                      <Input type="number" min="0" value={form.common_washrooms} onChange={e => setForm(f => ({ ...f, common_washrooms: parseInt(e.target.value) || 0 }))} />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-sm">{language === "bn" ? "রান্নাঘর সংখ্যা" : "Kitchens"}</Label>
+                      <Input type="number" min="0" value={form.common_kitchens} onChange={e => setForm(f => ({ ...f, common_kitchens: parseInt(e.target.value) || 0 }))} />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-sm">{language === "bn" ? "চুলা সংখ্যা" : "Stoves (Chula)"}</Label>
+                      <Input type="number" min="0" value={form.common_stoves} onChange={e => setForm(f => ({ ...f, common_stoves: parseInt(e.target.value) || 0 }))} />
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between rounded-lg border p-3">
+                    <div>
+                      <Label className="text-sm font-medium">{language === "bn" ? "ইউটিলিটি অন্তর্ভুক্ত" : "Utilities Included"}</Label>
+                      <p className="text-xs text-muted-foreground">
+                        {language === "bn" ? "গ্যাস, পানি, বিদ্যুৎ ভাড়ায় অন্তর্ভুক্ত" : "Gas, water, electricity included in rent"}
+                      </p>
+                    </div>
+                    <Switch
+                      checked={form.utilities_included}
+                      onCheckedChange={(checked) => setForm(f => ({ ...f, utilities_included: checked }))}
+                    />
+                  </div>
+                </div>
+              )}
+
               {(staffMembers && staffMembers.length > 0) && (
                 <div className="space-y-3">
                   <Label className="text-base font-semibold flex items-center gap-1.5">
@@ -811,7 +877,28 @@ const Properties = () => {
                           <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
                             {typeLabels[p.property_type] || p.property_type}
                           </span>
+                          {p.property_type === "tin_shed" && (
+                            <>
+                              <Badge className="text-[10px] bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 border-amber-300">
+                                🏠 {language === "bn" ? "টিনশেড" : "Tin Shed"}
+                              </Badge>
+                              {(p as any).utilities_included && (
+                                <Badge variant="outline" className="text-[10px] font-normal border-emerald-400 text-emerald-700 dark:text-emerald-400">
+                                  ⚡ {language === "bn" ? "ইউটিলিটি অন্তর্ভুক্ত" : "Utilities Included"}
+                                </Badge>
+                              )}
+                            </>
+                          )}
                         </div>
+                        {/* Common Facilities for Tin Shed */}
+                        {p.property_type === "tin_shed" && ((p as any).common_bathrooms > 0 || (p as any).common_washrooms > 0 || (p as any).common_kitchens > 0 || (p as any).common_stoves > 0) && (
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {(p as any).common_bathrooms > 0 && <Badge variant="secondary" className="text-[10px]">🚿 {language === "bn" ? `${(p as any).common_bathrooms}টি বাথরুম` : `${(p as any).common_bathrooms} Bathrooms`}</Badge>}
+                            {(p as any).common_washrooms > 0 && <Badge variant="secondary" className="text-[10px]">🚻 {language === "bn" ? `${(p as any).common_washrooms}টি ওয়াশরুম` : `${(p as any).common_washrooms} Washrooms`}</Badge>}
+                            {(p as any).common_kitchens > 0 && <Badge variant="secondary" className="text-[10px]">🍳 {language === "bn" ? `${(p as any).common_kitchens}টি রান্নাঘর` : `${(p as any).common_kitchens} Kitchens`}</Badge>}
+                            {(p as any).common_stoves > 0 && <Badge variant="secondary" className="text-[10px]">🔥 {language === "bn" ? `${(p as any).common_stoves}টি চুলা` : `${(p as any).common_stoves} Stoves`}</Badge>}
+                          </div>
+                        )}
                         {/* Nearby Services badges */}
                         {(p.nearest_police_station || p.nearest_fire_service || p.nearest_electricity_office) && (
                           <div className="flex flex-wrap gap-1 mt-2">

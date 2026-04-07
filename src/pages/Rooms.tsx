@@ -80,7 +80,7 @@ const Rooms = () => {
   const { data: properties } = useQuery({
     queryKey: ["properties", effectiveOwnerId],
     queryFn: async () => {
-      const { data } = await supabase.from("properties").select("id, name").eq("owner_id", effectiveOwnerId!);
+      const { data } = await supabase.from("properties").select("id, name, property_type, common_bathrooms, common_washrooms, common_kitchens, common_stoves, utilities_included").eq("owner_id", effectiveOwnerId!);
       return data || [];
     },
     enabled: !!effectiveOwnerId,
@@ -496,6 +496,7 @@ const Rooms = () => {
             onSubmit={handleSubmit}
             isPending={createMutation.isPending || updateMutation.isPending}
             onReset={() => setEditing(null)}
+            propertyType={selectedProperty !== "all" ? properties?.find(p => p.id === selectedProperty)?.property_type : (editing ? properties?.find(p => p.id === editing.property_id)?.property_type : undefined)}
           />
         </div>
       </div>
@@ -719,6 +720,8 @@ const Rooms = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                   {group.rooms.map((r: any) => {
                     const isDeactivated = !hasRoomSub || r.status === "inactive";
+                    const roomProperty = properties?.find(p => p.id === r.property_id);
+                    const isTinShed = roomProperty?.property_type === "tin_shed";
                     return (
                     <Card key={r.id} className={cn("hover:shadow-md transition-shadow overflow-hidden", isDeactivated && "opacity-60")}>
                       {/* Default room type image/icon header */}
@@ -768,6 +771,23 @@ const Rooms = () => {
                             </p>
                             <p className="text-sm font-medium mt-1">৳{Number(r.rent_amount).toLocaleString()}/{t("bill.month") || "month"}</p>
                             <RoomAmenityBadges room={r} compact />
+                            {isTinShed && (
+                              <div className="flex flex-wrap gap-1 mt-1">
+                                <Badge className="text-[10px] bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 border-amber-300">
+                                  🏠 {language === "bn" ? "টিনশেড" : "Tin Shed"}
+                                </Badge>
+                                {(roomProperty as any)?.utilities_included && (
+                                  <Badge variant="outline" className="text-[10px] border-emerald-400 text-emerald-700 dark:text-emerald-400">
+                                    ⚡ {language === "bn" ? "ইউটিলিটি অন্তর্ভুক্ত" : "Utilities Included"}
+                                  </Badge>
+                                )}
+                                {((roomProperty as any)?.common_bathrooms > 0 || (roomProperty as any)?.common_kitchens > 0) && (
+                                  <Badge variant="secondary" className="text-[10px]">
+                                    🔁 {language === "bn" ? "কমন সুবিধা" : "Shared Facilities"}
+                                  </Badge>
+                                )}
+                              </div>
+                            )}
 
                             {!hasRoomSub ? (
                               <div className="mt-2 space-y-1">

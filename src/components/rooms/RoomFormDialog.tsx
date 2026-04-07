@@ -182,17 +182,19 @@ const RoomFormDialog = ({ open, onOpenChange, editing, properties, onSubmit, isP
               <Label>{t("room.number")}</Label>
               <Input value={form.room_number} onChange={e => setForm(f => ({ ...f, room_number: e.target.value }))} required />
             </div>
-            <div className="space-y-2">
-              <Label>{t("room.type")}</Label>
-              <Select value={form.room_type} onValueChange={v => setForm(f => ({ ...f, room_type: v }))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="room">{roomTypeLabels.room}</SelectItem>
-                  <SelectItem value="flat">{roomTypeLabels.flat}</SelectItem>
-                  <SelectItem value="shop">{roomTypeLabels.shop}</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            {!isTinShed && (
+              <div className="space-y-2">
+                <Label>{t("room.type")}</Label>
+                <Select value={form.room_type} onValueChange={v => setForm(f => ({ ...f, room_type: v }))}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="room">{roomTypeLabels.room}</SelectItem>
+                    <SelectItem value="flat">{roomTypeLabels.flat}</SelectItem>
+                    <SelectItem value="shop">{roomTypeLabels.shop}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -206,50 +208,70 @@ const RoomFormDialog = ({ open, onOpenChange, editing, properties, onSubmit, isP
             </div>
           </div>
 
-          {/* Bedrooms / Bathrooms */}
-          <div className="grid grid-cols-2 gap-4">
+          {/* Tin Shed: utilities included info */}
+          {isTinShed && (
+            <div className="rounded-lg border border-emerald-300 bg-emerald-50 dark:bg-emerald-900/20 dark:border-emerald-800 p-3">
+              <p className="text-sm font-medium text-emerald-700 dark:text-emerald-400">
+                ⚡ {language === "bn" ? "সব ইউটিলিটি ভাড়ায় অন্তর্ভুক্ত (গ্যাস, পানি, বিদ্যুৎ)" : "All utilities included in rent (gas, water, electricity)"}
+              </p>
+              <p className="text-xs text-emerald-600 dark:text-emerald-500 mt-1">
+                🔁 {language === "bn" ? "বাথরুম, রান্নাঘর, ওয়াশরুম — সব কমন/শেয়ার্ড" : "Bathroom, kitchen, washroom — all common/shared"}
+              </p>
+            </div>
+          )}
+
+          {/* Bedrooms / Bathrooms - hide for tin_shed */}
+          {!isTinShed && (
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>{t("room.bedrooms")}</Label>
+                <Input type="number" min="0" value={form.bedrooms} onChange={e => setForm(f => ({ ...f, bedrooms: e.target.value }))} />
+              </div>
+              <div className="space-y-2">
+                <Label>{t("room.bathrooms")}</Label>
+                <Input type="number" min="0" value={form.bathrooms} onChange={e => setForm(f => ({ ...f, bathrooms: e.target.value }))} />
+              </div>
+            </div>
+          )}
+
+          {/* Amenity checkboxes - hide for tin_shed */}
+          {!isTinShed && (
             <div className="space-y-2">
-              <Label>{t("room.bedrooms")}</Label>
-              <Input type="number" min="0" value={form.bedrooms} onChange={e => setForm(f => ({ ...f, bedrooms: e.target.value }))} />
+              <Label>{t("room.amenities")}</Label>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {([
+                  ["has_drawing_room", t("room.drawing_room")],
+                  ["has_dining_room", t("room.dining_room")],
+                  ["has_kitchen", t("room.kitchen")],
+                  ["has_roof_access", t("room.roof_access")],
+                ] as const).map(([key, label]) => (
+                  <div key={key} className="flex items-center gap-2">
+                    <Checkbox
+                      checked={(form as any)[key]}
+                      onCheckedChange={(checked) => setForm(f => ({ ...f, [key]: !!checked }))}
+                    />
+                    <span className="text-sm">{label}</span>
+                  </div>
+                ))}
+              </div>
             </div>
+          )}
+
+          {/* Balconies - hide for tin_shed */}
+          {!isTinShed && (
             <div className="space-y-2">
-              <Label>{t("room.bathrooms")}</Label>
-              <Input type="number" min="0" value={form.bathrooms} onChange={e => setForm(f => ({ ...f, bathrooms: e.target.value }))} />
+              <Label>{t("room.balcony")}</Label>
+              <Input type="number" min="0" value={form.balconies} onChange={e => setForm(f => ({ ...f, balconies: e.target.value }))} />
             </div>
-          </div>
+          )}
 
-          {/* Amenity checkboxes */}
-          <div className="space-y-2">
-            <Label>{t("room.amenities")}</Label>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              {([
-                ["has_drawing_room", t("room.drawing_room")],
-                ["has_dining_room", t("room.dining_room")],
-                ["has_kitchen", t("room.kitchen")],
-                ["has_roof_access", t("room.roof_access")],
-              ] as const).map(([key, label]) => (
-                <div key={key} className="flex items-center gap-2">
-                  <Checkbox
-                    checked={(form as any)[key]}
-                    onCheckedChange={(checked) => setForm(f => ({ ...f, [key]: !!checked }))}
-                  />
-                  <span className="text-sm">{label}</span>
-                </div>
-              ))}
+          {/* Area - hide for tin_shed */}
+          {!isTinShed && (
+            <div className="space-y-2">
+              <Label>{t("room.area_sqft")}</Label>
+              <Input type="number" min="0" value={form.area_sqft} onChange={e => setForm(f => ({ ...f, area_sqft: e.target.value }))} />
             </div>
-          </div>
-
-          {/* Balconies */}
-          <div className="space-y-2">
-            <Label>{t("room.balcony")}</Label>
-            <Input type="number" min="0" value={form.balconies} onChange={e => setForm(f => ({ ...f, balconies: e.target.value }))} />
-          </div>
-
-          {/* Area + Description */}
-          <div className="space-y-2">
-            <Label>{t("room.area_sqft")}</Label>
-            <Input type="number" min="0" value={form.area_sqft} onChange={e => setForm(f => ({ ...f, area_sqft: e.target.value }))} />
-          </div>
+          )}
           <div className="space-y-2">
             <Label>{t("room.description")}</Label>
             <Textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} rows={2} />

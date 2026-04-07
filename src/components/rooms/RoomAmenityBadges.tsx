@@ -57,7 +57,7 @@ const RoomAmenityBadges = ({ room, property, compact = false }: RoomAmenityBadge
           {item}
         </Badge>
       ))}
-      {room.area_sqft > 0 && (
+      {!isTinShed && room.area_sqft > 0 && (
         <Badge variant="outline" className="text-xs">{room.area_sqft} sqft</Badge>
       )}
       {facilities.map((fac) => (

@@ -45,7 +45,9 @@ const TenantFamily = () => {
   const [uploading, setUploading] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const docRef = useRef<HTMLInputElement>(null);
+  const docCamRef = useRef<HTMLInputElement>(null);
   const photoRef = useRef<HTMLInputElement>(null);
+  const photoCamRef = useRef<HTMLInputElement>(null);
 
   const { data: tenant } = useQuery({
     queryKey: ["my-tenant-record", user?.id],

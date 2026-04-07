@@ -78,14 +78,23 @@ const SettingsPage = () => {
     }
   });
 
-  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !user) return;
+    if (!file) return;
+    setCropFile(file);
+    setCropOpen(true);
+    if (fileRef.current) fileRef.current.value = "";
+    if (cameraRef.current) cameraRef.current.value = "";
+  };
+
+  const handleCroppedUpload = async (blob: Blob) => {
+    setCropOpen(false);
+    setCropFile(null);
+    if (!user) return;
     setUploadingAvatar(true);
     try {
-      const compressed = await compressImage(file);
       const filePath = `${user.id}/avatar.jpg`;
-      await supabase.storage.from("avatars").upload(filePath, compressed, { contentType: "image/jpeg", upsert: true });
+      await supabase.storage.from("avatars").upload(filePath, blob, { contentType: "image/jpeg", upsert: true });
       const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(filePath);
       const avatarUrl = `${urlData.publicUrl}?t=${Date.now()}`;
       await supabase.from("profiles").update({ avatar_url: avatarUrl }).eq("user_id", user.id);
@@ -95,7 +104,6 @@ const SettingsPage = () => {
       toast.error(err.message);
     } finally {
       setUploadingAvatar(false);
-      if (fileRef.current) fileRef.current.value = "";
     }
   };
 

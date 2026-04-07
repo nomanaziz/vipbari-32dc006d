@@ -2,7 +2,7 @@ import { useTheme } from "@/contexts/ThemeContext";
 import {
   LayoutDashboard, Users, Building2, DoorOpen,
   Receipt, Settings, CreditCard, Package, Gauge, Video, ShoppingCart, FileText, Megaphone, Globe,
-  ShoppingBag, ChevronDown, Home, UserCheck, Shield,
+  ShoppingBag, ChevronDown, Home, UserCheck, Shield, ShieldBan,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation, useSearchParams } from "react-router-dom";

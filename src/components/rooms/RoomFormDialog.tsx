@@ -195,15 +195,15 @@ const RoomFormDialog = ({ open, onOpenChange, editing, properties, onSubmit, isP
               <Label>{t("room.number")}</Label>
               <Input value={form.room_number} onChange={e => setForm(f => ({ ...f, room_number: e.target.value }))} required />
             </div>
-            {!isTinShed && (
+            {showRoomTypeSelector && (
               <div className="space-y-2">
                 <Label>{t("room.type")}</Label>
                 <Select value={form.room_type} onValueChange={v => setForm(f => ({ ...f, room_type: v }))}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="room">{roomTypeLabels.room}</SelectItem>
-                    <SelectItem value="flat">{roomTypeLabels.flat}</SelectItem>
-                    <SelectItem value="shop">{roomTypeLabels.shop}</SelectItem>
+                    {availableRoomTypes.map(type => (
+                      <SelectItem key={type} value={type}>{roomTypeLabels[type]}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>

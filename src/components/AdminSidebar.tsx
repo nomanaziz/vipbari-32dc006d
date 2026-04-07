@@ -51,6 +51,7 @@ const menuGroups = [
       { title: "admin.ads", url: "/admin/ads", icon: Megaphone, adminOnly: true, color: "text-orange-500" },
       { title: "admin.landing", url: "/admin/landing", icon: Globe, adminOnly: true, color: "text-teal-500" },
       { title: "admin.settings", url: "/admin/settings", icon: Settings, adminOnly: true, color: "text-slate-500" },
+      { title: "Blocks", url: "/admin/blocks", icon: ShieldBan, adminOnly: true, color: "text-red-500" },
     ],
   },
   {

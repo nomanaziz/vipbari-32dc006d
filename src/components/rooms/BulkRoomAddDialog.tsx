@@ -181,7 +181,7 @@ const UnitCard = ({
 );
 
 const BulkRoomAddDialog = ({ properties, onSuccess }: Props) => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [open, setOpen] = useState(false);
   const [propertyId, setPropertyId] = useState(properties?.[0]?.id || "");
   const [floorFrom, setFloorFrom] = useState("1");
@@ -189,6 +189,14 @@ const BulkRoomAddDialog = ({ properties, onSuccess }: Props) => {
   const [unitMode, setUnitMode] = useState<"same" | "different">("same");
   const [units, setUnits] = useState<UnitTemplate[]>([defaultUnit()]);
   const [isPending, setIsPending] = useState(false);
+
+  // Simple mode state (for tin_shed/house/shop)
+  const [simpleRoomCount, setSimpleRoomCount] = useState("10");
+  const [simpleRent, setSimpleRent] = useState("0");
+
+  // Derive property type
+  const effectivePropertyType = properties.find(p => p.id === propertyId)?.property_type;
+  const isSimpleMode = effectivePropertyType === "tin_shed" || effectivePropertyType === "house" || effectivePropertyType === "shop";
 
   // New state for enhanced features
   const [unitsPerFloor, setUnitsPerFloor] = useState("1");

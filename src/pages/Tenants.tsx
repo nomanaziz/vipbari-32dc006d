@@ -444,7 +444,26 @@ const Tenants = () => {
                               <ArrowRightLeft className="h-3.5 w-3.5 mr-2" />
                               {language === "bn" ? "রুম শিফট" : "Room Shift"}
                             </DropdownMenuItem>
-                          </>
+                            {tenant.user_id && tenant.user_id !== user?.id && (
+                              <DropdownMenuItem
+                                className="text-destructive"
+                                onClick={async () => {
+                                  try {
+                                    await supabase.from("user_blocks").insert({
+                                      blocker_id: user!.id,
+                                      blocked_id: tenant.user_id,
+                                      reason: "",
+                                    });
+                                    toast.success(language === "bn" ? "ব্লক করা হয়েছে" : "User blocked");
+                                  } catch (e: any) {
+                                    toast.error(e.message);
+                                  }
+                                }}
+                              >
+                                <ShieldBan className="h-3.5 w-3.5 mr-2" />
+                                {language === "bn" ? "ব্লক করুন" : "Block"}
+                              </DropdownMenuItem>
+                            )}
                         )}
                         {released && (
                           <DropdownMenuItem onClick={() => reactivateMutation.mutate(tenant)}>

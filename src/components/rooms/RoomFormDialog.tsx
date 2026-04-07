@@ -45,7 +45,7 @@ interface RoomFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   editing: any;
-  properties: { id: string; name: string }[];
+  properties: { id: string; name: string; property_type?: string }[];
   onSubmit: (form: RoomFormData) => void;
   isPending: boolean;
   onReset: () => void;

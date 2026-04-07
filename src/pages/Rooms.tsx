@@ -720,6 +720,8 @@ const Rooms = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                   {group.rooms.map((r: any) => {
                     const isDeactivated = !hasRoomSub || r.status === "inactive";
+                    const roomProperty = properties?.find(p => p.id === r.property_id);
+                    const isTinShed = roomProperty?.property_type === "tin_shed";
                     return (
                     <Card key={r.id} className={cn("hover:shadow-md transition-shadow overflow-hidden", isDeactivated && "opacity-60")}>
                       {/* Default room type image/icon header */}

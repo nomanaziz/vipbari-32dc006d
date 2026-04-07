@@ -496,6 +496,7 @@ const Rooms = () => {
             onSubmit={handleSubmit}
             isPending={createMutation.isPending || updateMutation.isPending}
             onReset={() => setEditing(null)}
+            propertyType={selectedProperty !== "all" ? properties?.find(p => p.id === selectedProperty)?.property_type : (editing ? properties?.find(p => p.id === editing.property_id)?.property_type : undefined)}
           />
         </div>
       </div>

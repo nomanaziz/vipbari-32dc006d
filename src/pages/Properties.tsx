@@ -270,7 +270,12 @@ const Properties = () => {
         tolet_phone: values.tolet_phone,
         map_url: values.map_url,
         ...facilityData,
-      }).select("id").single();
+        common_bathrooms: values.common_bathrooms,
+        common_washrooms: values.common_washrooms,
+        common_kitchens: values.common_kitchens,
+        common_stoves: values.common_stoves,
+        utilities_included: values.utilities_included,
+      } as any).select("id").single();
       if (error) throw error;
       // Save staff assignments for new property
       if (selectedStaff.length > 0) {

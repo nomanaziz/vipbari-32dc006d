@@ -54,14 +54,35 @@ Deno.serve(async (req) => {
       }
     });
 
+    // Get property info for utilities_included check
+    const roomIds = [...new Set((tenants || []).filter((t: any) => t.room_id).map((t: any) => t.room_id))];
+    const { data: roomsData } = await supabase
+      .from("rooms")
+      .select("id, property_id")
+      .in("id", roomIds.length > 0 ? roomIds : ["none"]);
+    const roomPropertyMap = new Map<string, string>();
+    (roomsData || []).forEach((r: any) => roomPropertyMap.set(r.id, r.property_id));
+
+    const propertyIds = [...new Set([...roomPropertyMap.values()])];
+    const { data: propsData } = await supabase
+      .from("properties")
+      .select("id, utilities_included, property_type")
+      .in("id", propertyIds.length > 0 ? propertyIds : ["none"]);
+    const propertyMap = new Map<string, any>();
+    (propsData || []).forEach((p: any) => propertyMap.set(p.id, p));
+
     const newBills = (tenants || [])
       .filter((t: any) => !existingTenantIds.has(t.id) && t.rooms)
       .map((t: any) => {
         const cfg = utilityMap.get(t.owner_id);
         const rent = Number(t.rooms.rent_amount) || 0;
-        const elec = cfg?.electricity?.enabled ? Number(cfg.electricity.rate) || 0 : 0;
-        const water = cfg?.water?.enabled ? Number(cfg.water.rate) || 0 : 0;
-        const gas = cfg?.gas?.enabled ? Number(cfg.gas.rate) || 0 : 0;
+        const propId = roomPropertyMap.get(t.room_id);
+        const prop = propId ? propertyMap.get(propId) : null;
+        const utilitiesIncluded = prop?.utilities_included || prop?.property_type === "tin_shed";
+
+        const elec = utilitiesIncluded ? 0 : (cfg?.electricity?.enabled ? Number(cfg.electricity.rate) || 0 : 0);
+        const water = utilitiesIncluded ? 0 : (cfg?.water?.enabled ? Number(cfg.water.rate) || 0 : 0);
+        const gas = utilitiesIncluded ? 0 : (cfg?.gas?.enabled ? Number(cfg.gas.rate) || 0 : 0);
         const wifi = cfg?.wifi?.enabled ? Number(cfg.wifi.rate) || 0 : 0;
         const generator = cfg?.generator?.enabled ? Number(cfg.generator.rate) || 0 : 0;
         const security = cfg?.security?.enabled ? Number(cfg.security.rate) || 0 : 0;

@@ -230,7 +230,7 @@ export default function MyListings() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredListings.map((l: any) => {
-            const img = (l.sale_listing_images || []).sort((a: any, b: any) => a.sort_order - b.sort_order)[0]?.image_url || "/images/default-room.png";
+            const img = (l.sale_listing_images || []).sort((a: any, b: any) => a.sort_order - b.sort_order)[0]?.image_url || getDefaultImage(l.property_type);
             const requests = getRequestsForListing(l.id);
             const pendingCount = requests.filter((r: any) => r.status === "pending").length;
             const isSold = l.status === "sold";

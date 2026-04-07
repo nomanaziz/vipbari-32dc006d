@@ -141,7 +141,7 @@ export default function SaleListingDetail() {
   );
 
   const images = listing.images || [];
-  const mainImage = images[selectedImg]?.image_url || "/placeholder.svg";
+  const mainImage = images[selectedImg]?.image_url || getDefaultImage(listing.property_type);
   const isOwner = user?.id === listing.owner_id;
 
   const typeLabels: Record<string, string> = {

@@ -31,7 +31,7 @@ interface SaleListingCardProps {
 export function SaleListingCard({ listing, isFavorited, onToggleFavorite, showActions = true }: SaleListingCardProps) {
   const { language } = useLanguage();
   const navigate = useNavigate();
-  const imageUrl = listing.images?.[0]?.image_url || "/placeholder.svg";
+  const imageUrl = listing.images?.[0]?.image_url || getDefaultImage(listing.property_type);
 
   const typeLabels: Record<string, string> = {
     flat: language === "bn" ? "ফ্ল্যাট" : "Flat",

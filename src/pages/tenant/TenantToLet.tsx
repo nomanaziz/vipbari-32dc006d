@@ -183,7 +183,7 @@ const TenantToLet = () => {
   const renderListingCard = (item: any, isBoosted: boolean) => {
     const isGarage = item._type === "garage";
     const room = item;
-    const displayImage = isGarage ? "/images/default-garage.png" : "/images/default-room.png";
+    const displayImage = isGarage ? getDefaultImage("garage") : getDefaultImage(room.room_type);
     const label = isGarage ? item.garage_number : room.room_number;
     const mapLink = getMapLink(item.properties);
 

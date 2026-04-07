@@ -203,7 +203,7 @@ const ToLet = () => {
     const isGarage = item._type === "garage";
     const room = item;
     const images = isGarage ? [] : (room.room_images || []).sort((a: any, b: any) => a.sort_order - b.sort_order);
-    const displayImage = isGarage ? "/images/default-garage.png" : (images[0]?.image_url || "/images/default-room.png");
+    const displayImage = isGarage ? getDefaultImage("garage") : (images[0]?.image_url || getDefaultImage(room.room_type));
     const label = isGarage ? item.garage_number : room.room_number;
     const mapLink = getMapLink(item.properties);
 

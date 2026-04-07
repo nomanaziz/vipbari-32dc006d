@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { User, MapPin, FileText, Save, Loader2, Upload, X, Camera, ImagePlus } from "lucide-react";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import ImageCropDialog from "@/components/ImageCropDialog";
 import {
   DIVISIONS, DIVISIONS_BN, DISTRICTS, DISTRICTS_BN, THANAS, THANAS_BN,
 } from "@/data/bangladeshAddress";
@@ -40,6 +41,8 @@ const TenantProfile = () => {
   const avatarRef = useRef<HTMLInputElement>(null);
   const avatarCamRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState<string | null>(null);
+  const [cropFile, setCropFile] = useState<File | null>(null);
+  const [cropOpen, setCropOpen] = useState(false);
 
   const { data: tenant, isLoading } = useQuery({
     queryKey: ["my-tenant-profile", user?.id],
@@ -164,24 +167,20 @@ const TenantProfile = () => {
     }
   };
 
-  const uploadAvatar = async (file: File) => {
-    if (!file || !user) return;
+  const handleAvatarSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setCropFile(file);
+    setCropOpen(true);
+    e.target.value = "";
+  };
+
+  const handleCroppedAvatar = async (blob: Blob) => {
+    setCropOpen(false);
+    setCropFile(null);
+    if (!user) return;
     setUploading("avatar");
     try {
-      const canvas = document.createElement("canvas");
-      const ctx = canvas.getContext("2d")!;
-      const img = new Image();
-      await new Promise<void>((resolve, reject) => {
-        img.onload = () => resolve();
-        img.onerror = reject;
-        img.src = URL.createObjectURL(file);
-      });
-      const maxW = 400;
-      const scale = Math.min(maxW / img.width, 1);
-      canvas.width = img.width * scale;
-      canvas.height = img.height * scale;
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      const blob = await new Promise<Blob>((resolve) => canvas.toBlob((b) => resolve(b!), "image/jpeg", 0.8));
       const path = `${user.id}/avatar-${Date.now()}.jpg`;
       const { error } = await supabase.storage.from("avatars").upload(path, blob, { contentType: "image/jpeg", upsert: true });
       if (error) throw error;
@@ -264,8 +263,9 @@ const TenantProfile = () => {
                 {language === "bn" ? "গ্যালারি" : "Gallery"}
               </Button>
             </div>
-            <input ref={avatarCamRef} type="file" accept="image/*" capture="user" className="hidden" onChange={(e) => e.target.files?.[0] && uploadAvatar(e.target.files[0])} />
-            <input ref={avatarRef} type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && uploadAvatar(e.target.files[0])} />
+            <input ref={avatarCamRef} type="file" accept="image/*" capture="user" className="hidden" onChange={handleAvatarSelect} />
+            <input ref={avatarRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarSelect} />
+            <ImageCropDialog file={cropFile} open={cropOpen} onClose={() => { setCropOpen(false); setCropFile(null); }} onCropComplete={handleCroppedAvatar} />
           </CardContent>
         </Card>
 

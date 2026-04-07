@@ -16,6 +16,7 @@ import PaymentAccountCard from "@/components/settings/PaymentAccountCard";
 import { ColorPresetPicker } from "@/components/ColorPresetPicker";
 import UtilitySettingsTab from "@/components/settings/UtilitySettingsTab";
 import AdvanceSettingsTab from "@/components/settings/AdvanceSettingsTab";
+import ImageCropDialog from "@/components/ImageCropDialog";
 
 const MAX_WIDTH = 1200;
 const JPEG_QUALITY = 0.7;
@@ -66,6 +67,8 @@ const SettingsPage = () => {
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const cameraRef = useRef<HTMLInputElement>(null);
+  const [cropFile, setCropFile] = useState<File | null>(null);
+  const [cropOpen, setCropOpen] = useState(false);
 
   useState(() => {
     if (profile) {
@@ -75,14 +78,23 @@ const SettingsPage = () => {
     }
   });
 
-  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !user) return;
+    if (!file) return;
+    setCropFile(file);
+    setCropOpen(true);
+    if (fileRef.current) fileRef.current.value = "";
+    if (cameraRef.current) cameraRef.current.value = "";
+  };
+
+  const handleCroppedUpload = async (blob: Blob) => {
+    setCropOpen(false);
+    setCropFile(null);
+    if (!user) return;
     setUploadingAvatar(true);
     try {
-      const compressed = await compressImage(file);
       const filePath = `${user.id}/avatar.jpg`;
-      await supabase.storage.from("avatars").upload(filePath, compressed, { contentType: "image/jpeg", upsert: true });
+      await supabase.storage.from("avatars").upload(filePath, blob, { contentType: "image/jpeg", upsert: true });
       const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(filePath);
       const avatarUrl = `${urlData.publicUrl}?t=${Date.now()}`;
       await supabase.from("profiles").update({ avatar_url: avatarUrl }).eq("user_id", user.id);
@@ -92,7 +104,6 @@ const SettingsPage = () => {
       toast.error(err.message);
     } finally {
       setUploadingAvatar(false);
-      if (fileRef.current) fileRef.current.value = "";
     }
   };
 
@@ -225,8 +236,9 @@ const SettingsPage = () => {
                     </Button>
                   </div>
                 </div>
-                <input ref={cameraRef} type="file" accept="image/*" capture="user" className="hidden" onChange={handleAvatarUpload} disabled={uploadingAvatar} />
-                <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} disabled={uploadingAvatar} />
+                <input ref={cameraRef} type="file" accept="image/*" capture="user" className="hidden" onChange={handleAvatarSelect} disabled={uploadingAvatar} />
+                <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarSelect} disabled={uploadingAvatar} />
+                <ImageCropDialog file={cropFile} open={cropOpen} onClose={() => { setCropOpen(false); setCropFile(null); }} onCropComplete={handleCroppedUpload} />
               </div>
 
               <div className="space-y-4">

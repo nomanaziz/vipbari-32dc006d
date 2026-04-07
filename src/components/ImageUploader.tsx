@@ -2,7 +2,7 @@ import { useState, useRef, useCallback } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { ImagePlus, X, Loader2 } from "lucide-react";
+import { ImagePlus, X, Loader2, Camera } from "lucide-react";
 import { toast } from "sonner";
 
 interface ImageUploaderProps {

@@ -1,31 +1,66 @@
 
 
-# Replace Calendar with DD-MM-YYYY Text Input & Min Age 14
+# Reorder Sidebar Menu + Drag & Drop Menu Ordering
 
-## Changes
+## 1. Fixed Menu Reorder
 
-**File: `src/pages/Register.tsx`**
+Change the `landlordGroups` array order in `AppSidebar.tsx` from:
+```
+Home → Property → Tenant → Finance → Communication → Administration
+```
+to:
+```
+Home → Tenant Management → Finance → Communication → Property Management → Administration
+```
 
-1. Replace `dateOfBirth` state from `Date | undefined` to a string `""` (DD-MM-YYYY format)
-2. Remove Calendar/Popover imports (`Popover`, `PopoverContent`, `PopoverTrigger`, `Calendar`, `CalendarDays`, `cn`)
-3. Replace the Popover+Calendar block (lines 206-243) with a simple `<Input>` field:
-   - Placeholder: `DD-MM-YYYY`
-   - Icon: calendar icon (CalendarDays)
-   - Max length 10, pattern-guided input
-4. Add a helper to parse DD-MM-YYYY string to Date for validation
-5. Add age validation in `handleRegister`: parse the typed date, check user is at least 14 years old, show error toast if under 14
-6. Convert typed DD-MM-YYYY to `yyyy-MM-dd` format when sending to Supabase signup metadata
-7. Remove unused imports: `Popover`, `PopoverContent`, `PopoverTrigger`, `Calendar`, `cn`, `format` (if no longer needed elsewhere)
+Also reorder the same groups in `MobileBottomNav.tsx` "More" sheet to match.
 
-## Validation Logic
+## 2. Drag & Drop Menu Ordering System
 
-- Parse `DD-MM-YYYY` → check valid date (day/month ranges, leap year)
-- Calculate age: compare birth date to today
-- If age < 14 → toast error "You must be at least 14 years old to register" / "রেজিস্ট্রেশনের জন্য বয়স কমপক্ষে ১৪ বছর হতে হবে"
-- Keep existing `date > now` and `date < 1920` checks
+Allow landlords to reorder sidebar menu items within groups and reorder groups themselves.
 
-## Input UX
+### Approach
+- Use `@dnd-kit/core` + `@dnd-kit/sortable` for drag-and-drop (lightweight, accessible)
+- Store custom order in `localStorage` under key `sidebar-menu-order`
+- Add a "Customize Menu" button (gear icon) at the bottom of the sidebar that toggles edit mode
+- In edit mode, drag handles appear on each menu item and group
+- A "Reset to Default" button restores original order
 
-- Auto-insert dashes as user types (e.g., typing `07042012` becomes `07-04-2012`)
-- Or simpler: just let user type with placeholder guidance
+### Files to Create/Modify
+
+1. **Create** `src/hooks/useSidebarOrder.ts` — Hook to manage menu order state
+   - Reads saved order from `localStorage`
+   - Provides `reorderGroups()`, `reorderItems()`, `resetOrder()` functions
+   - Returns sorted groups based on saved order
+
+2. **Modify** `src/components/AppSidebar.tsx`
+   - Reorder default `landlordGroups` array (Tenant → Finance → Communication → Property → Admin)
+   - Import and use `useSidebarOrder` hook
+   - Wrap groups in `DndContext` + `SortableContext` when in edit mode
+   - Add edit mode toggle button at sidebar bottom
+   - Add drag handle icons (GripVertical) to each item in edit mode
+
+3. **Modify** `src/components/MobileBottomNav.tsx`
+   - Match the new default group order
+   - Apply saved order from `localStorage` (same key)
+
+4. **Install** `@dnd-kit/core`, `@dnd-kit/sortable`, `@dnd-kit/utilities`
+
+### localStorage Schema
+```json
+{
+  "groupOrder": ["home", "tenants", "finance", "communication", "property", "admin"],
+  "itemOrder": {
+    "tenants": ["tenants", "guests", "complaints", "notices", "leases"],
+    "finance": ["bills", "payments", "accounting"]
+  }
+}
+```
+
+### UX Flow
+1. Normal mode: sidebar looks as usual, groups displayed in saved/default order
+2. Click gear icon → edit mode: drag handles appear, items become draggable
+3. Drag to reorder → auto-saves to localStorage
+4. Click "Done" → exit edit mode
+5. "Reset" button → clears localStorage, reverts to default order
 

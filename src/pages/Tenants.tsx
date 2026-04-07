@@ -108,16 +108,42 @@ const Tenants = () => {
 
   const deleteMutation = useMutation({
     mutationFn: async (tenant: any) => {
+      if (tenant.room_id) {
+        const { error: roomError } = await supabase
+          .from("rooms")
+          .update({ status: "vacant", tenant_id: null })
+          .eq("id", tenant.room_id);
+        if (roomError) throw roomError;
+      }
+
+      if (tenant.user_id) {
+        const { error } = await supabase
+          .from("tenants")
+          .update({
+            owner_id: tenant.user_id,
+            room_id: null,
+            status: "active",
+            released_at: null,
+            release_reason: null,
+            release_notes: null,
+          })
+          .eq("id", tenant.id);
+        if (error) throw error;
+        return { mode: "unlinked" as const };
+      }
+
       const { error } = await supabase.from("tenants").delete().eq("id", tenant.id);
       if (error) throw error;
-      if (tenant.room_id) {
-        await supabase.from("rooms").update({ status: "vacant", tenant_id: null }).eq("id", tenant.room_id);
-      }
+      return { mode: "deleted" as const };
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ["tenants"] });
       queryClient.invalidateQueries({ queryKey: ["rooms"] });
-      toast.success(language === "bn" ? "ভাড়াটিয়া মুছে ফেলা হয়েছে" : "Tenant deleted");
+      toast.success(
+        result?.mode === "unlinked"
+          ? (language === "bn" ? "ভাড়াটিয়াকে আপনার তালিকা থেকে সরানো হয়েছে" : "Tenant removed from your list")
+          : (language === "bn" ? "ভাড়াটিয়া মুছে ফেলা হয়েছে" : "Tenant deleted")
+      );
     },
     onError: (e) => toast.error(e.message),
   });

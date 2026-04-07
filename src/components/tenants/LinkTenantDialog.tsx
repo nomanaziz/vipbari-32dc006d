@@ -18,7 +18,7 @@ interface LinkTenantDialogProps {
 }
 
 const LinkTenantDialog = ({ open, onOpenChange, availableRooms }: LinkTenantDialogProps) => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [phone, setPhone] = useState("");
@@ -117,7 +117,7 @@ const LinkTenantDialog = ({ open, onOpenChange, availableRooms }: LinkTenantDial
           {/* Results */}
           {results.length > 0 && (
             <div className="space-y-2">
-              <Label>{t("tenant.select_tenant") || "Select tenant to link"}</Label>
+              <Label>{language === "bn" ? "লিংক করতে ভাড়াটিয়া নির্বাচন করুন" : "Select tenant to link"}</Label>
               <div className="space-y-2 max-h-48 overflow-y-auto">
                 {results.map((tenant) => (
                   <div

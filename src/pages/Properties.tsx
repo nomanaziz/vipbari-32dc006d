@@ -74,6 +74,7 @@ const defaultForm = {
   tolet_phone: "", map_url: "",
   has_garage: false, has_internet: false, has_dish: false, has_security: false, has_cctv: false,
   has_lift: false, has_generator: false, has_parking: false, has_gas_supply: false, has_water_supply: false, has_rooftop_access: false,
+  common_bathrooms: 0, common_washrooms: 0, common_kitchens: 0, common_stoves: 0, utilities_included: false,
 };
 
 const Properties = () => {

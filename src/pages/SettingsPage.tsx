@@ -65,6 +65,7 @@ const SettingsPage = () => {
 
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const cameraRef = useRef<HTMLInputElement>(null);
 
   useState(() => {
     if (profile) {

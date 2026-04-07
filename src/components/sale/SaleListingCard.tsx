@@ -30,12 +30,15 @@ interface SaleListingCardProps {
 export function SaleListingCard({ listing, isFavorited, onToggleFavorite, showActions = true }: SaleListingCardProps) {
   const { language } = useLanguage();
   const navigate = useNavigate();
-  const imageUrl = listing.images?.[0]?.image_url || "/images/default-room.png";
+  const imageUrl = listing.images?.[0]?.image_url || "/placeholder.svg";
 
   const typeLabels: Record<string, string> = {
     flat: language === "bn" ? "ফ্ল্যাট" : "Flat",
     apartment: language === "bn" ? "অ্যাপার্টমেন্ট" : "Apartment",
     land: language === "bn" ? "জমি" : "Land",
+    house: language === "bn" ? "বাড়ি" : "House",
+    shop: language === "bn" ? "দোকান" : "Shop",
+    tin_shed: language === "bn" ? "টিনশেড" : "Tin Shed",
   };
 
   return (

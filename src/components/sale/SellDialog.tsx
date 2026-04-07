@@ -102,7 +102,7 @@ export function SellDialog({ open, onOpenChange, sourceType, sourceData, propert
         const typeLabel = r.room_type === "flat" ? "Flat" : r.room_type === "shop" ? "Shop" : "Room";
         title = `${typeLabel} ${r.room_number} - ${p?.name || ""}`;
         description = r.description || "";
-        property_type = r.room_type === "shop" ? "land" : "flat";
+        property_type = r.room_type === "shop" ? "shop" : r.room_type || "flat";
         division = p?.division || "";
         district = p?.district || "";
         thana = p?.thana || "";
@@ -118,7 +118,7 @@ export function SellDialog({ open, onOpenChange, sourceType, sourceData, propert
         const p = sourceData;
         title = `${p.name} - ${p.property_type}`;
         description = "";
-        property_type = p.property_type === "apartment" ? "apartment" : "flat";
+        property_type = p.property_type || "flat";
         division = p.division || "";
         district = p.district || "";
         thana = p.thana || "";

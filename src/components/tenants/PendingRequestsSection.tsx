@@ -113,6 +113,8 @@ const PendingRequestsSection = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["pending-members"] });
       queryClient.invalidateQueries({ queryKey: ["tenant-members"] });
+      queryClient.invalidateQueries({ queryKey: ["tenant-member-counts"] });
+      queryClient.invalidateQueries({ queryKey: ["tenants"] });
       toast.success(language === "bn" ? "আপডেট হয়েছে" : "Updated");
     },
     onError: (e: any) => toast.error(e.message),
@@ -130,6 +132,7 @@ const PendingRequestsSection = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["pending-guests"] });
       queryClient.invalidateQueries({ queryKey: ["tenant-guests"] });
+      queryClient.invalidateQueries({ queryKey: ["tenants"] });
       toast.success(language === "bn" ? "আপডেট হয়েছে" : "Updated");
     },
     onError: (e: any) => toast.error(e.message),

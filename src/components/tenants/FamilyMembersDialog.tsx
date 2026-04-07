@@ -110,7 +110,8 @@ const FamilyMembersDialog = ({ tenant, onClose }: Props) => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tenant-members", tenant?.id] });
       queryClient.invalidateQueries({ queryKey: ["pending-members"] });
-      toast.success(t("tenant.updated") || "Updated");
+      queryClient.invalidateQueries({ queryKey: ["tenant-member-counts"] });
+      toast.success(language === "bn" ? "আপডেট হয়েছে" : "Updated");
     },
     onError: (e) => toast.error(e.message),
   });
@@ -128,16 +129,21 @@ const FamilyMembersDialog = ({ tenant, onClose }: Props) => {
   };
 
   const getStatusBadge = (status: string) => {
-    if (status === "approved") return <Badge className="text-xs bg-emerald-500/10 text-emerald-600 border-emerald-200"><CheckCircle2 className="h-3 w-3 mr-1" />{t("tenant.approved")}</Badge>;
-    if (status === "rejected") return <Badge variant="destructive" className="text-xs"><XCircle className="h-3 w-3 mr-1" />{t("tenant.rejected")}</Badge>;
-    return <Badge variant="secondary" className="text-xs"><Clock className="h-3 w-3 mr-1" />{t("tenant.pending_approval")}</Badge>;
+    if (status === "approved") return <Badge className="text-xs bg-emerald-500/10 text-emerald-600 border-emerald-200"><CheckCircle2 className="h-3 w-3 mr-1" />{language === "bn" ? "অনুমোদিত" : "Approved"}</Badge>;
+    if (status === "rejected") return <Badge variant="destructive" className="text-xs"><XCircle className="h-3 w-3 mr-1" />{language === "bn" ? "প্রত্যাখ্যাত" : "Rejected"}</Badge>;
+    return <Badge variant="secondary" className="text-xs"><Clock className="h-3 w-3 mr-1" />{language === "bn" ? "অনুমোদনের অপেক্ষায়" : "Pending Approval"}</Badge>;
   };
 
   return (
     <Dialog open={!!tenant} onOpenChange={(v) => { if (!v) onClose(); }}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>{t("tenant.family_members")} — {tenant?.full_name}</DialogTitle>
+          <DialogTitle>{language === "bn" ? "পরিবারের সদস্য" : "Family Members"} — {tenant?.full_name}</DialogTitle>
+          {members && members.length > 0 && (
+            <p className="text-sm text-muted-foreground">
+              {language === "bn" ? "মোট সদস্য" : "Total members"}: {members.length} | {language === "bn" ? "অনুমোদিত" : "Approved"}: {members.filter((m: any) => m.status === "approved").length}
+            </p>
+          )}
         </DialogHeader>
 
         {/* Members list */}
@@ -160,13 +166,13 @@ const FamilyMembersDialog = ({ tenant, onClose }: Props) => {
                 </div>
                 <div className="flex gap-1">
                   {(m.status === "pending" || !m.status) && (
-                    <>
-                      <Button variant="outline" size="sm" className="h-7 text-xs text-emerald-600" onClick={() => verifyMutation.mutate({ id: m.id, status: "approved" })}>
-                        {t("landlord.approve")}
-                      </Button>
-                      <Button variant="outline" size="sm" className="h-7 text-xs text-destructive" onClick={() => verifyMutation.mutate({ id: m.id, status: "rejected" })}>
-                        {t("landlord.reject")}
-                      </Button>
+                     <>
+                       <Button variant="outline" size="sm" className="h-7 text-xs text-emerald-600 border-emerald-200 hover:bg-emerald-50" onClick={() => verifyMutation.mutate({ id: m.id, status: "approved" })}>
+                         <CheckCircle2 className="h-3 w-3 mr-1" />{language === "bn" ? "অনুমোদন" : "Approve"}
+                       </Button>
+                       <Button variant="outline" size="sm" className="h-7 text-xs text-destructive" onClick={() => verifyMutation.mutate({ id: m.id, status: "rejected" })}>
+                         <XCircle className="h-3 w-3 mr-1" />{language === "bn" ? "প্রত্যাখ্যান" : "Reject"}
+                       </Button>
                     </>
                   )}
                   <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => setDeleteId(m.id)}>

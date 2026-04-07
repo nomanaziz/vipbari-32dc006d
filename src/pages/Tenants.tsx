@@ -60,12 +60,40 @@ const Tenants = () => {
   const { data: tenants, isLoading } = useQuery({
     queryKey: ["tenants", effectiveOwnerId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // 1) Directly owned tenants
+      const { data: ownedData, error: ownedError } = await supabase
         .from("tenants")
         .select("*, rooms:rooms!tenants_room_id_fkey(room_number, property_id, properties(name))")
         .eq("owner_id", effectiveOwnerId!);
-      if (error) throw error;
-      return data || [];
+      if (ownedError) throw ownedError;
+
+      // 2) Linked tenants via accepted tolet_requests
+      const { data: linkedRequests } = await supabase
+        .from("tolet_requests")
+        .select("tenant_user_id")
+        .eq("landlord_user_id", effectiveOwnerId!)
+        .eq("status", "accepted");
+
+      const linkedUserIds = (linkedRequests || []).map((r: any) => r.tenant_user_id).filter(Boolean);
+      let linkedTenants: any[] = [];
+      if (linkedUserIds.length > 0) {
+        const { data: ltData } = await supabase
+          .from("tenants")
+          .select("*, rooms:rooms!tenants_room_id_fkey(room_number, property_id, properties(name))")
+          .in("user_id", linkedUserIds);
+        linkedTenants = ltData || [];
+      }
+
+      // Merge and deduplicate
+      const allTenants = [...(ownedData || [])];
+      const existingIds = new Set(allTenants.map((t: any) => t.id));
+      for (const lt of linkedTenants) {
+        if (!existingIds.has(lt.id)) {
+          allTenants.push(lt);
+          existingIds.add(lt.id);
+        }
+      }
+      return allTenants;
     },
     enabled: !!effectiveOwnerId,
   });

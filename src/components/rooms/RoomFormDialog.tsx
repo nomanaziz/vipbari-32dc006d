@@ -92,7 +92,9 @@ const RoomFormDialog = ({ open, onOpenChange, editing, properties, onSubmit, isP
     enabled: !!roomId,
   });
 
-  const isTinShed = propertyType === "tin_shed";
+  // Derive property type from form's selected property, falling back to prop
+  const effectivePropertyType = properties.find(p => p.id === form.property_id)?.property_type || propertyType;
+  const isTinShed = effectivePropertyType === "tin_shed";
 
   const roomTypeLabels: Record<string, string> = {
     room: t("room.type_room") || "Room",
@@ -107,7 +109,7 @@ const RoomFormDialog = ({ open, onOpenChange, editing, properties, onSubmit, isP
     tin_shed: { options: ["room"], default: "room" },
   };
 
-  const currentConfig = roomTypeConfig[propertyType || ""] || { options: ["room", "flat", "shop"], default: "room" };
+  const currentConfig = roomTypeConfig[effectivePropertyType || ""] || { options: ["room", "flat", "shop"], default: "room" };
   const availableRoomTypes = currentConfig.options;
   const showRoomTypeSelector = availableRoomTypes.length > 1 && !isTinShed;
 

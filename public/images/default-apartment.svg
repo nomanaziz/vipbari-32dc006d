@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" fill="none">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="300" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#87CEEB"/>
+      <stop offset="100%" stop-color="#E0F0FF"/>
+    </linearGradient>
+    <linearGradient id="bldg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#8899AA"/>
+      <stop offset="100%" stop-color="#6B7A8A"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="300" fill="url(#sky)"/>
+  <!-- Ground -->
+  <rect x="0" y="260" width="400" height="40" fill="#90B88C"/>
+  <!-- Main building -->
+  <rect x="120" y="60" width="160" height="200" rx="3" fill="url(#bldg)"/>
+  <!-- Roof accent -->
+  <rect x="120" y="55" width="160" height="10" rx="2" fill="#5A6A7A"/>
+  <!-- Windows grid -->
+  <g fill="#FFE4A0" stroke="#5A6A7A" stroke-width="1">
+    <rect x="140" y="80" width="24" height="28" rx="2"/>
+    <rect x="178" y="80" width="24" height="28" rx="2"/>
+    <rect x="216" y="80" width="24" height="28" rx="2"/>
+    <rect x="140" y="125" width="24" height="28" rx="2"/>
+    <rect x="178" y="125" width="24" height="28" rx="2"/>
+    <rect x="216" y="125" width="24" height="28" rx="2"/>
+    <rect x="140" y="170" width="24" height="28" rx="2"/>
+    <rect x="178" y="170" width="24" height="28" rx="2"/>
+    <rect x="216" y="170" width="24" height="28" rx="2"/>
+  </g>
+  <!-- Door -->
+  <rect x="185" y="220" width="30" height="40" rx="3" fill="#5A3E28"/>
+  <circle cx="210" cy="242" r="2" fill="#C0A060"/>
+  <!-- Side building left -->
+  <rect x="50" y="130" width="70" height="130" rx="2" fill="#7A8A9A"/>
+  <g fill="#FFE4A0" stroke="#5A6A7A" stroke-width="1">
+    <rect x="62" y="145" width="18" height="22" rx="2"/>
+    <rect x="90" y="145" width="18" height="22" rx="2"/>
+    <rect x="62" y="185" width="18" height="22" rx="2"/>
+    <rect x="90" y="185" width="18" height="22" rx="2"/>
+  </g>
+  <!-- Side building right -->
+  <rect x="280" y="150" width="70" height="110" rx="2" fill="#7A8A9A"/>
+  <g fill="#FFE4A0" stroke="#5A6A7A" stroke-width="1">
+    <rect x="292" y="165" width="18" height="22" rx="2"/>
+    <rect x="320" y="165" width="18" height="22" rx="2"/>
+    <rect x="292" y="205" width="18" height="22" rx="2"/>
+    <rect x="320" y="205" width="18" height="22" rx="2"/>
+  </g>
+  <!-- Trees -->
+  <circle cx="100" cy="245" r="16" fill="#5A8A50"/>
+  <rect x="97" y="250" width="6" height="15" fill="#6B5030"/>
+  <circle cx="310" cy="248" r="12" fill="#5A8A50"/>
+  <rect x="308" y="252" width="5" height="12" fill="#6B5030"/>
+  <text x="200" y="290" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" fill="#5A6A7A" opacity="0.6">Apartment</text>
+</svg>

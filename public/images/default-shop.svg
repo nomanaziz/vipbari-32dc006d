@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" fill="none">
+  <defs>
+    <linearGradient id="sbg" x1="0" y1="0" x2="400" y2="300" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFF5E6"/>
+      <stop offset="100%" stop-color="#FFE8CC"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="300" fill="url(#sbg)"/>
+  <!-- Sidewalk -->
+  <rect x="0" y="240" width="400" height="60" fill="#D4C8B8"/>
+  <!-- Building -->
+  <rect x="70" y="70" width="260" height="175" rx="4" fill="#F0E6D8"/>
+  <rect x="70" y="65" width="260" height="15" rx="3" fill="#C0785A"/>
+  <!-- Awning -->
+  <path d="M65 105 L335 105 L325 130 L75 130Z" fill="#C04030"/>
+  <path d="M75 130 L125 130 L130 105 L80 105Z" fill="#D05040" opacity="0.7"/>
+  <path d="M125 130 L175 130 L180 105 L130 105Z" fill="#C04030" opacity="0.5"/>
+  <path d="M175 130 L225 130 L230 105 L180 105Z" fill="#D05040" opacity="0.7"/>
+  <path d="M225 130 L275 130 L280 105 L230 105Z" fill="#C04030" opacity="0.5"/>
+  <path d="M275 130 L325 130 L330 105 L280 105Z" fill="#D05040" opacity="0.7"/>
+  <!-- Shop window -->
+  <rect x="90" y="140" width="100" height="80" rx="3" fill="#B8E0F0" stroke="#A08060" stroke-width="2"/>
+  <line x1="140" y1="140" x2="140" y2="220" stroke="#A08060" stroke-width="1.5"/>
+  <!-- Door -->
+  <rect x="220" y="140" width="60" height="100" rx="3" fill="#5A3E28" stroke="#A08060" stroke-width="2"/>
+  <circle cx="270" cy="195" r="3" fill="#C0A060"/>
+  <!-- Sign -->
+  <rect x="130" y="78" width="140" height="22" rx="3" fill="white" stroke="#A08060" stroke-width="1"/>
+  <text x="200" y="93" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" fill="#5A3E28" font-weight="bold">SHOP</text>
+  <!-- Display items in window -->
+  <rect x="100" y="190" width="15" height="20" rx="2" fill="#FFB347" opacity="0.6"/>
+  <rect x="120" y="185" width="12" height="25" rx="2" fill="#77DD77" opacity="0.6"/>
+  <rect x="150" y="188" width="18" height="22" rx="2" fill="#FF6961" opacity="0.5"/>
+  <rect x="172" y="192" width="10" height="18" rx="2" fill="#84B6F4" opacity="0.6"/>
+  <!-- Welcome mat -->
+  <rect x="225" y="238" width="50" height="6" rx="2" fill="#8B7355"/>
+  <text x="200" y="290" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" fill="#8B6040" opacity="0.6">Shop</text>
+</svg>

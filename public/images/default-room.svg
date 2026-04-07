@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="400" y2="300" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#E8F0FE"/>
+      <stop offset="100%" stop-color="#D1E3FF"/>
+    </linearGradient>
+    <linearGradient id="wall" x1="0" y1="80" x2="0" y2="260" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#F5F0EB"/>
+      <stop offset="100%" stop-color="#E8E0D8"/>
+    </linearGradient>
+    <linearGradient id="bed" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#6B8CCC"/>
+      <stop offset="100%" stop-color="#5A7AB8"/>
+    </linearGradient>
+  </defs>
+  <!-- Background -->
+  <rect width="400" height="300" fill="url(#bg)"/>
+  <!-- Wall -->
+  <rect x="40" y="60" width="320" height="200" rx="4" fill="url(#wall)"/>
+  <!-- Floor -->
+  <rect x="40" y="230" width="320" height="30" rx="2" fill="#C4B5A5"/>
+  <!-- Window -->
+  <rect x="160" y="80" width="80" height="70" rx="3" fill="#87CEEB" stroke="#B0A090" stroke-width="3"/>
+  <line x1="200" y1="80" x2="200" y2="150" stroke="#B0A090" stroke-width="2"/>
+  <line x1="160" y1="115" x2="240" y2="115" stroke="#B0A090" stroke-width="2"/>
+  <!-- Curtains -->
+  <path d="M155 78 Q155 115, 148 150 L155 150 Q158 115, 160 78Z" fill="#D4A574" opacity="0.6"/>
+  <path d="M245 78 Q245 115, 252 150 L245 150 Q242 115, 240 78Z" fill="#D4A574" opacity="0.6"/>
+  <!-- Bed frame -->
+  <rect x="80" y="175" width="160" height="60" rx="6" fill="#8B7355"/>
+  <!-- Mattress -->
+  <rect x="84" y="170" width="152" height="45" rx="5" fill="white" stroke="#E0D8D0" stroke-width="1"/>
+  <!-- Blanket -->
+  <rect x="84" y="185" width="152" height="30" rx="4" fill="url(#bed)"/>
+  <!-- Pillow -->
+  <ellipse cx="115" cy="180" rx="22" ry="10" fill="white" stroke="#E8E0D8" stroke-width="1"/>
+  <ellipse cx="155" cy="180" rx="22" ry="10" fill="white" stroke="#E8E0D8" stroke-width="1"/>
+  <!-- Nightstand -->
+  <rect x="260" y="190" width="40" height="45" rx="3" fill="#A0896E"/>
+  <rect x="265" y="195" width="30" height="12" rx="2" fill="#8B7355"/>
+  <!-- Lamp -->
+  <rect x="277" y="170" width="6" height="22" rx="1" fill="#C0A880"/>
+  <path d="M270 170 Q280 155, 290 170Z" fill="#FFE4B5"/>
+  <!-- Rug -->
+  <ellipse cx="180" cy="248" width="100" height="12" fill="#D4A574" opacity="0.4"/>
+  <!-- Icon label -->
+  <text x="200" y="290" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" fill="#8B7355" opacity="0.6">Room / Flat</text>
+</svg>

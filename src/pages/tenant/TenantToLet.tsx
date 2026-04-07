@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { getDefaultImage } from "@/lib/defaultImages";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -182,7 +183,7 @@ const TenantToLet = () => {
   const renderListingCard = (item: any, isBoosted: boolean) => {
     const isGarage = item._type === "garage";
     const room = item;
-    const displayImage = isGarage ? "/images/default-garage.png" : "/images/default-room.png";
+    const displayImage = isGarage ? getDefaultImage("garage") : getDefaultImage(room.room_type);
     const label = isGarage ? item.garage_number : room.room_number;
     const mapLink = getMapLink(item.properties);
 

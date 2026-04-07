@@ -15,6 +15,7 @@ import { Heart, MapPin, BedDouble, Bath, Maximize, Building2, Phone, MessageSqua
 import { TransferPropertyDialog } from "@/components/sale/TransferPropertyDialog";
 import { toast } from "sonner";
 import { useState } from "react";
+import { getDefaultImage } from "@/lib/defaultImages";
 
 export default function SaleListingDetail() {
   const { id } = useParams();
@@ -140,7 +141,7 @@ export default function SaleListingDetail() {
   );
 
   const images = listing.images || [];
-  const mainImage = images[selectedImg]?.image_url || "/placeholder.svg";
+  const mainImage = images[selectedImg]?.image_url || getDefaultImage(listing.property_type);
   const isOwner = user?.id === listing.owner_id;
 
   const typeLabels: Record<string, string> = {

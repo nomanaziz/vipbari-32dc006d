@@ -610,22 +610,50 @@ const TenantProfile = () => {
         {/* Present Address */}
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2"><MapPin className="h-4 w-4" />{language === "bn" ? "বর্তমান ঠিকানা" : "Present Address"}</CardTitle>
+            <CardTitle className="text-base flex items-center gap-2">
+              <MapPin className="h-4 w-4" />{language === "bn" ? "বর্তমান ঠিকানা" : "Present Address"}
+              {isLinkedToLandlord && <span className="text-xs font-normal text-muted-foreground ml-2">({language === "bn" ? "স্বয়ংক্রিয়ভাবে আসা তথ্য" : "Auto-populated"})</span>}
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {renderAddressSelect(t("tenant.division"), form.present_division || "", (v) => updateField("present_division", v), DIVISIONS, DIVISIONS_BN, t("tenant.select_division"))}
-              {renderAddressSelect(t("tenant.district"), form.present_district || "", (v) => updateField("present_district", v), presentDistricts, DISTRICTS_BN, t("tenant.select_district"))}
-              {renderAddressSelect(t("tenant.thana"), form.present_thana || "", (v) => updateField("present_thana", v), presentThanas, THANAS_BN, t("tenant.select_thana"))}
-              <div className="space-y-1.5">
-                <Label>{t("tenant.village")}</Label>
-                <Input value={form.present_village || ""} onChange={(e) => updateField("present_village", e.target.value)} />
+            {isLinkedToLandlord ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label>{t("tenant.division")}</Label>
+                  <Input value={autoPresentDivision} disabled className="bg-muted" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>{t("tenant.district")}</Label>
+                  <Input value={autoPresentDistrict} disabled className="bg-muted" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>{t("tenant.thana")}</Label>
+                  <Input value={autoPresentThana} disabled className="bg-muted" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>{t("tenant.village")}</Label>
+                  <Input value={autoPresentVillage} disabled className="bg-muted" />
+                </div>
+                <div className="space-y-1.5 sm:col-span-2">
+                  <Label>{t("tenant.address_detail")}</Label>
+                  <Input value={autoPresentAddress} disabled className="bg-muted" />
+                </div>
               </div>
-              <div className="space-y-1.5 sm:col-span-2">
-                <Label>{t("tenant.address_detail")}</Label>
-                <Textarea value={form.present_address || ""} onChange={(e) => updateField("present_address", e.target.value)} rows={2} />
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {renderAddressSelect(t("tenant.division"), form.present_division || "", (v) => updateField("present_division", v), DIVISIONS, DIVISIONS_BN, t("tenant.select_division"))}
+                {renderAddressSelect(t("tenant.district"), form.present_district || "", (v) => updateField("present_district", v), presentDistricts, DISTRICTS_BN, t("tenant.select_district"))}
+                {renderAddressSelect(t("tenant.thana"), form.present_thana || "", (v) => updateField("present_thana", v), presentThanas, THANAS_BN, t("tenant.select_thana"))}
+                <div className="space-y-1.5">
+                  <Label>{t("tenant.village")}</Label>
+                  <Input value={form.present_village || ""} onChange={(e) => updateField("present_village", e.target.value)} />
+                </div>
+                <div className="space-y-1.5 sm:col-span-2">
+                  <Label>{t("tenant.address_detail")}</Label>
+                  <Textarea value={form.present_address || ""} onChange={(e) => updateField("present_address", e.target.value)} rows={2} />
+                </div>
               </div>
-            </div>
+            )}
           </CardContent>
         </Card>
 

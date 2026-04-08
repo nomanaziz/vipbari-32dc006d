@@ -136,7 +136,7 @@ const FamilyMembersDialog = ({ tenant, onClose }: Props) => {
 
   return (
     <Dialog open={!!tenant} onOpenChange={(v) => { if (!v) onClose(); }}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>{language === "bn" ? "পরিবারের সদস্য" : "Family Members"} — {tenant?.full_name}</DialogTitle>
           {members && members.length > 0 && (

@@ -2312,22 +2312,42 @@ export type Database = {
           advance_balance: number | null
           billing_type: string
           created_at: string
+          current_landlord_name: string
+          current_landlord_phone: string
           date_of_birth: string | null
           doc_back_url: string | null
           doc_front_url: string | null
           doc_number: string | null
           doc_type: string | null
+          domestic_worker_address: string
+          domestic_worker_name: string
+          domestic_worker_nid: string
+          domestic_worker_phone: string
+          driver_address: string
+          driver_name: string
+          driver_nid: string
+          driver_phone: string
+          education: string
+          email: string
+          emergency_address: string
           emergency_contact: string | null
+          emergency_name: string
+          emergency_phone: string
+          emergency_relation: string
+          father_name: string
           full_name: string
           gender: string | null
           id: string
           last_meter_reading: number | null
+          living_since: string
+          marital_status: string
           meter_number: string | null
           move_in_date: string | null
           move_out_date: string | null
           nid: string | null
           occupation: string | null
           owner_id: string
+          passport_number: string
           permanent_address: string | null
           permanent_district: string | null
           permanent_division: string | null
@@ -2340,35 +2360,61 @@ export type Database = {
           present_division: string | null
           present_thana: string | null
           present_village: string | null
+          prev_landlord_address: string
+          prev_landlord_name: string
+          prev_landlord_phone: string
+          prev_leave_reason: string
           release_notes: string | null
           release_reason: string | null
           released_at: string | null
+          religion: string
           room_id: string | null
           secondary_phone: string | null
           status: string
           updated_at: string
           user_id: string | null
+          workplace_address: string
         }
         Insert: {
           advance_balance?: number | null
           billing_type?: string
           created_at?: string
+          current_landlord_name?: string
+          current_landlord_phone?: string
           date_of_birth?: string | null
           doc_back_url?: string | null
           doc_front_url?: string | null
           doc_number?: string | null
           doc_type?: string | null
+          domestic_worker_address?: string
+          domestic_worker_name?: string
+          domestic_worker_nid?: string
+          domestic_worker_phone?: string
+          driver_address?: string
+          driver_name?: string
+          driver_nid?: string
+          driver_phone?: string
+          education?: string
+          email?: string
+          emergency_address?: string
           emergency_contact?: string | null
+          emergency_name?: string
+          emergency_phone?: string
+          emergency_relation?: string
+          father_name?: string
           full_name: string
           gender?: string | null
           id?: string
           last_meter_reading?: number | null
+          living_since?: string
+          marital_status?: string
           meter_number?: string | null
           move_in_date?: string | null
           move_out_date?: string | null
           nid?: string | null
           occupation?: string | null
           owner_id: string
+          passport_number?: string
           permanent_address?: string | null
           permanent_district?: string | null
           permanent_division?: string | null
@@ -2381,35 +2427,61 @@ export type Database = {
           present_division?: string | null
           present_thana?: string | null
           present_village?: string | null
+          prev_landlord_address?: string
+          prev_landlord_name?: string
+          prev_landlord_phone?: string
+          prev_leave_reason?: string
           release_notes?: string | null
           release_reason?: string | null
           released_at?: string | null
+          religion?: string
           room_id?: string | null
           secondary_phone?: string | null
           status?: string
           updated_at?: string
           user_id?: string | null
+          workplace_address?: string
         }
         Update: {
           advance_balance?: number | null
           billing_type?: string
           created_at?: string
+          current_landlord_name?: string
+          current_landlord_phone?: string
           date_of_birth?: string | null
           doc_back_url?: string | null
           doc_front_url?: string | null
           doc_number?: string | null
           doc_type?: string | null
+          domestic_worker_address?: string
+          domestic_worker_name?: string
+          domestic_worker_nid?: string
+          domestic_worker_phone?: string
+          driver_address?: string
+          driver_name?: string
+          driver_nid?: string
+          driver_phone?: string
+          education?: string
+          email?: string
+          emergency_address?: string
           emergency_contact?: string | null
+          emergency_name?: string
+          emergency_phone?: string
+          emergency_relation?: string
+          father_name?: string
           full_name?: string
           gender?: string | null
           id?: string
           last_meter_reading?: number | null
+          living_since?: string
+          marital_status?: string
           meter_number?: string | null
           move_in_date?: string | null
           move_out_date?: string | null
           nid?: string | null
           occupation?: string | null
           owner_id?: string
+          passport_number?: string
           permanent_address?: string | null
           permanent_district?: string | null
           permanent_division?: string | null
@@ -2422,14 +2494,20 @@ export type Database = {
           present_division?: string | null
           present_thana?: string | null
           present_village?: string | null
+          prev_landlord_address?: string
+          prev_landlord_name?: string
+          prev_landlord_phone?: string
+          prev_leave_reason?: string
           release_notes?: string | null
           release_reason?: string | null
           released_at?: string | null
+          religion?: string
           room_id?: string | null
           secondary_phone?: string | null
           status?: string
           updated_at?: string
           user_id?: string | null
+          workplace_address?: string
         }
         Relationships: [
           {

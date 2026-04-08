@@ -57,18 +57,36 @@ const TenantProfile = () => {
   const [cropFile, setCropFile] = useState<File | null>(null);
   const [cropOpen, setCropOpen] = useState(false);
 
+  const [releaseDialogOpen, setReleaseDialogOpen] = useState(false);
+
   const { data: tenant, isLoading } = useQuery({
     queryKey: ["my-tenant-profile", user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("tenants")
-        .select("*")
+        .select("*, rooms:rooms!tenants_room_id_fkey(room_number, property_id, properties(name, division, district, thana, area, house_number, road_number, postal_code, owner_id))")
         .eq("user_id", user!.id)
+        .eq("status", "active")
         .maybeSingle();
       if (error) throw error;
       return data;
     },
     enabled: !!user,
+  });
+
+  // Fetch landlord profile for auto-populate
+  const landlordUserId = tenant && (tenant as any).owner_id !== (tenant as any).user_id ? (tenant as any).owner_id : null;
+  const { data: landlordProfile } = useQuery({
+    queryKey: ["landlord-profile-for-tenant", landlordUserId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("full_name, phone")
+        .eq("user_id", landlordUserId!)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!landlordUserId,
   });
 
   const [form, setForm] = useState<Record<string, string>>({});

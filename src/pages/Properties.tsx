@@ -407,6 +407,27 @@ const Properties = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    // Validate mandatory address fields
+    if (!form.house_number.trim()) {
+      toast.error(language === "bn" ? "বাড়ি/হোল্ডিং নম্বর দিতে হবে" : "House/Holding number is required");
+      return;
+    }
+    if (!form.division) {
+      toast.error(language === "bn" ? "বিভাগ নির্বাচন করতে হবে" : "Division is required");
+      return;
+    }
+    if (!form.district) {
+      toast.error(language === "bn" ? "জেলা নির্বাচন করতে হবে" : "District is required");
+      return;
+    }
+    if (!form.thana) {
+      toast.error(language === "bn" ? "থানা/উপজেলা নির্বাচন করতে হবে" : "Thana is required");
+      return;
+    }
+    if (!form.postal_code.trim()) {
+      toast.error(language === "bn" ? "পোস্টাল কোড দিতে হবে" : "Postal code is required");
+      return;
+    }
     if (editing) {
       updateMutation.mutate({ ...form, id: editing.id });
     } else {

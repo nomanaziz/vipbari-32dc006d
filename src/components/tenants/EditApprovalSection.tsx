@@ -115,13 +115,46 @@ const EditApprovalSection = ({ role }: EditApprovalSectionProps) => {
 
   const approveMutation = useMutation({
     mutationFn: async (request: any) => {
-      // Apply field_changes to tenant
       const changes = request.field_changes as Record<string, any>;
-      const { error: updateErr } = await supabase
-        .from("tenants")
-        .update(changes as any)
-        .eq("id", request.tenant_id);
-      if (updateErr) throw updateErr;
+
+      // Check if this is a release request
+      if (changes._action === "release") {
+        // Release the tenant: update status, clear room, save reason
+        const { data: tenantData } = await supabase
+          .from("tenants")
+          .select("room_id")
+          .eq("id", request.tenant_id)
+          .maybeSingle();
+
+        const { error: updateErr } = await supabase
+          .from("tenants")
+          .update({
+            status: "inactive",
+            room_id: null,
+            released_at: new Date().toISOString(),
+            release_reason: changes.release_reason || "",
+            release_notes: changes.release_notes || "",
+            prev_leave_reason: changes.release_reason === "all_paid"
+              ? (language === "bn" ? "সব বিল পরিশোধ করে চলে গেছে" : "Left — all bills paid")
+              : changes.release_reason === "unpaid"
+              ? (language === "bn" ? "বিল বাকি রেখে চলে গেছে" : "Left — bills unpaid")
+              : (changes.release_notes || changes.release_reason || ""),
+          } as any)
+          .eq("id", request.tenant_id);
+        if (updateErr) throw updateErr;
+
+        // Vacate the room
+        if (tenantData?.room_id) {
+          await supabase.from("rooms").update({ status: "vacant", tenant_id: null }).eq("id", tenantData.room_id);
+        }
+      } else {
+        // Normal field changes
+        const { error: updateErr } = await supabase
+          .from("tenants")
+          .update(changes as any)
+          .eq("id", request.tenant_id);
+        if (updateErr) throw updateErr;
+      }
 
       // Mark as approved
       const { error } = await supabase
@@ -133,8 +166,12 @@ const EditApprovalSection = ({ role }: EditApprovalSectionProps) => {
       // Notify the requester
       await supabase.from("notifications").insert({
         user_id: request.requested_by,
-        title: language === "bn" ? "তথ্য পরিবর্তন অনুমোদিত" : "Edit Request Approved",
-        body: language === "bn" ? "আপনার তথ্য পরিবর্তনের অনুরোধ অনুমোদিত হয়েছে" : "Your edit request has been approved",
+        title: changes._action === "release"
+          ? (language === "bn" ? "বাড়ি ছাড়ার অনুরোধ অনুমোদিত" : "Release Request Approved")
+          : (language === "bn" ? "তথ্য পরিবর্তন অনুমোদিত" : "Edit Request Approved"),
+        body: changes._action === "release"
+          ? (language === "bn" ? "আপনার বাড়ি ছাড়ার অনুরোধ অনুমোদিত হয়েছে" : "Your release request has been approved")
+          : (language === "bn" ? "আপনার তথ্য পরিবর্তনের অনুরোধ অনুমোদিত হয়েছে" : "Your edit request has been approved"),
         type: "edit_request",
         reference_id: request.id,
       });
@@ -144,6 +181,7 @@ const EditApprovalSection = ({ role }: EditApprovalSectionProps) => {
       queryClient.invalidateQueries({ queryKey: ["tenant-edit-requests-sent"] });
       queryClient.invalidateQueries({ queryKey: ["tenants"] });
       queryClient.invalidateQueries({ queryKey: ["my-tenant-profile"] });
+      queryClient.invalidateQueries({ queryKey: ["rooms"] });
       toast.success(language === "bn" ? "অনুমোদিত হয়েছে" : "Approved");
     },
     onError: (e: any) => toast.error(e.message),

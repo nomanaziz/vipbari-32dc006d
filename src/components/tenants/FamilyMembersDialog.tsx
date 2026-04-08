@@ -153,34 +153,37 @@ const FamilyMembersDialog = ({ tenant, onClose }: Props) => {
           ) : members?.length === 0 ? (
             <p className="text-sm text-muted-foreground py-4 text-center">No family members added yet.</p>
           ) : (
-            members?.map((m: any) => (
-              <div key={m.id} className="flex items-center justify-between p-3 rounded-lg border bg-muted/30">
-                <div>
-                  <div className="flex items-center gap-2 mb-0.5">
-                    <p className="font-medium text-sm">{m.name}</p>
-                    {getStatusBadge(m.status || "pending")}
+            members?.map((m: any) => {
+              const isPending = m.status === "pending" || !m.status;
+              return (
+                <div key={m.id} className="p-3 rounded-lg border bg-muted/30 space-y-2">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <p className="font-medium text-sm">{m.name}</p>
+                        {getStatusBadge(m.status || "pending")}
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        {getRelationLabel(m.relation)}{m.phone ? ` · ${m.phone}` : ""}{m.nid ? ` · NID: ${m.nid}` : ""}
+                      </p>
+                    </div>
+                    <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive shrink-0" onClick={() => setDeleteId(m.id)}>
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    {getRelationLabel(m.relation)}{m.phone ? ` · ${m.phone}` : ""}{m.nid ? ` · NID: ${m.nid}` : ""}
-                  </p>
-                </div>
-                <div className="flex gap-1">
-                  {(m.status === "pending" || !m.status) && (
-                     <>
-                       <Button variant="outline" size="sm" className="h-7 text-xs text-emerald-600 border-emerald-200 hover:bg-emerald-50" onClick={() => verifyMutation.mutate({ id: m.id, status: "approved" })}>
-                         <CheckCircle2 className="h-3 w-3 mr-1" />{language === "bn" ? "অনুমোদন" : "Approve"}
-                       </Button>
-                       <Button variant="outline" size="sm" className="h-7 text-xs text-destructive" onClick={() => verifyMutation.mutate({ id: m.id, status: "rejected" })}>
-                         <XCircle className="h-3 w-3 mr-1" />{language === "bn" ? "প্রত্যাখ্যান" : "Reject"}
-                       </Button>
-                    </>
+                  {isPending && (
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm" className="flex-1 h-8 text-xs text-emerald-600 border-emerald-200 hover:bg-emerald-50" onClick={() => verifyMutation.mutate({ id: m.id, status: "approved" })}>
+                        <CheckCircle2 className="h-3.5 w-3.5 mr-1" />{language === "bn" ? "অনুমোদন" : "Approve"}
+                      </Button>
+                      <Button variant="outline" size="sm" className="flex-1 h-8 text-xs text-destructive" onClick={() => verifyMutation.mutate({ id: m.id, status: "rejected" })}>
+                        <XCircle className="h-3.5 w-3.5 mr-1" />{language === "bn" ? "প্রত্যাখ্যান" : "Reject"}
+                      </Button>
+                    </div>
                   )}
-                  <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => setDeleteId(m.id)}>
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </Button>
                 </div>
-              </div>
-            ))
+              );
+            }))
           )}
         </div>
 

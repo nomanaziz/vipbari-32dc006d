@@ -1,75 +1,68 @@
 
-# ঠিকানা স্থায়ী না থাকার ফিক্স
+# ভাড়াটিয়া page-এ property address না আসার fix plan
 
-## সমস্যা
-স্থায়ী এবং বর্তমান ঠিকানার division / district / thana save হওয়ার পর edit/reload এ কিছু field blank হয়ে যাচ্ছে। তাই landlord বা tenant পরে আবার খুললে মনে হচ্ছে তথ্য “চলে গেছে”।
+## আসল সমস্যা
+আপনার property-তে address save আছে, কিন্তু tenant page সেটা `rooms -> properties` relation থেকে আনছে। এখানে মূল বাধা হচ্ছে **RLS policy**:
 
-## আসল কারণ
-- `TenantFormDialog.tsx` এবং `TenantProfile.tsx`-এর address dropdown only fixed option value নেয়, যেমন `Dhaka`, `Narayanganj`, `Mirpur`।
-- কিন্তু DB-তে কিছু পুরনো/মিশ্র data Bangla বা non-canonical format-এ থাকতে পারে, যেমন `ঢাকা`।
-- তখন:
-  - `DISTRICTS[division]` কাজ করে না
-  - `THANAS[district]` কাজ করে না
-  - dropdown option list empty হয়ে যায়
-  - value DB-তে থাকলেও UI blank দেখায়
-- parent field handler child field reset করছে, তাই invalid/mixed value থাকলে district/thana আরও সহজে হারিয়ে যাচ্ছে।
+- `tenants` row tenant দেখতে পারে
+- কিন্তু `rooms` table-এ tenant-এর assigned occupied room দেখার policy নেই
+- তাই tenant profile query-তে nested `rooms.properties(...)` null হয়ে যাচ্ছে
+- ফলে auto current address box ফাঁকা দেখাচ্ছে
 
-## কীভাবে ফিক্স হবে
+স্ক্রিনশট অনুযায়ী issue save না হওয়া না, বরং **tenant page data fetch করতে পারছে না**।
 
-### 1) Address normalization helper যোগ হবে
-`src/data/bangladeshAddress.ts`-এ helper যোগ করা হবে, যা:
-- Bangla label → canonical English value
-- English value → same canonical value
-- mixed/legacy value → best-match canonical value
-- invalid হলে empty string
+## কী fix হবে
 
-এতে backend-এ একটাই standard format থাকবে।
+### 1) Room access policy ঠিক করা
+নতুন migration-এ `rooms` table-এ tenant-এর নিজের assigned room read করার policy যোগ হবে।
 
-### 2) Landlord edit form load fix
-`src/components/tenants/TenantFormDialog.tsx`-এ:
-- `editing` data form-এ তোলার সময়
-  - `permanent_division`, `permanent_district`, `permanent_thana`
-  - `present_division`, `present_district`, `present_thana`
-  normalize করে state-এ বসানো হবে
-- ফলে পুরনো saved data থাকলেও dropdown ঠিকমতো selected থাকবে
+লজিক:
+- tenant যদি `tenants.user_id = auth.uid()`
+- এবং `tenants.room_id = rooms.id`
+- তাহলে সে ওই room read করতে পারবে
 
-### 3) Tenant profile load fix
-`src/pages/tenant/TenantProfile.tsx`-এ একই normalization apply হবে, যাতে tenant side-এও বর্তমান ও স্থায়ী ঠিকানা ঠিকভাবে load হয়।
+এতে tenant page-এর nested room/property data আসবে।
 
-### 4) Save payload hardening
-save/update করার আগে address fieldগুলো canonical format-এ normalize করে পাঠানো হবে:
-- landlord tenant update
-- tenant self profile save
-- approval-based update flow
+### 2) Property access policy tighten করা
+এখন `properties` authenticated user সবাই read করতে পারে (`USING (true)`), এটা security-wise বেশি খোলা।
+এটা safer policy-তে আনা হবে যাতে:
+- owner তার property দেখতে পারে
+- tenant linked/assigned property দেখতে পারে
+- to-let/public listing যেটুকু দরকার সেটুকু আগের behavior অনুযায়ী বজায় থাকে
 
-ফলে future-এ আর Bangla/mixed raw value DB-তে জমা হবে না।
+এতে tenant page data-ও আসবে, security-ও better হবে।
 
-### 5) Reset logic safe করা
-division/district change handler এমন করা হবে যাতে:
-- সত্যি parent value বদলালে তবেই child reset হয়
-- load-time normalization বা same value select করলে child blank না হয়
-- mismatch থাকলে controlled way-তে clear হয়
+### 3) Tenant page query harden করা
+`src/pages/tenant/TenantProfile.tsx`-এ query fallback-safe করা হবে:
+- current linked tenant-এর room/property এলে auto address দেখাবে
+- nested relation missing হলে blank box না দেখিয়ে readable fallback note দেখাবে
+- property address compose helper ব্যবহার করে house/road/area/postal info consistent দেখানো হবে
 
-### 6) Display consistency
-যেখানে address show করা হয়, সেখানে stored canonical value থেকে Bangla label render হবে, যাতে:
-- DB value standard থাকে
-- UI text readable Bangla থাকে
+### 4) Auto-populated current address display improve করা
+বর্তমান ঠিকানা section-এ:
+- division
+- district
+- thana
+- village/area
+- detailed address (house/road)
+এসব property থেকে consistent map হবে
+
+যাতে landlord property form-এ যেটা দিয়েছে tenant page-এ সেটাই আসে।
+
+### 5) Print / police verification consistency check
+`TenantRegistrationPrint.tsx` already property relation ব্যবহার করে। policy fix হলে এটাও ঠিক data পাবে।
+প্রয়োজনে display helper reuse করা হবে যেন tenant page আর print form একই address structure follow করে।
 
 ## যেসব file বদলাতে হবে
-- `src/data/bangladeshAddress.ts`
-- `src/components/tenants/TenantFormDialog.tsx`
-- `src/pages/tenant/TenantProfile.tsx`
-
-প্রয়োজনে display consistency-এর জন্য:
-- `src/components/bills/TenantDetailDialog.tsx`
-- `src/components/tenants/TenantRegistrationPrint.tsx`
+1. `supabase/migrations/...sql` — rooms/properties RLS fix
+2. `src/pages/tenant/TenantProfile.tsx` — query + fallback + address mapping
+3. প্রয়োজনে `src/components/tenants/TenantRegistrationPrint.tsx` — display consistency
 
 ## Expected result
-- স্থায়ী ও বর্তমান ঠিকানার division/district/thana আর blank হবে না
-- landlord edit করার পর data স্থায়ী থাকবে
-- tenant profile থেকেও save করলে ঠিক থাকবে
-- পুরনো Bangla-saved data থাকলেও form-এ ঠিকমতো selected হয়ে দেখা যাবে
-- একই সমস্যার পুনরাবৃত্তি বন্ধ হবে
+- landlord property-তে দেওয়া address tenant page-এ দেখা যাবে
+- linked tenant / accepted tenant উভয়ের current address auto-fill হবে
+- police verification print form-এ একই property address আসবে
+- blank current address issue বন্ধ হবে
 
 ## Technical note
-DB migration লাগবে না। এটা data normalization + form state handling fix.
+আমি code review করে দেখেছি auth initialization issue না, মূল issue হচ্ছে **assigned room read policy missing**। তাই এই fix-এর মূল focus হবে RLS + tenant profile mapping।

@@ -138,6 +138,7 @@ const TenantFamily = () => {
         gender: values.gender || "",
         doc_url: values.doc_url || "",
         photo_url: values.photo_url || "",
+        status: "pending",
       };
       if (editingId) {
         const { error } = await supabase.from("tenant_members").update(payload).eq("id", editingId);

@@ -74,6 +74,7 @@ const FamilyMembersDialog = ({ tenant, onClose }: Props) => {
         relation: values.relation,
         phone: values.phone || "",
         nid: values.nid || "",
+        status: "pending",
       });
       if (error) throw error;
     },

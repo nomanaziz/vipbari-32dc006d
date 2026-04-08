@@ -527,66 +527,98 @@ const TenantFormDialog = ({ open, onOpenChange, editing, availableRooms, onCrede
           {/* Present Address */}
           <div>
             <h3 className="text-sm font-semibold text-muted-foreground mb-3">{language === "bn" ? "বর্তমান ঠিকানা" : "Present Address"}</h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>{t("tenant.division")}</Label>
-                <Select value={presentDivisionValue || "none"} onValueChange={v => {
-                  const next = v === "none" ? "" : v;
-                  setForm(f => {
-                    const current = normalizeDivision(f.present_division);
-                    if (next === current) return { ...f, present_division: next };
-                    return { ...f, present_division: next, present_district: "", present_thana: "" };
-                  });
-                }}>
-                  <SelectTrigger><SelectValue placeholder={t("tenant.select_division")} /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">—</SelectItem>
-                    {DIVISIONS.map(d => (
-                      <SelectItem key={d} value={d}>{getBnLabel(DIVISIONS_BN, d, language)}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+            {editing?.rooms?.properties ? (
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>{t("tenant.division")}</Label>
+                  <Input value={language === "bn" ? (DIVISIONS_BN[editing.rooms.properties.division] || editing.rooms.properties.division || "") : (editing.rooms.properties.division || "")} disabled className="bg-muted" />
+                </div>
+                <div className="space-y-2">
+                  <Label>{t("tenant.district")}</Label>
+                  <Input value={language === "bn" ? (DISTRICTS_BN[editing.rooms.properties.district] || editing.rooms.properties.district || "") : (editing.rooms.properties.district || "")} disabled className="bg-muted" />
+                </div>
+                <div className="space-y-2">
+                  <Label>{t("tenant.thana")}</Label>
+                  <Input value={language === "bn" ? (THANAS_BN[editing.rooms.properties.thana] || editing.rooms.properties.thana || "") : (editing.rooms.properties.thana || "")} disabled className="bg-muted" />
+                </div>
+                <div className="space-y-2">
+                  <Label>{language === "bn" ? "গ্রাম/এলাকা" : "Village/Area"}</Label>
+                  <Input value={editing.rooms.properties.area || ""} disabled className="bg-muted" />
+                </div>
+                <div className="space-y-2">
+                  <Label>{language === "bn" ? "পোস্টাল কোড" : "Postal Code"}</Label>
+                  <Input value={editing.rooms.properties.postal_code || ""} disabled className="bg-muted" />
+                </div>
+                <div className="space-y-2">
+                  <Label>{language === "bn" ? "বিস্তারিত ঠিকানা" : "Detailed Address"}</Label>
+                  <Input value={[editing.rooms.properties.house_number, editing.rooms.properties.road_number].filter(Boolean).join(", ")} disabled className="bg-muted" />
+                </div>
+                <p className="col-span-2 text-xs text-muted-foreground">{language === "bn" ? "বর্তমান ঠিকানা প্রপার্টি থেকে স্বয়ংক্রিয়ভাবে আসে" : "Present address is auto-derived from the property"}</p>
               </div>
-              <div className="space-y-2">
-                <Label>{t("tenant.district")}</Label>
-                <Select value={presentDistrictValue || "none"} onValueChange={v => {
-                  const next = v === "none" ? "" : v;
-                  setForm(f => {
-                    const current = normalizeDistrict(f.present_district);
-                    if (next === current) return { ...f, present_district: next };
-                    return { ...f, present_district: next, present_thana: "" };
-                  });
-                }}>
-                  <SelectTrigger><SelectValue placeholder={t("tenant.select_district")} /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">—</SelectItem>
-                    {presentDistricts.map(d => (
-                      <SelectItem key={d} value={d}>{getBnLabel(DISTRICTS_BN, d, language)}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>{t("tenant.thana")}</Label>
-                <Select value={presentThanaValue || "none"} onValueChange={v => set("present_thana", v === "none" ? "" : v)}>
-                  <SelectTrigger><SelectValue placeholder={t("tenant.select_thana")} /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">—</SelectItem>
-                    {presentThanas.map(th => (
-                      <SelectItem key={th} value={th}>{getBnLabel(THANAS_BN, th, language)}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>{language === "bn" ? "গ্রাম/এলাকা" : "Village/Area"}</Label>
-                <Input value={form.present_village} onChange={e => set("present_village", e.target.value)} />
-              </div>
-            </div>
-            <div className="mt-3 space-y-2">
-              <Label>{language === "bn" ? "বিস্তারিত ঠিকানা" : "Detailed Address"}</Label>
-              <Textarea value={form.present_address} onChange={e => set("present_address", e.target.value)} rows={2} />
-            </div>
+            ) : (
+              <>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>{t("tenant.division")}</Label>
+                    <Select value={presentDivisionValue || "none"} onValueChange={v => {
+                      const next = v === "none" ? "" : v;
+                      setForm(f => {
+                        const current = normalizeDivision(f.present_division);
+                        if (next === current) return { ...f, present_division: next };
+                        return { ...f, present_division: next, present_district: "", present_thana: "" };
+                      });
+                    }}>
+                      <SelectTrigger><SelectValue placeholder={t("tenant.select_division")} /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">—</SelectItem>
+                        {DIVISIONS.map(d => (
+                          <SelectItem key={d} value={d}>{getBnLabel(DIVISIONS_BN, d, language)}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>{t("tenant.district")}</Label>
+                    <Select value={presentDistrictValue || "none"} onValueChange={v => {
+                      const next = v === "none" ? "" : v;
+                      setForm(f => {
+                        const current = normalizeDistrict(f.present_district);
+                        if (next === current) return { ...f, present_district: next };
+                        return { ...f, present_district: next, present_thana: "" };
+                      });
+                    }}>
+                      <SelectTrigger><SelectValue placeholder={t("tenant.select_district")} /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">—</SelectItem>
+                        {presentDistricts.map(d => (
+                          <SelectItem key={d} value={d}>{getBnLabel(DISTRICTS_BN, d, language)}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>{t("tenant.thana")}</Label>
+                    <Select value={presentThanaValue || "none"} onValueChange={v => set("present_thana", v === "none" ? "" : v)}>
+                      <SelectTrigger><SelectValue placeholder={t("tenant.select_thana")} /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">—</SelectItem>
+                        {presentThanas.map(th => (
+                          <SelectItem key={th} value={th}>{getBnLabel(THANAS_BN, th, language)}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>{language === "bn" ? "গ্রাম/এলাকা" : "Village/Area"}</Label>
+                    <Input value={form.present_village} onChange={e => set("present_village", e.target.value)} />
+                  </div>
+                </div>
+                <div className="mt-3 space-y-2">
+                  <Label>{language === "bn" ? "বিস্তারিত ঠিকানা" : "Detailed Address"}</Label>
+                  <Textarea value={form.present_address} onChange={e => set("present_address", e.target.value)} rows={2} />
+                </div>
+              </>
+            )}
           </div>
 
           {/* Emergency Contact */}

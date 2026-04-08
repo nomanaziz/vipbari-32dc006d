@@ -1,0 +1,2 @@
+ALTER TABLE public.tenant_members ALTER COLUMN status SET DEFAULT 'pending';
+UPDATE public.tenant_members SET status = 'pending' WHERE status = 'active' AND verified_by IS NULL AND verified_at IS NULL;

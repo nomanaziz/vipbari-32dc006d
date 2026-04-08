@@ -19,6 +19,7 @@ import TenantRegistrationPrint from "@/components/tenants/TenantRegistrationPrin
 import TenantCredentialsDialog from "@/components/tenants/TenantCredentialsDialog";
 import FamilyMembersDialog from "@/components/tenants/FamilyMembersDialog";
 import PendingRequestsSection from "@/components/tenants/PendingRequestsSection";
+import EditApprovalSection from "@/components/tenants/EditApprovalSection";
 import TenantStatsCards from "@/components/tenants/TenantStatsCards";
 import LinkTenantDialog from "@/components/tenants/LinkTenantDialog";
 import TenantReleaseDialog from "@/components/tenants/TenantReleaseDialog";
@@ -328,6 +329,9 @@ const Tenants = () => {
 
       {/* Pending Requests */}
       <PendingRequestsSection />
+
+      {/* Edit Approval Requests */}
+      <EditApprovalSection role="landlord" />
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">

@@ -523,7 +523,7 @@ const Properties = () => {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label>{t("property.thana")}</Label>
+                  <Label>{t("property.thana")} *</Label>
                   <Select value={form.thana} onValueChange={v => setForm(f => ({ ...f, thana: v }))} disabled={!form.district}>
                     <SelectTrigger><SelectValue placeholder={t("property.thana")} /></SelectTrigger>
                     <SelectContent>

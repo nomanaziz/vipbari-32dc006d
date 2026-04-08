@@ -85,11 +85,12 @@ const TenantFormDialog = ({ open, onOpenChange, editing, availableRooms, onCrede
     }
   }, [editing, open]);
 
-  const buildPayload = (values: typeof emptyForm) => {
+  const buildPayload = (values: typeof emptyForm & { id?: string; old_room_id?: string }) => {
     const payload: Record<string, any> = {};
     for (const [key, val] of Object.entries(values)) {
+      if (key === "id" || key === "old_room_id") continue;
       if (key === "advance_balance") {
-        payload[key] = val ? parseFloat(val) : 0;
+        payload[key] = val ? parseFloat(val as string) : 0;
       } else if (key === "room_id" || key === "nid" || key === "emergency_contact" || key === "move_in_date") {
         payload[key] = val || null;
       } else {

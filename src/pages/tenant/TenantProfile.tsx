@@ -14,9 +14,20 @@ import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import ImageCropDialog from "@/components/ImageCropDialog";
 import TenantRegistrationPrint from "@/components/tenants/TenantRegistrationPrint";
+import EditApprovalSection from "@/components/tenants/EditApprovalSection";
 import {
   DIVISIONS, DIVISIONS_BN, DISTRICTS, DISTRICTS_BN, THANAS, THANAS_BN,
 } from "@/data/bangladeshAddress";
+
+const PROTECTED_FIELDS = [
+  "full_name", "father_name", "marital_status", "religion", "education",
+  "workplace_address", "passport_number", "email",
+  "emergency_name", "emergency_relation", "emergency_address", "emergency_phone",
+  "domestic_worker_name", "domestic_worker_nid", "domestic_worker_phone", "domestic_worker_address",
+  "driver_name", "driver_nid", "driver_phone", "driver_address",
+  "prev_landlord_name", "prev_landlord_phone", "prev_landlord_address", "prev_leave_reason",
+  "current_landlord_name", "current_landlord_phone", "living_since",
+];
 
 const DOC_TYPES = [
   { value: "nid", en: "NID", bn: "জাতীয় পরিচয়পত্র" },

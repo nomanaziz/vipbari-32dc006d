@@ -92,6 +92,16 @@ const TenantProfile = () => {
   const [form, setForm] = useState<Record<string, string>>({});
   const isFormLoaded = useRef(false);
 
+  // Derive auto-populated values from property/landlord
+  const propData = (tenant as any)?.rooms?.properties;
+  const autoCurrentLandlordName = landlordProfile?.full_name || "";
+  const autoCurrentLandlordPhone = landlordProfile?.phone || "";
+  const autoPresentDivision = propData?.division || "";
+  const autoPresentDistrict = propData?.district || "";
+  const autoPresentThana = propData?.thana || "";
+  const autoPresentVillage = propData?.area || "";
+  const autoPresentAddress = [propData?.house_number, propData?.road_number].filter(Boolean).join(", ");
+
   // Populate form once tenant data loads
   if (tenant && !isFormLoaded.current) {
     const t = tenant as any;
@@ -118,7 +128,6 @@ const TenantProfile = () => {
       permanent_village: t.permanent_village || "",
       permanent_address: t.permanent_address || "",
       emergency_contact: t.emergency_contact || "",
-      // Police form fields
       father_name: t.father_name || "",
       marital_status: t.marital_status || "",
       religion: t.religion || "",
@@ -148,6 +157,28 @@ const TenantProfile = () => {
     });
     isFormLoaded.current = true;
   }
+
+  // Self-release mutation
+  const selfReleaseMutation = useMutation({
+    mutationFn: async ({ reason, notes }: { reason: string; notes: string }) => {
+      const t = tenant as any;
+      const { error } = await supabase
+        .from("tenant_edit_requests")
+        .insert({
+          tenant_id: t.id,
+          requested_by: user!.id,
+          approve_by: t.owner_id,
+          field_changes: { _action: "release", release_reason: reason, release_notes: notes },
+        } as any);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tenant-edit-requests-sent"] });
+      setReleaseDialogOpen(false);
+      toast.success(language === "bn" ? "বাড়ি ছাড়ার অনুরোধ পাঠানো হয়েছে, বাড়িওয়ালার অনুমোদন প্রয়োজন" : "Release request sent, landlord approval required");
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
 
   const updateField = (key: string, value: string) => {
     setForm((f) => {

@@ -695,9 +695,9 @@ const TenantProfile = () => {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {renderAddressSelect(t("tenant.division"), form.permanent_division || "", (v) => updateField("permanent_division", v), DIVISIONS, DIVISIONS_BN, t("tenant.select_division"))}
-              {renderAddressSelect(t("tenant.district"), form.permanent_district || "", (v) => updateField("permanent_district", v), permDistricts, DISTRICTS_BN, t("tenant.select_district"))}
-              {renderAddressSelect(t("tenant.thana"), form.permanent_thana || "", (v) => updateField("permanent_thana", v), permThanas, THANAS_BN, t("tenant.select_thana"))}
+              {renderAddressSelect(t("tenant.division"), permanentDivisionValue || "", (v) => updateField("permanent_division", v), DIVISIONS, DIVISIONS_BN, t("tenant.select_division"))}
+              {renderAddressSelect(t("tenant.district"), permanentDistrictValue || "", (v) => updateField("permanent_district", v), permDistricts, DISTRICTS_BN, t("tenant.select_district"))}
+              {renderAddressSelect(t("tenant.thana"), permanentThanaValue || "", (v) => updateField("permanent_thana", v), permThanas, THANAS_BN, t("tenant.select_thana"))}
               <div className="space-y-1.5">
                 <Label>{t("tenant.village")}</Label>
                 <Input value={form.permanent_village || ""} onChange={(e) => updateField("permanent_village", e.target.value)} />

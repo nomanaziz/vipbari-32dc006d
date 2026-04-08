@@ -144,10 +144,50 @@ const TenantFormDialog = ({ open, onOpenChange, editing, availableRooms, onCrede
     onError: (e) => toast.error(e.message),
   });
 
+  const isSelfRegistered = editing && editing.user_id && editing.user_id !== editing.owner_id;
+
   const updateMutation = useMutation({
     mutationFn: async (values: typeof emptyForm & { id: string; old_room_id?: string }) => {
-      const { error } = await supabase.from("tenants").update(buildPayload(values) as any).eq("id", values.id);
-      if (error) throw error;
+      if (isSelfRegistered) {
+        // Split into direct-save and protected fields
+        const directPayload: Record<string, any> = {};
+        const protectedChanges: Record<string, any> = {};
+
+        const builtPayload = buildPayload(values);
+        for (const [key, val] of Object.entries(builtPayload)) {
+          if (PROTECTED_FIELDS.includes(key)) {
+            if ((editing[key] || "") !== (val || "")) {
+              protectedChanges[key] = val;
+            }
+          } else {
+            directPayload[key] = val;
+          }
+        }
+
+        // Save non-protected fields directly
+        if (Object.keys(directPayload).length > 0) {
+          const { error } = await supabase.from("tenants").update(directPayload as any).eq("id", values.id);
+          if (error) throw error;
+        }
+
+        // Create edit request for protected fields
+        if (Object.keys(protectedChanges).length > 0) {
+          const { error } = await supabase
+            .from("tenant_edit_requests")
+            .insert({
+              tenant_id: values.id,
+              requested_by: user!.id,
+              approve_by: editing.user_id,
+              field_changes: protectedChanges,
+            } as any);
+          if (error) throw error;
+          return { hasEditRequest: true };
+        }
+      } else {
+        const { error } = await supabase.from("tenants").update(buildPayload(values) as any).eq("id", values.id);
+        if (error) throw error;
+      }
+
       if (values.old_room_id && values.old_room_id !== values.room_id) {
         const { error: oldRoomErr } = await supabase.from("rooms").update({ status: "vacant", tenant_id: null }).eq("id", values.old_room_id);
         if (oldRoomErr) throw oldRoomErr;
@@ -156,12 +196,18 @@ const TenantFormDialog = ({ open, onOpenChange, editing, availableRooms, onCrede
         const { error: newRoomErr } = await supabase.from("rooms").update({ status: "occupied", is_tolet: false, available_from: null, tenant_id: values.id }).eq("id", values.room_id);
         if (newRoomErr) throw newRoomErr;
       }
+      return { hasEditRequest: false };
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ["tenants"] });
       queryClient.invalidateQueries({ queryKey: ["rooms"] });
+      queryClient.invalidateQueries({ queryKey: ["tenant-edit-requests"] });
       onOpenChange(false);
-      toast.success(t("tenant.updated") || "Tenant updated");
+      if (result?.hasEditRequest) {
+        toast.success(language === "bn" ? "পরিবর্তনের অনুরোধ পাঠানো হয়েছে, ভাড়াটিয়ার অনুমোদন প্রয়োজন" : "Edit request sent, tenant approval required");
+      } else {
+        toast.success(t("tenant.updated") || "Tenant updated");
+      }
     },
     onError: (e) => toast.error(e.message),
   });

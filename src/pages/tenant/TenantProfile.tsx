@@ -184,17 +184,40 @@ const TenantProfile = () => {
   const updateField = (key: string, value: string) => {
     setForm((f) => {
       const updated = { ...f, [key]: value };
-      // Reset cascading address fields
       if (key === "present_division") {
-        updated.present_district = "";
-        updated.present_thana = "";
+        const next = normalizeDivision(value);
+        const current = normalizeDivision(f.present_division);
+        updated.present_division = next;
+        if (next !== current) {
+          updated.present_district = "";
+          updated.present_thana = "";
+        }
       } else if (key === "present_district") {
-        updated.present_thana = "";
+        const next = normalizeDistrict(value);
+        const current = normalizeDistrict(f.present_district);
+        updated.present_district = next;
+        if (next !== current) {
+          updated.present_thana = "";
+        }
       } else if (key === "permanent_division") {
-        updated.permanent_district = "";
-        updated.permanent_thana = "";
+        const next = normalizeDivision(value);
+        const current = normalizeDivision(f.permanent_division);
+        updated.permanent_division = next;
+        if (next !== current) {
+          updated.permanent_district = "";
+          updated.permanent_thana = "";
+        }
       } else if (key === "permanent_district") {
-        updated.permanent_thana = "";
+        const next = normalizeDistrict(value);
+        const current = normalizeDistrict(f.permanent_district);
+        updated.permanent_district = next;
+        if (next !== current) {
+          updated.permanent_thana = "";
+        }
+      } else if (key === "present_thana") {
+        updated.present_thana = normalizeThana(value);
+      } else if (key === "permanent_thana") {
+        updated.permanent_thana = normalizeThana(value);
       }
       return updated;
     });

@@ -68,12 +68,19 @@ const TenantFormDialog = ({ open, onOpenChange, editing, availableRooms, onCrede
   const [createAccount, setCreateAccount] = useState(false);
   const [password, setPassword] = useState("");
 
+  const permanentDivisionValue = normalizeDivision(form.permanent_division);
+  const permanentDistrictValue = normalizeDistrict(form.permanent_district);
+  const permanentThanaValue = normalizeThana(form.permanent_thana);
+  const presentDivisionValue = normalizeDivision(form.present_division);
+  const presentDistrictValue = normalizeDistrict(form.present_district);
+  const presentThanaValue = normalizeThana(form.present_thana);
+
   // Permanent address cascading
-  const districts = form.permanent_division ? (DISTRICTS[form.permanent_division] || []) : [];
-  const thanas = form.permanent_district ? (THANAS[form.permanent_district] || []) : [];
+  const districts = permanentDivisionValue ? (DISTRICTS[permanentDivisionValue] || []) : [];
+  const thanas = permanentDistrictValue ? (THANAS[permanentDistrictValue] || []) : [];
   // Present address cascading
-  const presentDistricts = form.present_division ? (DISTRICTS[form.present_division] || []) : [];
-  const presentThanas = form.present_district ? (THANAS[form.present_district] || []) : [];
+  const presentDistricts = presentDivisionValue ? (DISTRICTS[presentDivisionValue] || []) : [];
+  const presentThanas = presentDistrictValue ? (THANAS[presentDistrictValue] || []) : [];
 
   useEffect(() => {
     if (editing) {

@@ -505,7 +505,7 @@ const Properties = () => {
               {/* Structured Address */}
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
-                  <Label>{t("property.division")}</Label>
+                  <Label>{t("property.division")} *</Label>
                   <Select value={form.division} onValueChange={v => setForm(f => ({ ...f, division: v, district: "", thana: "" }))}>
                     <SelectTrigger><SelectValue placeholder={t("property.division")} /></SelectTrigger>
                     <SelectContent>

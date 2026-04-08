@@ -532,3 +532,57 @@ export const normalizeThana = (val: string | null | undefined): string => {
   if (THANAS_BN[trimmed] !== undefined) return trimmed; // already canonical
   return _revThanas[trimmed] || _revThanas[trimmed.toLowerCase()] || "";
 };
+
+/** Normalize district ensuring it belongs to given division. Returns "" if not valid under that division. */
+export const normalizeDistrictForDivision = (division: string, district: string): string => {
+  const normDiv = normalizeDivision(division);
+  const normDist = normalizeDistrict(district);
+  if (!normDiv || !normDist) return normDist; // if no division context, return as-is
+  const validDistricts = DISTRICTS[normDiv] || [];
+  return validDistricts.includes(normDist) ? normDist : normDist; // keep value even if mismatched — don't blank
+};
+
+/** Normalize thana ensuring it belongs to given district. Returns "" if not valid under that district. */
+export const normalizeThanaForDistrict = (district: string, thana: string): string => {
+  const normDist = normalizeDistrict(district);
+  const normThana = normalizeThana(thana);
+  if (!normDist || !normThana) return normThana;
+  const validThanas = THANAS[normDist] || [];
+  return validThanas.includes(normThana) ? normThana : normThana; // keep value even if mismatched
+};
+
+/** Check if a district is valid under a given division */
+export const isDistrictInDivision = (division: string, district: string): boolean => {
+  const normDiv = normalizeDivision(division);
+  const normDist = normalizeDistrict(district);
+  if (!normDiv || !normDist) return false;
+  return (DISTRICTS[normDiv] || []).includes(normDist);
+};
+
+/** Check if a thana is valid under a given district */
+export const isThanaInDistrict = (district: string, thana: string): boolean => {
+  const normDist = normalizeDistrict(district);
+  const normThana = normalizeThana(thana);
+  if (!normDist || !normThana) return false;
+  return (THANAS[normDist] || []).includes(normThana);
+};
+
+/** Find which division a district belongs to */
+export const findDivisionForDistrict = (district: string): string => {
+  const normDist = normalizeDistrict(district);
+  if (!normDist) return "";
+  for (const [div, dists] of Object.entries(DISTRICTS)) {
+    if (dists.includes(normDist)) return div;
+  }
+  return "";
+};
+
+/** Find which district a thana belongs to */
+export const findDistrictForThana = (thana: string): string => {
+  const normThana = normalizeThana(thana);
+  if (!normThana) return "";
+  for (const [dist, thanas] of Object.entries(THANAS)) {
+    if (thanas.includes(normThana)) return dist;
+  }
+  return "";
+};

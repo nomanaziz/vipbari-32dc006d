@@ -18,6 +18,7 @@ import EditApprovalSection from "@/components/tenants/EditApprovalSection";
 import TenantReleaseDialog from "@/components/tenants/TenantReleaseDialog";
 import {
   DIVISIONS, DIVISIONS_BN, DISTRICTS, DISTRICTS_BN, THANAS, THANAS_BN,
+  normalizeDivision, normalizeDistrict, normalizeThana,
 } from "@/data/bangladeshAddress";
 
 const PROTECTED_FIELDS = [

@@ -576,7 +576,7 @@ const Properties = () => {
                   />
                 </div>
                 <div className="space-y-2 col-span-2">
-                  <Label>{t("property.postal_code")}</Label>
+                  <Label>{t("property.postal_code")} *</Label>
                   <Input
                     value={form.postal_code}
                     onChange={e => setForm(f => ({ ...f, postal_code: e.target.value }))}

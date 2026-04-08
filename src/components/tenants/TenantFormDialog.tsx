@@ -3,6 +3,17 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+
+const PROTECTED_FIELDS = [
+  "full_name", "father_name", "marital_status", "religion", "education",
+  "workplace_address", "passport_number", "email",
+  "emergency_name", "emergency_relation", "emergency_address", "emergency_phone",
+  "domestic_worker_name", "domestic_worker_nid", "domestic_worker_phone", "domestic_worker_address",
+  "driver_name", "driver_nid", "driver_phone", "driver_address",
+  "prev_landlord_name", "prev_landlord_phone", "prev_landlord_address", "prev_leave_reason",
+  "current_landlord_name", "current_landlord_phone", "living_since",
+];
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

@@ -613,11 +613,17 @@ const Tenants = () => {
         tenant={shiftTenant}
         availableRooms={vacantRooms}
       />
+
+      {/* Print Registration Form (hidden, shown only during print) */}
+      {printTenant && (
+        <div className="hidden print:block">
+          <TenantRegistrationPrint tenant={printTenant} familyMembers={printMembers} />
+        </div>
+      )}
     </div>
   );
 };
 
-const TenantsPage = () => (
   <PermissionGuard permission="view_tenants">
     <Tenants />
   </PermissionGuard>

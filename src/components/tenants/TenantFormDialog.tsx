@@ -116,6 +116,13 @@ const TenantFormDialog = ({ open, onOpenChange, editing, availableRooms, onCrede
         payload[key] = val;
       }
     }
+    // Ensure address fields are canonical English keys
+    payload.permanent_division = normalizeDivision(payload.permanent_division);
+    payload.permanent_district = normalizeDistrict(payload.permanent_district);
+    payload.permanent_thana = normalizeThana(payload.permanent_thana);
+    payload.present_division = normalizeDivision(payload.present_division);
+    payload.present_district = normalizeDistrict(payload.present_district);
+    payload.present_thana = normalizeThana(payload.present_thana);
     return payload;
   };
 

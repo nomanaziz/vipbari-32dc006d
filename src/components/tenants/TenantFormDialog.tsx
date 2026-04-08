@@ -87,6 +87,13 @@ const TenantFormDialog = ({ open, onOpenChange, editing, availableRooms, onCrede
       }
       if (!f.status) f.status = "active";
       if (!f.billing_type) f.billing_type = "billing";
+      // Normalize address fields to canonical English keys
+      f.permanent_division = normalizeDivision(f.permanent_division);
+      f.permanent_district = normalizeDistrict(f.permanent_district);
+      f.permanent_thana = normalizeThana(f.permanent_thana);
+      f.present_division = normalizeDivision(f.present_division);
+      f.present_district = normalizeDistrict(f.present_district);
+      f.present_thana = normalizeThana(f.present_thana);
       setForm(f);
       setCreateAccount(false);
       setPassword("");

@@ -472,7 +472,7 @@ const TenantFormDialog = ({ open, onOpenChange, editing, availableRooms, onCrede
               </div>
               <div className="space-y-2">
                 <Label>{t("tenant.thana")}</Label>
-                <Select value={form.permanent_thana || "none"} onValueChange={v => set("permanent_thana", v === "none" ? "" : v)}>
+                <Select value={permanentThanaValue || "none"} onValueChange={v => set("permanent_thana", v === "none" ? "" : v)}>
                   <SelectTrigger><SelectValue placeholder={t("tenant.select_thana")} /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">—</SelectItem>

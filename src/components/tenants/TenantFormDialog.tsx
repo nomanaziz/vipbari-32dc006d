@@ -499,8 +499,13 @@ const TenantFormDialog = ({ open, onOpenChange, editing, availableRooms, onCrede
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>{t("tenant.division")}</Label>
-                <Select value={form.present_division || "none"} onValueChange={v => {
-                  setForm(f => ({ ...f, present_division: v === "none" ? "" : v, present_district: "", present_thana: "" }));
+                <Select value={presentDivisionValue || "none"} onValueChange={v => {
+                  const next = v === "none" ? "" : v;
+                  setForm(f => {
+                    const current = normalizeDivision(f.present_division);
+                    if (next === current) return { ...f, present_division: next };
+                    return { ...f, present_division: next, present_district: "", present_thana: "" };
+                  });
                 }}>
                   <SelectTrigger><SelectValue placeholder={t("tenant.select_division")} /></SelectTrigger>
                   <SelectContent>
@@ -513,8 +518,13 @@ const TenantFormDialog = ({ open, onOpenChange, editing, availableRooms, onCrede
               </div>
               <div className="space-y-2">
                 <Label>{t("tenant.district")}</Label>
-                <Select value={form.present_district || "none"} onValueChange={v => {
-                  setForm(f => ({ ...f, present_district: v === "none" ? "" : v, present_thana: "" }));
+                <Select value={presentDistrictValue || "none"} onValueChange={v => {
+                  const next = v === "none" ? "" : v;
+                  setForm(f => {
+                    const current = normalizeDistrict(f.present_district);
+                    if (next === current) return { ...f, present_district: next };
+                    return { ...f, present_district: next, present_thana: "" };
+                  });
                 }}>
                   <SelectTrigger><SelectValue placeholder={t("tenant.select_district")} /></SelectTrigger>
                   <SelectContent>

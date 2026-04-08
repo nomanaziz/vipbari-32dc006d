@@ -2212,6 +2212,47 @@ export type Database = {
         }
         Relationships: []
       }
+      tenant_edit_requests: {
+        Row: {
+          approve_by: string
+          created_at: string
+          field_changes: Json
+          id: string
+          requested_by: string
+          resolved_at: string | null
+          status: string
+          tenant_id: string
+        }
+        Insert: {
+          approve_by: string
+          created_at?: string
+          field_changes?: Json
+          id?: string
+          requested_by: string
+          resolved_at?: string | null
+          status?: string
+          tenant_id: string
+        }
+        Update: {
+          approve_by?: string
+          created_at?: string
+          field_changes?: Json
+          id?: string
+          requested_by?: string
+          resolved_at?: string | null
+          status?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_edit_requests_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tenant_invitations: {
         Row: {
           created_at: string

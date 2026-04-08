@@ -149,9 +149,12 @@ const TenantProfile = () => {
     });
   };
 
+  // Check if tenant is linked to a different landlord (self-registered but under a landlord)
+  const isLinkedToLandlord = tenant && (tenant as any).user_id && (tenant as any).owner_id && (tenant as any).user_id !== (tenant as any).owner_id;
+
   const saveMutation = useMutation({
     mutationFn: async () => {
-      const payload: Record<string, any> = {
+      const allFields: Record<string, any> = {
         full_name: form.full_name,
         phone: form.phone,
         secondary_phone: form.secondary_phone,
@@ -174,7 +177,6 @@ const TenantProfile = () => {
         permanent_village: form.permanent_village,
         permanent_address: form.permanent_address,
         emergency_contact: form.emergency_contact,
-        // Police form fields
         father_name: form.father_name,
         marital_status: form.marital_status,
         religion: form.religion,
@@ -202,15 +204,65 @@ const TenantProfile = () => {
         current_landlord_phone: form.current_landlord_phone,
         living_since: form.living_since,
       };
-      const { error } = await supabase
-        .from("tenants")
-        .update(payload as any)
-        .eq("user_id", user!.id);
-      if (error) throw error;
+
+      if (isLinkedToLandlord) {
+        // Split into direct-save and protected fields
+        const directPayload: Record<string, any> = {};
+        const protectedChanges: Record<string, any> = {};
+        const oldTenant = tenant as any;
+
+        for (const [key, val] of Object.entries(allFields)) {
+          if (PROTECTED_FIELDS.includes(key)) {
+            // Only create request if value actually changed
+            if ((oldTenant[key] || "") !== (val || "")) {
+              protectedChanges[key] = val;
+            }
+          } else {
+            directPayload[key] = val;
+          }
+        }
+
+        // Save non-protected fields directly
+        if (Object.keys(directPayload).length > 0) {
+          const { error } = await supabase
+            .from("tenants")
+            .update(directPayload as any)
+            .eq("user_id", user!.id);
+          if (error) throw error;
+        }
+
+        // Create edit request for protected fields
+        if (Object.keys(protectedChanges).length > 0) {
+          const { error } = await supabase
+            .from("tenant_edit_requests")
+            .insert({
+              tenant_id: oldTenant.id,
+              requested_by: user!.id,
+              approve_by: oldTenant.owner_id,
+              field_changes: protectedChanges,
+            } as any);
+          if (error) throw error;
+          return { hasEditRequest: true };
+        }
+        return { hasEditRequest: false };
+      } else {
+        // No landlord linked — save everything directly
+        const { error } = await supabase
+          .from("tenants")
+          .update(allFields as any)
+          .eq("user_id", user!.id);
+        if (error) throw error;
+        return { hasEditRequest: false };
+      }
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ["my-tenant-profile"] });
-      toast.success(t("tenant.updated"));
+      queryClient.invalidateQueries({ queryKey: ["tenant-edit-requests-sent"] });
+      if (result?.hasEditRequest) {
+        toast.success(language === "bn" ? "পরিবর্তনের অনুরোধ পাঠানো হয়েছে, বাড়িওয়ালার অনুমোদন প্রয়োজন" : "Edit request sent, landlord approval required");
+      } else {
+        toast.success(t("tenant.updated"));
+      }
     },
     onError: (e: any) => toast.error(e.message),
   });

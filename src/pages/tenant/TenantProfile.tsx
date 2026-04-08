@@ -19,6 +19,7 @@ import TenantReleaseDialog from "@/components/tenants/TenantReleaseDialog";
 import {
   DIVISIONS, DIVISIONS_BN, DISTRICTS, DISTRICTS_BN, THANAS, THANAS_BN,
   normalizeDivision, normalizeDistrict, normalizeThana,
+  findDivisionForDistrict, findDistrictForThana,
 } from "@/data/bangladeshAddress";
 
 const PROTECTED_FIELDS = [
@@ -107,6 +108,27 @@ const TenantProfile = () => {
   // Populate form once tenant data loads
   if (tenant && !isFormLoaded.current) {
     const t = tenant as any;
+
+    // Hierarchy-aware normalization for permanent address
+    let permDiv = normalizeDivision(t.permanent_division);
+    let permDist = normalizeDistrict(t.permanent_district);
+    let permThana = normalizeThana(t.permanent_thana);
+    if (permDist && !permDiv) permDiv = findDivisionForDistrict(permDist);
+    if (permThana && !permDist) {
+      permDist = findDistrictForThana(permThana);
+      if (permDist && !permDiv) permDiv = findDivisionForDistrict(permDist);
+    }
+
+    // Present address normalization
+    let presDiv = normalizeDivision(t.present_division);
+    let presDist = normalizeDistrict(t.present_district);
+    let presThana = normalizeThana(t.present_thana);
+    if (presDist && !presDiv) presDiv = findDivisionForDistrict(presDist);
+    if (presThana && !presDist) {
+      presDist = findDistrictForThana(presThana);
+      if (presDist && !presDiv) presDiv = findDivisionForDistrict(presDist);
+    }
+
     setForm({
       full_name: t.full_name || "",
       phone: t.phone || "",
@@ -119,14 +141,14 @@ const TenantProfile = () => {
       doc_number: t.doc_number || "",
       doc_front_url: t.doc_front_url || "",
       doc_back_url: t.doc_back_url || "",
-      present_division: normalizeDivision(t.present_division),
-      present_district: normalizeDistrict(t.present_district),
-      present_thana: normalizeThana(t.present_thana),
+      present_division: presDiv,
+      present_district: presDist,
+      present_thana: presThana,
       present_village: t.present_village || "",
       present_address: t.present_address || "",
-      permanent_division: normalizeDivision(t.permanent_division),
-      permanent_district: normalizeDistrict(t.permanent_district),
-      permanent_thana: normalizeThana(t.permanent_thana),
+      permanent_division: permDiv,
+      permanent_district: permDist,
+      permanent_thana: permThana,
       permanent_village: t.permanent_village || "",
       permanent_address: t.permanent_address || "",
       emergency_contact: t.emergency_contact || "",

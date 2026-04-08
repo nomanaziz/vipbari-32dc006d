@@ -33,7 +33,7 @@ export function TenantDetailDialog({ open, onOpenChange, tenantId }: TenantDetai
     queryFn: async () => {
       const { data } = await supabase
         .from("tenants")
-        .select("*, rooms(room_number, rent_amount, property_id, properties(name))")
+        .select("*, rooms(room_number, rent_amount, property_id, properties(name, division, district, thana, area, house_number, road_number, postal_code))")
         .eq("id", tenantId!)
         .maybeSingle();
       return data;
@@ -254,7 +254,9 @@ export function TenantDetailDialog({ open, onOpenChange, tenantId }: TenantDetai
                     [L("Document Type", "ডকুমেন্ট"), tenant.doc_type],
                     [L("Document No", "ডকুমেন্ট নং"), tenant.doc_number],
                     [L("Permanent Address", "স্থায়ী ঠিকানা"), [tenant.permanent_village, tenant.permanent_thana, tenant.permanent_district, tenant.permanent_division].filter(Boolean).join(", ")],
-                    [L("Present Address", "বর্তমান ঠিকানা"), [tenant.present_village, tenant.present_thana, tenant.present_district, tenant.present_division].filter(Boolean).join(", ")],
+                    [L("Present Address", "বর্তমান ঠিকানা"), tenant.rooms?.properties
+                      ? [tenant.rooms.properties.area, tenant.rooms.properties.thana, tenant.rooms.properties.district, tenant.rooms.properties.division].filter(Boolean).join(", ")
+                      : [tenant.present_village, tenant.present_thana, tenant.present_district, tenant.present_division].filter(Boolean).join(", ")],
                     [L("Advance Balance", "অগ্রিম ব্যালেন্স"), `৳${Number(tenant.advance_balance || 0).toLocaleString()}`],
                     [L("Billing Type", "বিলিং ধরন"), tenant.billing_type],
                     [L("Status", "স্ট্যাটাস"), tenant.status],

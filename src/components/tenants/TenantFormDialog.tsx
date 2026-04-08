@@ -37,8 +37,16 @@ const emptyForm = {
   full_name: "", phone: "", secondary_phone: "", nid: "",
   emergency_contact: "", move_in_date: "", room_id: "", status: "active",
   advance_balance: "", billing_type: "billing",
+  // Permanent address
   permanent_division: "", permanent_district: "", permanent_thana: "",
   permanent_village: "", permanent_address: "",
+  // Present address
+  present_division: "", present_district: "", present_thana: "",
+  present_village: "", present_address: "",
+  // Personal info
+  date_of_birth: "", gender: "", occupation: "",
+  // Document
+  doc_type: "", doc_number: "",
   // Police form fields
   father_name: "", marital_status: "", religion: "", education: "",
   workplace_address: "", passport_number: "", email: "",
@@ -60,8 +68,12 @@ const TenantFormDialog = ({ open, onOpenChange, editing, availableRooms, onCrede
   const [createAccount, setCreateAccount] = useState(false);
   const [password, setPassword] = useState("");
 
+  // Permanent address cascading
   const districts = form.permanent_division ? (DISTRICTS[form.permanent_division] || []) : [];
   const thanas = form.permanent_district ? (THANAS[form.permanent_district] || []) : [];
+  // Present address cascading
+  const presentDistricts = form.present_division ? (DISTRICTS[form.present_division] || []) : [];
+  const presentThanas = form.present_district ? (THANAS[form.present_district] || []) : [];
 
   useEffect(() => {
     if (editing) {
@@ -91,7 +103,7 @@ const TenantFormDialog = ({ open, onOpenChange, editing, availableRooms, onCrede
       if (key === "id" || key === "old_room_id") continue;
       if (key === "advance_balance") {
         payload[key] = val ? parseFloat(val as string) : 0;
-      } else if (key === "room_id" || key === "nid" || key === "emergency_contact" || key === "move_in_date") {
+      } else if (key === "room_id" || key === "nid" || key === "emergency_contact" || key === "move_in_date" || key === "date_of_birth") {
         payload[key] = val || null;
       } else {
         payload[key] = val;
@@ -149,7 +161,6 @@ const TenantFormDialog = ({ open, onOpenChange, editing, availableRooms, onCrede
   const updateMutation = useMutation({
     mutationFn: async (values: typeof emptyForm & { id: string; old_room_id?: string }) => {
       if (isSelfRegistered) {
-        // Split into direct-save and protected fields
         const directPayload: Record<string, any> = {};
         const protectedChanges: Record<string, any> = {};
 
@@ -164,13 +175,11 @@ const TenantFormDialog = ({ open, onOpenChange, editing, availableRooms, onCrede
           }
         }
 
-        // Save non-protected fields directly
         if (Object.keys(directPayload).length > 0) {
           const { error } = await supabase.from("tenants").update(directPayload as any).eq("id", values.id);
           if (error) throw error;
         }
 
-        // Create edit request for protected fields
         if (Object.keys(protectedChanges).length > 0) {
           const { error } = await supabase
             .from("tenant_edit_requests")
@@ -278,6 +287,26 @@ const TenantFormDialog = ({ open, onOpenChange, editing, availableRooms, onCrede
                 <Input value={form.nid} onChange={e => set("nid", e.target.value)} />
               </div>
               <div className="space-y-2">
+                <Label>{language === "bn" ? "জন্ম তারিখ" : "Date of Birth"}</Label>
+                <Input type="date" value={form.date_of_birth} onChange={e => set("date_of_birth", e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label>{language === "bn" ? "লিঙ্গ" : "Gender"}</Label>
+                <Select value={form.gender || "none"} onValueChange={v => set("gender", v === "none" ? "" : v)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">—</SelectItem>
+                    <SelectItem value="male">{language === "bn" ? "পুরুষ" : "Male"}</SelectItem>
+                    <SelectItem value="female">{language === "bn" ? "মহিলা" : "Female"}</SelectItem>
+                    <SelectItem value="other">{language === "bn" ? "অন্যান্য" : "Other"}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>{language === "bn" ? "পেশা" : "Occupation"}</Label>
+                <Input value={form.occupation} onChange={e => set("occupation", e.target.value)} />
+              </div>
+              <div className="space-y-2">
                 <Label>{language === "bn" ? "পাসপোর্ট নম্বর" : "Passport Number"}</Label>
                 <Input value={form.passport_number} onChange={e => set("passport_number", e.target.value)} />
               </div>
@@ -318,6 +347,29 @@ const TenantFormDialog = ({ open, onOpenChange, editing, availableRooms, onCrede
               </div>
             </div>
           </div>
+
+          {/* Document Info */}
+          <SectionCollapsible title={language === "bn" ? "ডকুমেন্ট তথ্য" : "Document Info"}>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>{language === "bn" ? "ডকুমেন্টের ধরন" : "Document Type"}</Label>
+                <Select value={form.doc_type || "none"} onValueChange={v => set("doc_type", v === "none" ? "" : v)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">—</SelectItem>
+                    <SelectItem value="nid">{language === "bn" ? "জাতীয় পরিচয়পত্র" : "NID"}</SelectItem>
+                    <SelectItem value="passport">{language === "bn" ? "পাসপোর্ট" : "Passport"}</SelectItem>
+                    <SelectItem value="birth_certificate">{language === "bn" ? "জন্ম নিবন্ধন" : "Birth Certificate"}</SelectItem>
+                    <SelectItem value="driving_license">{language === "bn" ? "ড্রাইভিং লাইসেন্স" : "Driving License"}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>{language === "bn" ? "ডকুমেন্ট নম্বর" : "Document Number"}</Label>
+                <Input value={form.doc_number} onChange={e => set("doc_number", e.target.value)} />
+              </div>
+            </div>
+          </SectionCollapsible>
 
           {/* Create Account Toggle - only for new tenants */}
           {!editing && (
@@ -362,7 +414,6 @@ const TenantFormDialog = ({ open, onOpenChange, editing, availableRooms, onCrede
               <div className="space-y-2">
                 <Label>{t("tenant.division")}</Label>
                 <Select value={form.permanent_division || "none"} onValueChange={v => {
-                  set("permanent_division", v === "none" ? "" : v);
                   setForm(f => ({ ...f, permanent_division: v === "none" ? "" : v, permanent_district: "", permanent_thana: "" }));
                 }}>
                   <SelectTrigger><SelectValue placeholder={t("tenant.select_division")} /></SelectTrigger>
@@ -408,6 +459,61 @@ const TenantFormDialog = ({ open, onOpenChange, editing, availableRooms, onCrede
             <div className="mt-3 space-y-2">
               <Label>{t("tenant.address_detail")}</Label>
               <Textarea value={form.permanent_address} onChange={e => set("permanent_address", e.target.value)} rows={2} />
+            </div>
+          </div>
+
+          {/* Present Address */}
+          <div>
+            <h3 className="text-sm font-semibold text-muted-foreground mb-3">{language === "bn" ? "বর্তমান ঠিকানা" : "Present Address"}</h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>{t("tenant.division")}</Label>
+                <Select value={form.present_division || "none"} onValueChange={v => {
+                  setForm(f => ({ ...f, present_division: v === "none" ? "" : v, present_district: "", present_thana: "" }));
+                }}>
+                  <SelectTrigger><SelectValue placeholder={t("tenant.select_division")} /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">—</SelectItem>
+                    {DIVISIONS.map(d => (
+                      <SelectItem key={d} value={d}>{getBnLabel(DIVISIONS_BN, d, language)}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>{t("tenant.district")}</Label>
+                <Select value={form.present_district || "none"} onValueChange={v => {
+                  setForm(f => ({ ...f, present_district: v === "none" ? "" : v, present_thana: "" }));
+                }}>
+                  <SelectTrigger><SelectValue placeholder={t("tenant.select_district")} /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">—</SelectItem>
+                    {presentDistricts.map(d => (
+                      <SelectItem key={d} value={d}>{getBnLabel(DISTRICTS_BN, d, language)}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>{t("tenant.thana")}</Label>
+                <Select value={form.present_thana || "none"} onValueChange={v => set("present_thana", v === "none" ? "" : v)}>
+                  <SelectTrigger><SelectValue placeholder={t("tenant.select_thana")} /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">—</SelectItem>
+                    {presentThanas.map(th => (
+                      <SelectItem key={th} value={th}>{getBnLabel(THANAS_BN, th, language)}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>{language === "bn" ? "গ্রাম/এলাকা" : "Village/Area"}</Label>
+                <Input value={form.present_village} onChange={e => set("present_village", e.target.value)} />
+              </div>
+            </div>
+            <div className="mt-3 space-y-2">
+              <Label>{language === "bn" ? "বিস্তারিত ঠিকানা" : "Detailed Address"}</Label>
+              <Textarea value={form.present_address} onChange={e => set("present_address", e.target.value)} rows={2} />
             </div>
           </div>
 

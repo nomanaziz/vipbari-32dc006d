@@ -288,9 +288,19 @@ const Tenants = () => {
     return reason;
   };
 
-  
+  const handlePrintTenant = async (tenant: any) => {
+    // Fetch family members for the print form
+    const { data: members } = await supabase
+      .from("tenant_members")
+      .select("*")
+      .eq("tenant_id", tenant.id)
+      .eq("status", "approved");
+    setPrintMembers(members || []);
+    setPrintTenant(tenant);
+    setTimeout(() => window.print(), 300);
+  };
 
-  return (
+
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">

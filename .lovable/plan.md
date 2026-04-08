@@ -1,80 +1,78 @@
 
 
-# ভাড়াটিয়া নিবন্ধন ফরম (Police Registration Form) Feature
+# Tenant Profile Edit Approval System
 
-## Overview
-ঢাকা মেট্রোপলিটন পুলিশের ভাড়াটিয়া নিবন্ধন ফরমের সব ফিল্ড tenant profile-এ যোগ করা হবে। টেনান্ট ও বাড়িওয়ালা দুজনেই edit করতে পারবে। Print করলে পুলিশ ফরমের মতো output আসবে।
+## Problem
+Currently, both landlords and tenants can freely edit tenant data. Two new rules are needed:
+1. **Name changes require mutual approval** — if a self-registered tenant changes their name, the landlord must approve. If the landlord edits a self-registered tenant's name, the tenant must approve.
+2. **Registration form data** edited by the tenant also requires landlord approval before it takes effect.
 
-## Step 1: Database Migration — New columns on `tenants` table
+## Design
 
-Currently missing fields (mapped from the police form):
+### New Table: `tenant_edit_requests`
 
-| Form Field | New Column | Type |
+Stores pending edit requests that need approval from the other party.
+
+| Column | Type | Notes |
 |---|---|---|
-| ২. পিতার নাম | `father_name` | text |
-| ৩. বৈবাহিক অবস্থা | `marital_status` | text |
-| ৬. ধর্ম | `religion` | text |
-| ৬. শিক্ষাগত যোগ্যতা | `education` | text |
-| ৫. কর্মস্থলের ঠিকানা | `workplace_address` | text |
-| ৯. পাসপোর্ট নম্বর | `passport_number` | text |
-| ১০. জরুরী যোগাযোগ (নাম) | `emergency_name` | text |
-| ১০. জরুরী যোগাযোগ (সম্পর্ক) | `emergency_relation` | text |
-| ১০. জরুরী যোগাযোগ (ঠিকানা) | `emergency_address` | text |
-| ১০. জরুরী যোগাযোগ (মোবাইল) | `emergency_phone` | text |
-| ১২. গৃহকর্মী নাম | `domestic_worker_name` | text |
-| ১২. গৃহকর্মী NID | `domestic_worker_nid` | text |
-| ১২. গৃহকর্মী মোবাইল | `domestic_worker_phone` | text |
-| ১২. গৃহকর্মী ঠিকানা | `domestic_worker_address` | text |
-| ১৩. ড্রাইভার নাম | `driver_name` | text |
-| ১৩. ড্রাইভার NID | `driver_nid` | text |
-| ১৩. ড্রাইভার মোবাইল | `driver_phone` | text |
-| ১৩. ড্রাইভার ঠিকানা | `driver_address` | text |
-| ১৪. পূর্ববর্তী বাড়িওয়ালার নাম | `prev_landlord_name` | text |
-| ১৪. পূর্ববর্তী বাড়িওয়ালার মোবাইল | `prev_landlord_phone` | text |
-| ১৪. পূর্ববর্তী বাড়িওয়ালার ঠিকানা | `prev_landlord_address` | text |
-| ১৫. পূর্ববর্তী বাসা ছাড়ার কারণ | `prev_leave_reason` | text |
+| id | uuid PK | |
+| tenant_id | uuid | FK to tenants |
+| requested_by | uuid | user_id of who made the edit |
+| approve_by | uuid | user_id of who needs to approve |
+| field_changes | jsonb | `{"full_name": "New Name", "father_name": "..."}` |
+| status | text | `pending` / `approved` / `rejected` |
+| created_at | timestamptz | |
+| resolved_at | timestamptz | nullable |
 
-All nullable, default empty.
+RLS: requestor and approver can both read; approver can update status.
 
-## Step 2: Update Tenant Profile Page (tenant side)
-**File:** `src/pages/tenant/TenantProfile.tsx`
+### Logic Flow
 
-Add new card sections for:
-- পিতার নাম, বৈবাহিক অবস্থা, ধর্ম, শিক্ষাগত যোগ্যতা, কর্মস্থলের ঠিকানা, পাসপোর্ট নম্বর
-- জরুরী যোগাযোগ (expanded: নাম, সম্পর্ক, ঠিকানা, মোবাইল)
-- গৃহকর্মী তথ্য
-- ড্রাইভার তথ্য
-- পূর্ববর্তী বাড়িওয়ালা তথ্য
+**Tenant edits their own profile:**
+- If tenant has a landlord (`owner_id != user_id`), name change and registration form changes create a `tenant_edit_request` instead of directly updating. Other fields (phone, address, documents) update directly.
+- Toast: "পরিবর্তনের অনুরোধ পাঠানো হয়েছে, বাড়িওয়ালার অনুমোদন প্রয়োজন"
 
-Update the `saveMutation` to include all new fields.
+**Landlord edits a self-registered tenant:**
+- A tenant is "self-registered" if `user_id IS NOT NULL` and `owner_id != user_id` (or tenant registered themselves).
+- Name and registration form field changes create a `tenant_edit_request` with `approve_by = tenant.user_id`.
+- Toast: "পরিবর্তনের অনুরোধ পাঠানো হয়েছে, ভাড়াটিয়ার অনুমোদন প্রয়োজন"
 
-## Step 3: Update Landlord Tenant Form (landlord side)
-**File:** `src/components/tenants/TenantFormDialog.tsx`
+**On approval:**
+- The approved field_changes are applied to the `tenants` table.
+- A notification is created for the requestor.
 
-Add the same new fields in collapsible/tabbed sections so the form doesn't become overwhelming. The landlord can fill these from their panel too.
+**On rejection:**
+- Status set to `rejected`, notification sent to requestor.
 
-Update `emptyForm`, `buildPayload`, and the edit `useEffect`.
+### Protected Fields (require approval)
+`full_name`, `father_name`, `marital_status`, `religion`, `education`, `workplace_address`, `passport_number`, `emergency_*`, `domestic_worker_*`, `driver_*`, `prev_landlord_*`, `prev_leave_reason`, `current_landlord_*`, `living_since`
 
-## Step 4: Print Registration Form Component
-**New file:** `src/components/tenants/TenantRegistrationPrint.tsx`
+### File Changes
 
-A print-optimized component that renders the police form layout:
-- Header with "ঢাকা মেট্রোপলিটন পুলিশ" logo area, বিভাগ, থানা
-- All 17 fields in the exact order of the police form
-- Family members table (from `tenant_members`)
-- Footer with তারিখ and ভাড়াটিয়ার স্বাক্ষর
-- Uses `@media print` CSS for clean A4 output
-- Triggered from both landlord (single or bulk) and tenant profile
+1. **Migration** — Create `tenant_edit_requests` table with RLS policies.
 
-## Step 5: Print Buttons
-- **Landlord side** (`src/pages/Tenants.tsx`): Add "Print Form" option in tenant card dropdown menu. Also add a bulk "Print All Forms" button in the header area.
-- **Tenant side** (`src/pages/tenant/TenantProfile.tsx`): Add a "Print Registration Form" button.
+2. **`src/pages/tenant/TenantProfile.tsx`** — Split save logic:
+   - Direct-save fields (phone, address, documents, avatar) update immediately.
+   - Protected fields → if tenant is linked to a landlord, insert into `tenant_edit_requests` instead.
+   - Show pending edit requests banner with current pending changes.
 
-Both open a print dialog with the formatted police form.
+3. **`src/components/tenants/TenantFormDialog.tsx`** — When editing a self-registered tenant:
+   - Protected field changes → insert into `tenant_edit_requests` with `approve_by = tenant.user_id`.
+   - Non-protected fields save directly.
 
-## Technical Notes
-- All new columns are nullable text — no breaking changes to existing inserts
-- The print component uses `window.print()` with print-specific CSS
-- Family members data comes from the existing `tenant_members` table query
-- Property/room info for the form header comes from existing tenant joins
+4. **New component: `src/components/tenants/EditApprovalSection.tsx`** — Shows pending edit requests:
+   - For **landlord** (on Tenants page): list of pending requests from tenants with Approve/Reject buttons.
+   - For **tenant** (on Profile page): list of pending requests from landlord with Approve/Reject buttons.
+   - On approve → apply `field_changes` to tenants table via update, set status = `approved`.
+   - On reject → set status = `rejected`.
+
+5. **`src/pages/Tenants.tsx`** — Add a badge/indicator on tenant cards showing pending edit requests count. Add the approval UI in tenant detail or as a small dialog.
+
+6. **Notification** — On insert into `tenant_edit_requests`, create a notification row for the `approve_by` user.
+
+### Technical Notes
+- The `field_changes` jsonb approach is flexible — no schema changes needed per field.
+- Approval applies changes atomically by updating the tenants row with the stored jsonb values.
+- Self-registered tenant detection: `tenant.user_id IS NOT NULL AND tenant.user_id != tenant.owner_id`.
+- Landlord-created tenants (no user_id or user_id = owner_id) have no approval requirement — landlord edits directly.
 

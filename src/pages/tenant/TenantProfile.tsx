@@ -18,6 +18,7 @@ import EditApprovalSection from "@/components/tenants/EditApprovalSection";
 import TenantReleaseDialog from "@/components/tenants/TenantReleaseDialog";
 import {
   DIVISIONS, DIVISIONS_BN, DISTRICTS, DISTRICTS_BN, THANAS, THANAS_BN,
+  normalizeDivision, normalizeDistrict, normalizeThana,
 } from "@/data/bangladeshAddress";
 
 const PROTECTED_FIELDS = [
@@ -117,14 +118,14 @@ const TenantProfile = () => {
       doc_number: t.doc_number || "",
       doc_front_url: t.doc_front_url || "",
       doc_back_url: t.doc_back_url || "",
-      present_division: t.present_division || "",
-      present_district: t.present_district || "",
-      present_thana: t.present_thana || "",
+      present_division: normalizeDivision(t.present_division),
+      present_district: normalizeDistrict(t.present_district),
+      present_thana: normalizeThana(t.present_thana),
       present_village: t.present_village || "",
       present_address: t.present_address || "",
-      permanent_division: t.permanent_division || "",
-      permanent_district: t.permanent_district || "",
-      permanent_thana: t.permanent_thana || "",
+      permanent_division: normalizeDivision(t.permanent_division),
+      permanent_district: normalizeDistrict(t.permanent_district),
+      permanent_thana: normalizeThana(t.permanent_thana),
       permanent_village: t.permanent_village || "",
       permanent_address: t.permanent_address || "",
       emergency_contact: t.emergency_contact || "",

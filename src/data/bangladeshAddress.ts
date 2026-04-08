@@ -492,3 +492,43 @@ export const getBnLabel = (
   key: string,
   language: string
 ): string => (language === "bn" ? map[key] || key : key);
+
+// ---- Address normalization helpers ----
+// Build reverse maps: Bangla label → canonical English key
+const _buildReverse = (bnMap: Record<string, string>): Record<string, string> => {
+  const rev: Record<string, string> = {};
+  for (const [en, bn] of Object.entries(bnMap)) {
+    rev[bn] = en;
+    // Also map lowercase English to canonical
+    rev[en.toLowerCase()] = en;
+  }
+  return rev;
+};
+
+const _revDivisions = _buildReverse(DIVISIONS_BN);
+const _revDistricts = _buildReverse(DISTRICTS_BN);
+const _revThanas = _buildReverse(THANAS_BN);
+
+/** Normalize a division value (Bangla or English) to canonical English key */
+export const normalizeDivision = (val: string | null | undefined): string => {
+  if (!val) return "";
+  const trimmed = val.trim();
+  if (DIVISIONS.includes(trimmed)) return trimmed;
+  return _revDivisions[trimmed] || _revDivisions[trimmed.toLowerCase()] || "";
+};
+
+/** Normalize a district value to canonical English key */
+export const normalizeDistrict = (val: string | null | undefined): string => {
+  if (!val) return "";
+  const trimmed = val.trim();
+  if (DISTRICTS_BN[trimmed] !== undefined) return trimmed; // already canonical
+  return _revDistricts[trimmed] || _revDistricts[trimmed.toLowerCase()] || "";
+};
+
+/** Normalize a thana value to canonical English key */
+export const normalizeThana = (val: string | null | undefined): string => {
+  if (!val) return "";
+  const trimmed = val.trim();
+  if (THANAS_BN[trimmed] !== undefined) return trimmed; // already canonical
+  return _revThanas[trimmed] || _revThanas[trimmed.toLowerCase()] || "";
+};

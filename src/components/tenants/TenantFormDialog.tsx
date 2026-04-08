@@ -23,7 +23,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { toast } from "sonner";
 import { RefreshCw, ChevronDown } from "lucide-react";
-import { DIVISIONS, DIVISIONS_BN, DISTRICTS, DISTRICTS_BN, THANAS, THANAS_BN, getBnLabel } from "@/data/bangladeshAddress";
+import { DIVISIONS, DIVISIONS_BN, DISTRICTS, DISTRICTS_BN, THANAS, THANAS_BN, getBnLabel, normalizeDivision, normalizeDistrict, normalizeThana } from "@/data/bangladeshAddress";
 
 interface Props {
   open: boolean;
@@ -87,6 +87,13 @@ const TenantFormDialog = ({ open, onOpenChange, editing, availableRooms, onCrede
       }
       if (!f.status) f.status = "active";
       if (!f.billing_type) f.billing_type = "billing";
+      // Normalize address fields to canonical English keys
+      f.permanent_division = normalizeDivision(f.permanent_division);
+      f.permanent_district = normalizeDistrict(f.permanent_district);
+      f.permanent_thana = normalizeThana(f.permanent_thana);
+      f.present_division = normalizeDivision(f.present_division);
+      f.present_district = normalizeDistrict(f.present_district);
+      f.present_thana = normalizeThana(f.present_thana);
       setForm(f);
       setCreateAccount(false);
       setPassword("");
@@ -109,6 +116,13 @@ const TenantFormDialog = ({ open, onOpenChange, editing, availableRooms, onCrede
         payload[key] = val;
       }
     }
+    // Ensure address fields are canonical English keys
+    payload.permanent_division = normalizeDivision(payload.permanent_division);
+    payload.permanent_district = normalizeDistrict(payload.permanent_district);
+    payload.permanent_thana = normalizeThana(payload.permanent_thana);
+    payload.present_division = normalizeDivision(payload.present_division);
+    payload.present_district = normalizeDistrict(payload.present_district);
+    payload.present_thana = normalizeThana(payload.present_thana);
     return payload;
   };
 

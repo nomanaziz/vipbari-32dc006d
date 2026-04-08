@@ -502,6 +502,10 @@ const Tenants = () => {
                               <UserPlus className="h-3.5 w-3.5 mr-2" />
                               {language === "bn" ? "পরিবারের সদস্য" : "Family Members"}
                             </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handlePrintTenant(tenant)}>
+                              <Printer className="h-3.5 w-3.5 mr-2" />
+                              {language === "bn" ? "নিবন্ধন ফরম প্রিন্ট" : "Print Registration Form"}
+                            </DropdownMenuItem>
                             <DropdownMenuItem className="text-orange-600" onClick={() => setReleaseTenant(tenant)}>
                               <UserMinus className="h-3.5 w-3.5 mr-2" />
                               {language === "bn" ? "রিলিজ করুন" : "Release"}

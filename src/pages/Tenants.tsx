@@ -203,12 +203,18 @@ const Tenants = () => {
 
   const releaseMutation = useMutation({
     mutationFn: async ({ tenant, reason, notes }: { tenant: any; reason: string; notes: string }) => {
+      const prevLeaveReason = reason === "all_paid"
+        ? (language === "bn" ? "সব বিল পরিশোধ করে চলে গেছে" : "Left — all bills paid")
+        : reason === "unpaid"
+        ? (language === "bn" ? "বিল বাকি রেখে চলে গেছে" : "Left — bills unpaid")
+        : (notes || reason);
       const { error } = await supabase.from("tenants").update({
         status: "inactive",
         room_id: null,
         released_at: new Date().toISOString(),
         release_reason: reason,
         release_notes: notes,
+        prev_leave_reason: prevLeaveReason,
       }).eq("id", tenant.id);
       if (error) throw error;
       if (tenant.room_id) {

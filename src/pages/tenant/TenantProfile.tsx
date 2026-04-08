@@ -821,7 +821,13 @@ const TenantProfile = () => {
           </CardContent>
         </Card>
 
-        <div className="flex justify-end gap-2">
+        <div className="flex flex-wrap justify-end gap-2">
+          {isLinkedToLandlord && (
+            <Button type="button" variant="outline" className="gap-2 text-orange-600 border-orange-200 hover:bg-orange-50" onClick={() => setReleaseDialogOpen(true)}>
+              <LogOut className="h-4 w-4" />
+              {language === "bn" ? "বাড়ি ছাড়তে চাই" : "I want to leave"}
+            </Button>
+          )}
           <Button type="button" variant="outline" className="gap-2" onClick={() => window.print()}>
             <Printer className="h-4 w-4" />
             {language === "bn" ? "নিবন্ধন ফরম প্রিন্ট" : "Print Registration Form"}
@@ -833,9 +839,26 @@ const TenantProfile = () => {
         </div>
       </form>
 
-      {/* Hidden print form */}
+      {/* Self-release dialog */}
+      {isLinkedToLandlord && (
+        <TenantReleaseDialog
+          open={releaseDialogOpen}
+          onOpenChange={setReleaseDialogOpen}
+          tenantName={form.full_name || ""}
+          onConfirm={(reason, notes) => selfReleaseMutation.mutate({ reason, notes })}
+          isPending={selfReleaseMutation.isPending}
+        />
+      )}
+
+      {/* Hidden print form with auto-populated data */}
       <div className="hidden print:block">
-        <TenantRegistrationPrint tenant={tenant as any} />
+        <TenantRegistrationPrint
+          tenant={{
+            ...(tenant as any),
+            current_landlord_name: isLinkedToLandlord ? autoCurrentLandlordName : (tenant as any)?.current_landlord_name,
+            current_landlord_phone: isLinkedToLandlord ? autoCurrentLandlordPhone : (tenant as any)?.current_landlord_phone,
+          }}
+        />
       </div>
     </div>
   );

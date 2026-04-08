@@ -230,50 +230,76 @@ const EditApprovalSection = ({ role }: EditApprovalSectionProps) => {
       </CardHeader>
       <CardContent className="space-y-3">
         {/* Requests waiting for MY approval */}
-        {pendingRequests?.map((req: any) => (
-          <div key={req.id} className="p-3 rounded-lg border bg-background space-y-2">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium text-sm">
-                  {req.requester_name} → {req.tenant_name}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {language === "bn" ? "অনুমোদনের জন্য অপেক্ষমাণ" : "Waiting for your approval"}
-                </p>
-              </div>
-              <div className="flex gap-1.5">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="h-7 text-xs text-emerald-600 border-emerald-200 hover:bg-emerald-50"
-                  onClick={() => approveMutation.mutate(req)}
-                  disabled={approveMutation.isPending}
-                >
-                  <CheckCircle2 className="h-3 w-3 mr-1" />
-                  {language === "bn" ? "অনুমোদন" : "Approve"}
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="h-7 text-xs text-destructive"
-                  onClick={() => rejectMutation.mutate(req)}
-                  disabled={rejectMutation.isPending}
-                >
-                  <XCircle className="h-3 w-3 mr-1" />
-                  {language === "bn" ? "প্রত্যাখ্যান" : "Reject"}
-                </Button>
-              </div>
-            </div>
-            <div className="text-xs space-y-0.5 bg-muted/50 rounded p-2">
-              {Object.entries(req.field_changes as Record<string, any>).map(([key, val]) => (
-                <div key={key} className="flex gap-2">
-                  <span className="text-muted-foreground">{getFieldLabel(key)}:</span>
-                  <span className="font-medium">{String(val || "—")}</span>
+        {pendingRequests?.map((req: any) => {
+          const changes = req.field_changes as Record<string, any>;
+          const isReleaseRequest = changes._action === "release";
+
+          return (
+            <div key={req.id} className={`p-3 rounded-lg border bg-background space-y-2 ${isReleaseRequest ? "border-orange-300 bg-orange-50/50 dark:bg-orange-950/20" : ""}`}>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium text-sm">
+                    {isReleaseRequest
+                      ? (language === "bn" ? `${req.tenant_name} বাড়ি ছাড়তে চাইছেন` : `${req.tenant_name} wants to leave`)
+                      : `${req.requester_name} → ${req.tenant_name}`}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {language === "bn" ? "অনুমোদনের জন্য অপেক্ষমাণ" : "Waiting for your approval"}
+                  </p>
                 </div>
-              ))}
+                <div className="flex gap-1.5">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-7 text-xs text-emerald-600 border-emerald-200 hover:bg-emerald-50"
+                    onClick={() => approveMutation.mutate(req)}
+                    disabled={approveMutation.isPending}
+                  >
+                    <CheckCircle2 className="h-3 w-3 mr-1" />
+                    {language === "bn" ? "অনুমোদন" : "Approve"}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-7 text-xs text-destructive"
+                    onClick={() => rejectMutation.mutate(req)}
+                    disabled={rejectMutation.isPending}
+                  >
+                    <XCircle className="h-3 w-3 mr-1" />
+                    {language === "bn" ? "প্রত্যাখ্যান" : "Reject"}
+                  </Button>
+                </div>
+              </div>
+              <div className="text-xs space-y-0.5 bg-muted/50 rounded p-2">
+                {isReleaseRequest ? (
+                  <>
+                    <div className="flex gap-2">
+                      <span className="text-muted-foreground">{language === "bn" ? "কারণ" : "Reason"}:</span>
+                      <span className="font-medium">
+                        {changes.release_reason === "all_paid" ? (language === "bn" ? "সব বিল পরিশোধ করে চলে গেছে" : "All bills paid") :
+                         changes.release_reason === "unpaid" ? (language === "bn" ? "বিল বাকি রেখে চলে গেছে" : "Bills unpaid") :
+                         (language === "bn" ? "অন্যান্য" : "Other")}
+                      </span>
+                    </div>
+                    {changes.release_notes && (
+                      <div className="flex gap-2">
+                        <span className="text-muted-foreground">{language === "bn" ? "নোট" : "Notes"}:</span>
+                        <span className="font-medium">{changes.release_notes}</span>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  Object.entries(changes).map(([key, val]) => (
+                    <div key={key} className="flex gap-2">
+                      <span className="text-muted-foreground">{getFieldLabel(key)}:</span>
+                      <span className="font-medium">{String(val || "—")}</span>
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
 
         {/* Requests I sent (waiting for other party) */}
         {sentRequests?.map((req: any) => (

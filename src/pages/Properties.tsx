@@ -514,7 +514,7 @@ const Properties = () => {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label>{t("property.district")}</Label>
+                  <Label>{t("property.district")} *</Label>
                   <Select value={form.district} onValueChange={v => setForm(f => ({ ...f, district: v, thana: "" }))} disabled={!form.division}>
                     <SelectTrigger><SelectValue placeholder={t("property.district")} /></SelectTrigger>
                     <SelectContent>

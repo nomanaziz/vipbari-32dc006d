@@ -115,13 +115,46 @@ const EditApprovalSection = ({ role }: EditApprovalSectionProps) => {
 
   const approveMutation = useMutation({
     mutationFn: async (request: any) => {
-      // Apply field_changes to tenant
       const changes = request.field_changes as Record<string, any>;
-      const { error: updateErr } = await supabase
-        .from("tenants")
-        .update(changes as any)
-        .eq("id", request.tenant_id);
-      if (updateErr) throw updateErr;
+
+      // Check if this is a release request
+      if (changes._action === "release") {
+        // Release the tenant: update status, clear room, save reason
+        const { data: tenantData } = await supabase
+          .from("tenants")
+          .select("room_id")
+          .eq("id", request.tenant_id)
+          .maybeSingle();
+
+        const { error: updateErr } = await supabase
+          .from("tenants")
+          .update({
+            status: "inactive",
+            room_id: null,
+            released_at: new Date().toISOString(),
+            release_reason: changes.release_reason || "",
+            release_notes: changes.release_notes || "",
+            prev_leave_reason: changes.release_reason === "all_paid"
+              ? (language === "bn" ? "সব বিল পরিশোধ করে চলে গেছে" : "Left — all bills paid")
+              : changes.release_reason === "unpaid"
+              ? (language === "bn" ? "বিল বাকি রেখে চলে গেছে" : "Left — bills unpaid")
+              : (changes.release_notes || changes.release_reason || ""),
+          } as any)
+          .eq("id", request.tenant_id);
+        if (updateErr) throw updateErr;
+
+        // Vacate the room
+        if (tenantData?.room_id) {
+          await supabase.from("rooms").update({ status: "vacant", tenant_id: null }).eq("id", tenantData.room_id);
+        }
+      } else {
+        // Normal field changes
+        const { error: updateErr } = await supabase
+          .from("tenants")
+          .update(changes as any)
+          .eq("id", request.tenant_id);
+        if (updateErr) throw updateErr;
+      }
 
       // Mark as approved
       const { error } = await supabase
@@ -133,8 +166,12 @@ const EditApprovalSection = ({ role }: EditApprovalSectionProps) => {
       // Notify the requester
       await supabase.from("notifications").insert({
         user_id: request.requested_by,
-        title: language === "bn" ? "তথ্য পরিবর্তন অনুমোদিত" : "Edit Request Approved",
-        body: language === "bn" ? "আপনার তথ্য পরিবর্তনের অনুরোধ অনুমোদিত হয়েছে" : "Your edit request has been approved",
+        title: changes._action === "release"
+          ? (language === "bn" ? "বাড়ি ছাড়ার অনুরোধ অনুমোদিত" : "Release Request Approved")
+          : (language === "bn" ? "তথ্য পরিবর্তন অনুমোদিত" : "Edit Request Approved"),
+        body: changes._action === "release"
+          ? (language === "bn" ? "আপনার বাড়ি ছাড়ার অনুরোধ অনুমোদিত হয়েছে" : "Your release request has been approved")
+          : (language === "bn" ? "আপনার তথ্য পরিবর্তনের অনুরোধ অনুমোদিত হয়েছে" : "Your edit request has been approved"),
         type: "edit_request",
         reference_id: request.id,
       });
@@ -144,6 +181,7 @@ const EditApprovalSection = ({ role }: EditApprovalSectionProps) => {
       queryClient.invalidateQueries({ queryKey: ["tenant-edit-requests-sent"] });
       queryClient.invalidateQueries({ queryKey: ["tenants"] });
       queryClient.invalidateQueries({ queryKey: ["my-tenant-profile"] });
+      queryClient.invalidateQueries({ queryKey: ["rooms"] });
       toast.success(language === "bn" ? "অনুমোদিত হয়েছে" : "Approved");
     },
     onError: (e: any) => toast.error(e.message),
@@ -192,50 +230,76 @@ const EditApprovalSection = ({ role }: EditApprovalSectionProps) => {
       </CardHeader>
       <CardContent className="space-y-3">
         {/* Requests waiting for MY approval */}
-        {pendingRequests?.map((req: any) => (
-          <div key={req.id} className="p-3 rounded-lg border bg-background space-y-2">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium text-sm">
-                  {req.requester_name} → {req.tenant_name}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {language === "bn" ? "অনুমোদনের জন্য অপেক্ষমাণ" : "Waiting for your approval"}
-                </p>
-              </div>
-              <div className="flex gap-1.5">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="h-7 text-xs text-emerald-600 border-emerald-200 hover:bg-emerald-50"
-                  onClick={() => approveMutation.mutate(req)}
-                  disabled={approveMutation.isPending}
-                >
-                  <CheckCircle2 className="h-3 w-3 mr-1" />
-                  {language === "bn" ? "অনুমোদন" : "Approve"}
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="h-7 text-xs text-destructive"
-                  onClick={() => rejectMutation.mutate(req)}
-                  disabled={rejectMutation.isPending}
-                >
-                  <XCircle className="h-3 w-3 mr-1" />
-                  {language === "bn" ? "প্রত্যাখ্যান" : "Reject"}
-                </Button>
-              </div>
-            </div>
-            <div className="text-xs space-y-0.5 bg-muted/50 rounded p-2">
-              {Object.entries(req.field_changes as Record<string, any>).map(([key, val]) => (
-                <div key={key} className="flex gap-2">
-                  <span className="text-muted-foreground">{getFieldLabel(key)}:</span>
-                  <span className="font-medium">{String(val || "—")}</span>
+        {pendingRequests?.map((req: any) => {
+          const changes = req.field_changes as Record<string, any>;
+          const isReleaseRequest = changes._action === "release";
+
+          return (
+            <div key={req.id} className={`p-3 rounded-lg border bg-background space-y-2 ${isReleaseRequest ? "border-orange-300 bg-orange-50/50 dark:bg-orange-950/20" : ""}`}>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium text-sm">
+                    {isReleaseRequest
+                      ? (language === "bn" ? `${req.tenant_name} বাড়ি ছাড়তে চাইছেন` : `${req.tenant_name} wants to leave`)
+                      : `${req.requester_name} → ${req.tenant_name}`}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {language === "bn" ? "অনুমোদনের জন্য অপেক্ষমাণ" : "Waiting for your approval"}
+                  </p>
                 </div>
-              ))}
+                <div className="flex gap-1.5">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-7 text-xs text-emerald-600 border-emerald-200 hover:bg-emerald-50"
+                    onClick={() => approveMutation.mutate(req)}
+                    disabled={approveMutation.isPending}
+                  >
+                    <CheckCircle2 className="h-3 w-3 mr-1" />
+                    {language === "bn" ? "অনুমোদন" : "Approve"}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-7 text-xs text-destructive"
+                    onClick={() => rejectMutation.mutate(req)}
+                    disabled={rejectMutation.isPending}
+                  >
+                    <XCircle className="h-3 w-3 mr-1" />
+                    {language === "bn" ? "প্রত্যাখ্যান" : "Reject"}
+                  </Button>
+                </div>
+              </div>
+              <div className="text-xs space-y-0.5 bg-muted/50 rounded p-2">
+                {isReleaseRequest ? (
+                  <>
+                    <div className="flex gap-2">
+                      <span className="text-muted-foreground">{language === "bn" ? "কারণ" : "Reason"}:</span>
+                      <span className="font-medium">
+                        {changes.release_reason === "all_paid" ? (language === "bn" ? "সব বিল পরিশোধ করে চলে গেছে" : "All bills paid") :
+                         changes.release_reason === "unpaid" ? (language === "bn" ? "বিল বাকি রেখে চলে গেছে" : "Bills unpaid") :
+                         (language === "bn" ? "অন্যান্য" : "Other")}
+                      </span>
+                    </div>
+                    {changes.release_notes && (
+                      <div className="flex gap-2">
+                        <span className="text-muted-foreground">{language === "bn" ? "নোট" : "Notes"}:</span>
+                        <span className="font-medium">{changes.release_notes}</span>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  Object.entries(changes).map(([key, val]) => (
+                    <div key={key} className="flex gap-2">
+                      <span className="text-muted-foreground">{getFieldLabel(key)}:</span>
+                      <span className="font-medium">{String(val || "—")}</span>
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
 
         {/* Requests I sent (waiting for other party) */}
         {sentRequests?.map((req: any) => (

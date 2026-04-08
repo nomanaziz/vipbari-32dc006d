@@ -9,12 +9,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { User, MapPin, FileText, Save, Loader2, Upload, X, Camera, ImagePlus, Printer, Briefcase, Phone as PhoneIcon, Car, Home } from "lucide-react";
+import { User, MapPin, FileText, Save, Loader2, Upload, X, Camera, ImagePlus, Printer, Briefcase, Phone as PhoneIcon, Car, Home, LogOut } from "lucide-react";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import ImageCropDialog from "@/components/ImageCropDialog";
 import TenantRegistrationPrint from "@/components/tenants/TenantRegistrationPrint";
 import EditApprovalSection from "@/components/tenants/EditApprovalSection";
+import TenantReleaseDialog from "@/components/tenants/TenantReleaseDialog";
 import {
   DIVISIONS, DIVISIONS_BN, DISTRICTS, DISTRICTS_BN, THANAS, THANAS_BN,
 } from "@/data/bangladeshAddress";
@@ -56,13 +57,16 @@ const TenantProfile = () => {
   const [cropFile, setCropFile] = useState<File | null>(null);
   const [cropOpen, setCropOpen] = useState(false);
 
+  const [releaseDialogOpen, setReleaseDialogOpen] = useState(false);
+
   const { data: tenant, isLoading } = useQuery({
     queryKey: ["my-tenant-profile", user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("tenants")
-        .select("*")
+        .select("*, rooms:rooms!tenants_room_id_fkey(room_number, property_id, properties(name, division, district, thana, area, house_number, road_number, postal_code, owner_id))")
         .eq("user_id", user!.id)
+        .eq("status", "active")
         .maybeSingle();
       if (error) throw error;
       return data;
@@ -70,8 +74,33 @@ const TenantProfile = () => {
     enabled: !!user,
   });
 
+  // Fetch landlord profile for auto-populate
+  const landlordUserId = tenant && (tenant as any).owner_id !== (tenant as any).user_id ? (tenant as any).owner_id : null;
+  const { data: landlordProfile } = useQuery({
+    queryKey: ["landlord-profile-for-tenant", landlordUserId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("full_name, phone")
+        .eq("user_id", landlordUserId!)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!landlordUserId,
+  });
+
   const [form, setForm] = useState<Record<string, string>>({});
   const isFormLoaded = useRef(false);
+
+  // Derive auto-populated values from property/landlord
+  const propData = (tenant as any)?.rooms?.properties;
+  const autoCurrentLandlordName = landlordProfile?.full_name || "";
+  const autoCurrentLandlordPhone = landlordProfile?.phone || "";
+  const autoPresentDivision = propData?.division || "";
+  const autoPresentDistrict = propData?.district || "";
+  const autoPresentThana = propData?.thana || "";
+  const autoPresentVillage = propData?.area || "";
+  const autoPresentAddress = [propData?.house_number, propData?.road_number].filter(Boolean).join(", ");
 
   // Populate form once tenant data loads
   if (tenant && !isFormLoaded.current) {
@@ -99,7 +128,6 @@ const TenantProfile = () => {
       permanent_village: t.permanent_village || "",
       permanent_address: t.permanent_address || "",
       emergency_contact: t.emergency_contact || "",
-      // Police form fields
       father_name: t.father_name || "",
       marital_status: t.marital_status || "",
       religion: t.religion || "",
@@ -129,6 +157,28 @@ const TenantProfile = () => {
     });
     isFormLoaded.current = true;
   }
+
+  // Self-release mutation
+  const selfReleaseMutation = useMutation({
+    mutationFn: async ({ reason, notes }: { reason: string; notes: string }) => {
+      const t = tenant as any;
+      const { error } = await supabase
+        .from("tenant_edit_requests")
+        .insert({
+          tenant_id: t.id,
+          requested_by: user!.id,
+          approve_by: t.owner_id,
+          field_changes: { _action: "release", release_reason: reason, release_notes: notes },
+        } as any);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tenant-edit-requests-sent"] });
+      setReleaseDialogOpen(false);
+      toast.success(language === "bn" ? "বাড়ি ছাড়ার অনুরোধ পাঠানো হয়েছে, বাড়িওয়ালার অনুমোদন প্রয়োজন" : "Release request sent, landlord approval required");
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
 
   const updateField = (key: string, value: string) => {
     setForm((f) => {
@@ -560,22 +610,50 @@ const TenantProfile = () => {
         {/* Present Address */}
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2"><MapPin className="h-4 w-4" />{language === "bn" ? "বর্তমান ঠিকানা" : "Present Address"}</CardTitle>
+            <CardTitle className="text-base flex items-center gap-2">
+              <MapPin className="h-4 w-4" />{language === "bn" ? "বর্তমান ঠিকানা" : "Present Address"}
+              {isLinkedToLandlord && <span className="text-xs font-normal text-muted-foreground ml-2">({language === "bn" ? "স্বয়ংক্রিয়ভাবে আসা তথ্য" : "Auto-populated"})</span>}
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {renderAddressSelect(t("tenant.division"), form.present_division || "", (v) => updateField("present_division", v), DIVISIONS, DIVISIONS_BN, t("tenant.select_division"))}
-              {renderAddressSelect(t("tenant.district"), form.present_district || "", (v) => updateField("present_district", v), presentDistricts, DISTRICTS_BN, t("tenant.select_district"))}
-              {renderAddressSelect(t("tenant.thana"), form.present_thana || "", (v) => updateField("present_thana", v), presentThanas, THANAS_BN, t("tenant.select_thana"))}
-              <div className="space-y-1.5">
-                <Label>{t("tenant.village")}</Label>
-                <Input value={form.present_village || ""} onChange={(e) => updateField("present_village", e.target.value)} />
+            {isLinkedToLandlord ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label>{t("tenant.division")}</Label>
+                  <Input value={autoPresentDivision} disabled className="bg-muted" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>{t("tenant.district")}</Label>
+                  <Input value={autoPresentDistrict} disabled className="bg-muted" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>{t("tenant.thana")}</Label>
+                  <Input value={autoPresentThana} disabled className="bg-muted" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>{t("tenant.village")}</Label>
+                  <Input value={autoPresentVillage} disabled className="bg-muted" />
+                </div>
+                <div className="space-y-1.5 sm:col-span-2">
+                  <Label>{t("tenant.address_detail")}</Label>
+                  <Input value={autoPresentAddress} disabled className="bg-muted" />
+                </div>
               </div>
-              <div className="space-y-1.5 sm:col-span-2">
-                <Label>{t("tenant.address_detail")}</Label>
-                <Textarea value={form.present_address || ""} onChange={(e) => updateField("present_address", e.target.value)} rows={2} />
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {renderAddressSelect(t("tenant.division"), form.present_division || "", (v) => updateField("present_division", v), DIVISIONS, DIVISIONS_BN, t("tenant.select_division"))}
+                {renderAddressSelect(t("tenant.district"), form.present_district || "", (v) => updateField("present_district", v), presentDistricts, DISTRICTS_BN, t("tenant.select_district"))}
+                {renderAddressSelect(t("tenant.thana"), form.present_thana || "", (v) => updateField("present_thana", v), presentThanas, THANAS_BN, t("tenant.select_thana"))}
+                <div className="space-y-1.5">
+                  <Label>{t("tenant.village")}</Label>
+                  <Input value={form.present_village || ""} onChange={(e) => updateField("present_village", e.target.value)} />
+                </div>
+                <div className="space-y-1.5 sm:col-span-2">
+                  <Label>{t("tenant.address_detail")}</Label>
+                  <Textarea value={form.present_address || ""} onChange={(e) => updateField("present_address", e.target.value)} rows={2} />
+                </div>
               </div>
-            </div>
+            )}
           </CardContent>
         </Card>
 
@@ -712,17 +790,28 @@ const TenantProfile = () => {
         {/* Current Landlord */}
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2"><Home className="h-4 w-4" />{language === "bn" ? "বর্তমান বাড়িওয়ালার তথ্য" : "Current Landlord Info"}</CardTitle>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Home className="h-4 w-4" />{language === "bn" ? "বর্তমান বাড়িওয়ালার তথ্য" : "Current Landlord Info"}
+              {isLinkedToLandlord && <span className="text-xs font-normal text-muted-foreground ml-2">({language === "bn" ? "স্বয়ংক্রিয়ভাবে আসা তথ্য" : "Auto-populated"})</span>}
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label>{language === "bn" ? "নাম" : "Name"}</Label>
-                <Input value={form.current_landlord_name || ""} onChange={(e) => updateField("current_landlord_name", e.target.value)} />
+                {isLinkedToLandlord ? (
+                  <Input value={autoCurrentLandlordName} disabled className="bg-muted" />
+                ) : (
+                  <Input value={form.current_landlord_name || ""} onChange={(e) => updateField("current_landlord_name", e.target.value)} />
+                )}
               </div>
               <div className="space-y-1.5">
                 <Label>{language === "bn" ? "মোবাইল" : "Mobile"}</Label>
-                <Input value={form.current_landlord_phone || ""} onChange={(e) => updateField("current_landlord_phone", e.target.value)} />
+                {isLinkedToLandlord ? (
+                  <Input value={autoCurrentLandlordPhone} disabled className="bg-muted" />
+                ) : (
+                  <Input value={form.current_landlord_phone || ""} onChange={(e) => updateField("current_landlord_phone", e.target.value)} />
+                )}
               </div>
               <div className="space-y-1.5">
                 <Label>{language === "bn" ? "বসবাসের তারিখ" : "Living Since"}</Label>
@@ -732,7 +821,13 @@ const TenantProfile = () => {
           </CardContent>
         </Card>
 
-        <div className="flex justify-end gap-2">
+        <div className="flex flex-wrap justify-end gap-2">
+          {isLinkedToLandlord && (
+            <Button type="button" variant="outline" className="gap-2 text-orange-600 border-orange-200 hover:bg-orange-50" onClick={() => setReleaseDialogOpen(true)}>
+              <LogOut className="h-4 w-4" />
+              {language === "bn" ? "বাড়ি ছাড়তে চাই" : "I want to leave"}
+            </Button>
+          )}
           <Button type="button" variant="outline" className="gap-2" onClick={() => window.print()}>
             <Printer className="h-4 w-4" />
             {language === "bn" ? "নিবন্ধন ফরম প্রিন্ট" : "Print Registration Form"}
@@ -744,9 +839,26 @@ const TenantProfile = () => {
         </div>
       </form>
 
-      {/* Hidden print form */}
+      {/* Self-release dialog */}
+      {isLinkedToLandlord && (
+        <TenantReleaseDialog
+          open={releaseDialogOpen}
+          onOpenChange={setReleaseDialogOpen}
+          tenantName={form.full_name || ""}
+          onConfirm={(reason, notes) => selfReleaseMutation.mutate({ reason, notes })}
+          isPending={selfReleaseMutation.isPending}
+        />
+      )}
+
+      {/* Hidden print form with auto-populated data */}
       <div className="hidden print:block">
-        <TenantRegistrationPrint tenant={tenant as any} />
+        <TenantRegistrationPrint
+          tenant={{
+            ...(tenant as any),
+            current_landlord_name: isLinkedToLandlord ? autoCurrentLandlordName : (tenant as any)?.current_landlord_name,
+            current_landlord_phone: isLinkedToLandlord ? autoCurrentLandlordPhone : (tenant as any)?.current_landlord_phone,
+          }}
+        />
       </div>
     </div>
   );

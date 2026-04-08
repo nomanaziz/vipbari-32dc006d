@@ -1,62 +1,45 @@
 
 
-# Auto-populate Fields + Tenant Self-Release Feature
+# ভাড়াটিয়া তথ্য আপডেট সমস্যা সমাধান
 
-## What the user wants
+## সমস্যা চিহ্নিত
 
-1. **Auto-populate current address**: When a tenant is under a landlord, the property address should auto-fill as the tenant's current address (বর্তমান ঠিকানা)
-2. **Auto-populate landlord info**: Current landlord name and phone should come from the property owner's profile automatically
-3. **"Reason for leaving" (বাড়ি ছাড়ার কারণ)**: Already exists as `prev_leave_reason` — needs to be saved when a tenant is released, so the release reason populates this field
-4. **Tenant self-release**: Tenant can request release from their profile. Landlord approves → tenant gets archived with reason saved
+বাড়িওয়ালার TenantFormDialog-এ অনেক গুরুত্বপূর্ণ ফিল্ড নেই যা tenant profile-এ আছে। ফলে বাড়িওয়ালা সব তথ্য একবারে আপডেট করতে পারছেন না এবং কিছু ফিল্ড save হচ্ছে না।
 
-## Changes
+**বাড়িওয়ালার ফর্মে যা নেই:**
+- বর্তমান ঠিকানা (present_division, present_district, present_thana, present_village, present_address)
+- জন্ম তারিখ, লিঙ্গ, পেশা (date_of_birth, gender, occupation)
+- ডকুমেন্ট তথ্য (doc_type, doc_number)
 
-### 1. TenantProfile.tsx — Auto-populate from property/landlord data
+**district/thana blank সমস্যা:** ফিল্ডগুলো save হচ্ছে কিন্তু ফর্ম re-open করলে cascading Select-এর কারণে হয়তো সঠিকভাবে দেখাচ্ছে না।
 
-**Current**: Tenant query uses `select("*")` — no joins to rooms/properties/profiles.
+## পরিবর্তন
 
-**Change**: 
-- Update tenant query to join: `tenants → rooms → properties` and also fetch landlord profile via `owner_id`
-- When form loads, auto-fill:
-  - `current_landlord_name` from landlord's profile `full_name`
-  - `current_landlord_phone` from landlord's profile `phone`
-  - Present address fields from the property's `division`, `district`, `thana`, `area`, `house_number`, `road_number`
-- These auto-filled fields show as read-only (disabled inputs) since they come from the property/landlord data
-- Only auto-fill when tenant has `owner_id != user_id` (linked to a landlord)
+### 1. TenantFormDialog.tsx — সকল ফিল্ড যোগ
 
-### 2. TenantProfile.tsx — Tenant self-release button
+`emptyForm`-এ missing ফিল্ড যোগ:
+- `present_division`, `present_district`, `present_thana`, `present_village`, `present_address`
+- `date_of_birth`, `gender`, `occupation`
+- `doc_type`, `doc_number`
 
-- Add a "বাড়ি ছাড়তে চাই" (I want to leave) button on the tenant profile page
-- Opens a dialog (reuse `TenantReleaseDialog` style) where tenant selects reason + notes
-- Instead of directly updating status, create a `tenant_edit_requests` entry with `field_changes: { _action: "release", release_reason: "...", release_notes: "..." }` and `approve_by: owner_id`
-- Landlord sees this in the EditApprovalSection as a release request
-- On landlord approval: update tenant status to `inactive`, set `released_at`, `release_reason`, `release_notes`, also save reason to `prev_leave_reason`
+ফর্ম UI-তে নতুন section যোগ:
+- **বর্তমান ঠিকানা** section — division/district/thana Select cascade + village + address
+- **ব্যক্তিগত তথ্য** — জন্ম তারিখ, লিঙ্গ, পেশা
+- **ডকুমেন্ট** — ধরন ও নম্বর
 
-### 3. EditApprovalSection.tsx — Handle release requests
+`buildPayload`-এ `date_of_birth` কে null হিসেবে handle করা (empty string হলে null)।
 
-- Detect `field_changes._action === "release"` type requests
-- Show differently: "ভাড়াটিয়া বাড়ি ছাড়তে চাইছেন" with reason displayed
-- On approve: execute the release logic (update tenant status, clear room, save prev_leave_reason)
+### 2. TenantFormDialog.tsx — district/thana সমস্যা ঠিক
 
-### 4. Tenants.tsx — Release mutation update
+`useEffect`-এ editing load করার সময় cascading ঠিক রাখতে:
+- division set করার পর district ও thana reset না করা (শুধু নতুন division select করলেই reset হবে)
+- Present address-এর জন্যও একই cascading logic
 
-- When landlord releases a tenant (existing flow), also save the release reason into `prev_leave_reason` field so it persists on the registration form
+### 3. buildPayload — সব ফিল্ড নিশ্চিত
 
-### 5. TenantRegistrationPrint.tsx — Ensure auto fields render
+নতুন ফিল্ডগুলো `buildPayload`-এ যাতে সঠিকভাবে handle হয় (null vs empty string)।
 
-- Pass property data and landlord profile to the print component so current address and landlord info show correctly on the printed form
+## ফাইল পরিবর্তন
 
-## Technical Details
-
-- **No new DB migration needed** — all columns exist (`prev_leave_reason`, `release_reason`, `release_notes`, `current_landlord_name`, `current_landlord_phone`). The `tenant_edit_requests` table already supports the release request via `field_changes` jsonb.
-- Tenant query in TenantProfile needs to be expanded: `select("*, rooms(room_number, property_id, properties(name, division, district, thana, area, house_number, road_number, postal_code, owner_id))")`
-- Separate query to fetch landlord profile: `profiles.select("full_name, phone").eq("user_id", tenant.owner_id)`
-- Auto-populated fields rendered as disabled/read-only with a small note "স্বয়ংক্রিয়ভাবে আসা তথ্য"
-
-## Files to modify
-
-1. `src/pages/tenant/TenantProfile.tsx` — Expand query, auto-fill, add self-release button
-2. `src/components/tenants/EditApprovalSection.tsx` — Handle release-type requests
-3. `src/pages/Tenants.tsx` — Save `prev_leave_reason` on release
-4. `src/components/tenants/TenantRegistrationPrint.tsx` — Accept and display auto-populated data
+1. **`src/components/tenants/TenantFormDialog.tsx`** — emptyForm এ নতুন ফিল্ড, UI-তে নতুন section, buildPayload fix
 

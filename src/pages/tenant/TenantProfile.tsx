@@ -356,6 +356,9 @@ const TenantProfile = () => {
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">{language === "bn" ? "আমার প্রোফাইল" : "My Profile"}</h1>
 
+      {/* Edit Approval Section */}
+      <EditApprovalSection role="tenant" />
+
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Profile Picture */}
         <Card>

@@ -330,6 +330,9 @@ const Tenants = () => {
       {/* Pending Requests */}
       <PendingRequestsSection />
 
+      {/* Edit Approval Requests */}
+      <EditApprovalSection role="landlord" />
+
       {/* Filters */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
         <div className="relative flex-1 min-w-0">

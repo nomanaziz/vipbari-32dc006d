@@ -10,8 +10,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { toast } from "sonner";
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, ChevronDown } from "lucide-react";
 import { DIVISIONS, DIVISIONS_BN, DISTRICTS, DISTRICTS_BN, THANAS, THANAS_BN, getBnLabel } from "@/data/bangladeshAddress";
 
 interface Props {
@@ -28,6 +29,15 @@ const emptyForm = {
   advance_balance: "", billing_type: "billing",
   permanent_division: "", permanent_district: "", permanent_thana: "",
   permanent_village: "", permanent_address: "",
+  // Police form fields
+  father_name: "", marital_status: "", religion: "", education: "",
+  workplace_address: "", passport_number: "", email: "",
+  emergency_name: "", emergency_relation: "", emergency_address: "", emergency_phone: "",
+  domestic_worker_name: "", domestic_worker_nid: "", domestic_worker_phone: "", domestic_worker_address: "",
+  driver_name: "", driver_nid: "", driver_phone: "", driver_address: "",
+  prev_landlord_name: "", prev_landlord_phone: "", prev_landlord_address: "",
+  prev_leave_reason: "",
+  current_landlord_name: "", current_landlord_phone: "", living_since: "",
 };
 
 const generatePin = () => String(Math.floor(100000 + Math.random() * 900000));
@@ -45,23 +55,17 @@ const TenantFormDialog = ({ open, onOpenChange, editing, availableRooms, onCrede
 
   useEffect(() => {
     if (editing) {
-      setForm({
-        full_name: editing.full_name || "",
-        phone: editing.phone || "",
-        secondary_phone: editing.secondary_phone || "",
-        nid: editing.nid || "",
-        emergency_contact: editing.emergency_contact || "",
-        move_in_date: editing.move_in_date || "",
-        room_id: editing.room_id || "",
-        status: editing.status || "active",
-        advance_balance: editing.advance_balance?.toString() || "",
-        billing_type: editing.billing_type || "billing",
-        permanent_division: editing.permanent_division || "",
-        permanent_district: editing.permanent_district || "",
-        permanent_thana: editing.permanent_thana || "",
-        permanent_village: editing.permanent_village || "",
-        permanent_address: editing.permanent_address || "",
-      });
+      const f: any = {};
+      for (const key of Object.keys(emptyForm)) {
+        if (key === "advance_balance") {
+          f[key] = editing.advance_balance?.toString() || "";
+        } else {
+          f[key] = editing[key] || "";
+        }
+      }
+      if (!f.status) f.status = "active";
+      if (!f.billing_type) f.billing_type = "billing";
+      setForm(f);
       setCreateAccount(false);
       setPassword("");
     } else {
@@ -71,25 +75,20 @@ const TenantFormDialog = ({ open, onOpenChange, editing, availableRooms, onCrede
     }
   }, [editing, open]);
 
-  const buildPayload = (values: typeof emptyForm) => ({
-    full_name: values.full_name,
-    phone: values.phone,
-    secondary_phone: values.secondary_phone || "",
-    nid: values.nid || null,
-    emergency_contact: values.emergency_contact || null,
-    move_in_date: values.move_in_date || null,
-    room_id: values.room_id || null,
-    status: values.status,
-    advance_balance: values.advance_balance ? parseFloat(values.advance_balance) : 0,
-    billing_type: values.billing_type || "billing",
-    permanent_division: values.permanent_division || "",
-    permanent_district: values.permanent_district || "",
-    permanent_thana: values.permanent_thana || "",
-    permanent_village: values.permanent_village || "",
-    permanent_address: values.permanent_address || "",
-  });
+  const buildPayload = (values: typeof emptyForm) => {
+    const payload: Record<string, any> = {};
+    for (const [key, val] of Object.entries(values)) {
+      if (key === "advance_balance") {
+        payload[key] = val ? parseFloat(val) : 0;
+      } else if (key === "room_id" || key === "nid" || key === "emergency_contact" || key === "move_in_date") {
+        payload[key] = val || null;
+      } else {
+        payload[key] = val;
+      }
+    }
+    return payload;
+  };
 
-  // Create tenant WITH account via edge function
   const createWithAccountMutation = useMutation({
     mutationFn: async (values: typeof emptyForm) => {
       const { data, error } = await supabase.functions.invoke("create-tenant-user", {
@@ -113,13 +112,12 @@ const TenantFormDialog = ({ open, onOpenChange, editing, availableRooms, onCrede
     onError: (e) => toast.error(e.message),
   });
 
-  // Create tenant WITHOUT account (direct insert)
   const createMutation = useMutation({
     mutationFn: async (values: typeof emptyForm) => {
       const { data: newTenant, error } = await supabase.from("tenants").insert({
         ...buildPayload(values),
         owner_id: effectiveOwnerId || user!.id,
-      }).select("id").single();
+      } as any).select("id").single();
       if (error) throw error;
       if (values.room_id) {
         const { error: roomErr } = await supabase.from("rooms").update({ status: "occupied", is_tolet: false, available_from: null, tenant_id: newTenant.id }).eq("id", values.room_id);
@@ -137,7 +135,7 @@ const TenantFormDialog = ({ open, onOpenChange, editing, availableRooms, onCrede
 
   const updateMutation = useMutation({
     mutationFn: async (values: typeof emptyForm & { id: string; old_room_id?: string }) => {
-      const { error } = await supabase.from("tenants").update(buildPayload(values)).eq("id", values.id);
+      const { error } = await supabase.from("tenants").update(buildPayload(values) as any).eq("id", values.id);
       if (error) throw error;
       if (values.old_room_id && values.old_room_id !== values.room_id) {
         const { error: oldRoomErr } = await supabase.from("rooms").update({ status: "vacant", tenant_id: null }).eq("id", values.old_room_id);
@@ -175,6 +173,18 @@ const TenantFormDialog = ({ open, onOpenChange, editing, availableRooms, onCrede
   const isPending = createMutation.isPending || updateMutation.isPending || createWithAccountMutation.isPending;
   const set = (key: string, val: string) => setForm(f => ({ ...f, [key]: val }));
 
+  const SectionCollapsible = ({ title, children }: { title: string; children: React.ReactNode }) => (
+    <Collapsible>
+      <CollapsibleTrigger className="flex items-center justify-between w-full py-2 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors">
+        {title}
+        <ChevronDown className="h-4 w-4 transition-transform [[data-state=open]>&]:rotate-180" />
+      </CollapsibleTrigger>
+      <CollapsibleContent className="pt-2">
+        {children}
+      </CollapsibleContent>
+    </Collapsible>
+  );
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
@@ -187,24 +197,67 @@ const TenantFormDialog = ({ open, onOpenChange, editing, availableRooms, onCrede
             <h3 className="text-sm font-semibold text-muted-foreground mb-3">{t("tenant.basic_info")}</h3>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>{t("tenant.name")} *</Label>
+                <Label>{language === "bn" ? "নাম" : "Name"} *</Label>
                 <Input value={form.full_name} onChange={e => set("full_name", e.target.value)} required />
               </div>
               <div className="space-y-2">
-                <Label>{t("tenant.phone")} *</Label>
+                <Label>{language === "bn" ? "পিতার নাম" : "Father's Name"}</Label>
+                <Input value={form.father_name} onChange={e => set("father_name", e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label>{language === "bn" ? "ফোন" : "Phone"} *</Label>
                 <Input value={form.phone} onChange={e => set("phone", e.target.value)} required />
               </div>
               <div className="space-y-2">
-                <Label>{t("tenant.secondary_phone")}</Label>
+                <Label>{language === "bn" ? "অতিরিক্ত ফোন" : "Secondary Phone"}</Label>
                 <Input value={form.secondary_phone} onChange={e => set("secondary_phone", e.target.value)} />
               </div>
               <div className="space-y-2">
-                <Label>{t("tenant.nid")}</Label>
+                <Label>{language === "bn" ? "ইমেইল" : "Email"}</Label>
+                <Input value={form.email} onChange={e => set("email", e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label>{language === "bn" ? "NID নম্বর" : "NID"}</Label>
                 <Input value={form.nid} onChange={e => set("nid", e.target.value)} />
               </div>
               <div className="space-y-2">
-                <Label>{t("tenant.emergency")}</Label>
-                <Input value={form.emergency_contact} onChange={e => set("emergency_contact", e.target.value)} />
+                <Label>{language === "bn" ? "পাসপোর্ট নম্বর" : "Passport Number"}</Label>
+                <Input value={form.passport_number} onChange={e => set("passport_number", e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label>{language === "bn" ? "বৈবাহিক অবস্থা" : "Marital Status"}</Label>
+                <Select value={form.marital_status || "none"} onValueChange={v => set("marital_status", v === "none" ? "" : v)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">—</SelectItem>
+                    <SelectItem value="married">{language === "bn" ? "বিবাহিত" : "Married"}</SelectItem>
+                    <SelectItem value="unmarried">{language === "bn" ? "অবিবাহিত" : "Unmarried"}</SelectItem>
+                    <SelectItem value="divorced">{language === "bn" ? "তালাকপ্রাপ্ত" : "Divorced"}</SelectItem>
+                    <SelectItem value="widowed">{language === "bn" ? "বিধবা/বিপত্নীক" : "Widowed"}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>{language === "bn" ? "ধর্ম" : "Religion"}</Label>
+                <Select value={form.religion || "none"} onValueChange={v => set("religion", v === "none" ? "" : v)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">—</SelectItem>
+                    <SelectItem value="islam">{language === "bn" ? "ইসলাম" : "Islam"}</SelectItem>
+                    <SelectItem value="hinduism">{language === "bn" ? "হিন্দু" : "Hinduism"}</SelectItem>
+                    <SelectItem value="christianity">{language === "bn" ? "খ্রিষ্টান" : "Christianity"}</SelectItem>
+                    <SelectItem value="buddhism">{language === "bn" ? "বৌদ্ধ" : "Buddhism"}</SelectItem>
+                    <SelectItem value="other">{language === "bn" ? "অন্যান্য" : "Other"}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>{language === "bn" ? "শিক্ষাগত যোগ্যতা" : "Education"}</Label>
+                <Input value={form.education} onChange={e => set("education", e.target.value)} />
+              </div>
+              <div className="space-y-2 col-span-2">
+                <Label>{language === "bn" ? "পেশা ও কর্মস্থলের ঠিকানা" : "Workplace Address"}</Label>
+                <Input value={form.workplace_address} onChange={e => set("workplace_address", e.target.value)} />
               </div>
             </div>
           </div>
@@ -225,7 +278,6 @@ const TenantFormDialog = ({ open, onOpenChange, editing, availableRooms, onCrede
                   {language === "bn" ? "এই ভাড়াটিয়ার জন্য লগইন অ্যাকাউন্ট তৈরি করুন" : "Create login account for this tenant"}
                 </Label>
               </div>
-
               {createAccount && (
                 <div className="grid grid-cols-2 gap-4 pt-2">
                   <div className="space-y-2">
@@ -235,19 +287,8 @@ const TenantFormDialog = ({ open, onOpenChange, editing, availableRooms, onCrede
                   <div className="space-y-2">
                     <Label>{language === "bn" ? "পাসওয়ার্ড" : "Password"} *</Label>
                     <div className="flex gap-2">
-                      <Input
-                        value={password}
-                        onChange={e => setPassword(e.target.value)}
-                        placeholder="Min 6 characters"
-                        required={createAccount}
-                      />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="icon"
-                        onClick={() => setPassword(generatePin())}
-                        title={language === "bn" ? "নতুন পিন তৈরি করুন" : "Generate PIN"}
-                      >
+                      <Input value={password} onChange={e => setPassword(e.target.value)} placeholder="Min 6 characters" required={createAccount} />
+                      <Button type="button" variant="outline" size="icon" onClick={() => setPassword(generatePin())} title={language === "bn" ? "নতুন পিন তৈরি করুন" : "Generate PIN"}>
                         <RefreshCw className="h-4 w-4" />
                       </Button>
                     </div>
@@ -271,9 +312,7 @@ const TenantFormDialog = ({ open, onOpenChange, editing, availableRooms, onCrede
                   <SelectContent>
                     <SelectItem value="none">—</SelectItem>
                     {DIVISIONS.map(d => (
-                      <SelectItem key={d} value={d}>
-                        {getBnLabel(DIVISIONS_BN, d, language)}
-                      </SelectItem>
+                      <SelectItem key={d} value={d}>{getBnLabel(DIVISIONS_BN, d, language)}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -315,7 +354,113 @@ const TenantFormDialog = ({ open, onOpenChange, editing, availableRooms, onCrede
             </div>
           </div>
 
-          {/* Room & Meter */}
+          {/* Emergency Contact */}
+          <SectionCollapsible title={language === "bn" ? "জরুরী যোগাযোগ" : "Emergency Contact"}>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>{language === "bn" ? "নাম" : "Name"}</Label>
+                <Input value={form.emergency_name} onChange={e => set("emergency_name", e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label>{language === "bn" ? "সম্পর্ক" : "Relation"}</Label>
+                <Input value={form.emergency_relation} onChange={e => set("emergency_relation", e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label>{language === "bn" ? "মোবাইল" : "Mobile"}</Label>
+                <Input value={form.emergency_phone} onChange={e => set("emergency_phone", e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label>{language === "bn" ? "ঠিকানা" : "Address"}</Label>
+                <Input value={form.emergency_address} onChange={e => set("emergency_address", e.target.value)} />
+              </div>
+            </div>
+          </SectionCollapsible>
+
+          {/* Domestic Worker */}
+          <SectionCollapsible title={language === "bn" ? "গৃহকর্মী তথ্য" : "Domestic Worker Info"}>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>{language === "bn" ? "নাম" : "Name"}</Label>
+                <Input value={form.domestic_worker_name} onChange={e => set("domestic_worker_name", e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label>{language === "bn" ? "জাতীয় পরিচয়পত্র নং" : "NID"}</Label>
+                <Input value={form.domestic_worker_nid} onChange={e => set("domestic_worker_nid", e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label>{language === "bn" ? "মোবাইল" : "Mobile"}</Label>
+                <Input value={form.domestic_worker_phone} onChange={e => set("domestic_worker_phone", e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label>{language === "bn" ? "স্থায়ী ঠিকানা" : "Address"}</Label>
+                <Input value={form.domestic_worker_address} onChange={e => set("domestic_worker_address", e.target.value)} />
+              </div>
+            </div>
+          </SectionCollapsible>
+
+          {/* Driver */}
+          <SectionCollapsible title={language === "bn" ? "ড্রাইভার তথ্য" : "Driver Info"}>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>{language === "bn" ? "নাম" : "Name"}</Label>
+                <Input value={form.driver_name} onChange={e => set("driver_name", e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label>{language === "bn" ? "জাতীয় পরিচয়পত্র নং" : "NID"}</Label>
+                <Input value={form.driver_nid} onChange={e => set("driver_nid", e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label>{language === "bn" ? "মোবাইল" : "Mobile"}</Label>
+                <Input value={form.driver_phone} onChange={e => set("driver_phone", e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label>{language === "bn" ? "স্থায়ী ঠিকানা" : "Address"}</Label>
+                <Input value={form.driver_address} onChange={e => set("driver_address", e.target.value)} />
+              </div>
+            </div>
+          </SectionCollapsible>
+
+          {/* Previous Landlord */}
+          <SectionCollapsible title={language === "bn" ? "পূর্ববর্তী বাড়িওয়ালার তথ্য" : "Previous Landlord Info"}>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>{language === "bn" ? "নাম" : "Name"}</Label>
+                <Input value={form.prev_landlord_name} onChange={e => set("prev_landlord_name", e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label>{language === "bn" ? "মোবাইল" : "Mobile"}</Label>
+                <Input value={form.prev_landlord_phone} onChange={e => set("prev_landlord_phone", e.target.value)} />
+              </div>
+              <div className="space-y-2 col-span-2">
+                <Label>{language === "bn" ? "ঠিকানা" : "Address"}</Label>
+                <Input value={form.prev_landlord_address} onChange={e => set("prev_landlord_address", e.target.value)} />
+              </div>
+              <div className="space-y-2 col-span-2">
+                <Label>{language === "bn" ? "পূর্ববর্তী বাসা ছাড়ার কারণ" : "Reason for Leaving"}</Label>
+                <Input value={form.prev_leave_reason} onChange={e => set("prev_leave_reason", e.target.value)} />
+              </div>
+            </div>
+          </SectionCollapsible>
+
+          {/* Current Landlord */}
+          <SectionCollapsible title={language === "bn" ? "বর্তমান বাড়িওয়ালার তথ্য" : "Current Landlord Info"}>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>{language === "bn" ? "নাম" : "Name"}</Label>
+                <Input value={form.current_landlord_name} onChange={e => set("current_landlord_name", e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label>{language === "bn" ? "মোবাইল" : "Mobile"}</Label>
+                <Input value={form.current_landlord_phone} onChange={e => set("current_landlord_phone", e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label>{language === "bn" ? "বসবাসের তারিখ" : "Living Since"}</Label>
+                <Input type="date" value={form.living_since} onChange={e => set("living_since", e.target.value)} />
+              </div>
+            </div>
+          </SectionCollapsible>
+
+          {/* Room & Assignment */}
           <div>
             <h3 className="text-sm font-semibold text-muted-foreground mb-3">{language === "bn" ? "রুম ও অ্যাসাইনমেন্ট" : "Room & Assignment"}</h3>
             <div className="grid grid-cols-2 gap-4">

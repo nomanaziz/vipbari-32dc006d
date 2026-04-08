@@ -97,11 +97,12 @@ const TenantProfile = () => {
   const propData = (tenant as any)?.rooms?.properties;
   const autoCurrentLandlordName = landlordProfile?.full_name || "";
   const autoCurrentLandlordPhone = landlordProfile?.phone || "";
-  const autoPresentDivision = propData?.division || "";
-  const autoPresentDistrict = propData?.district || "";
-  const autoPresentThana = propData?.thana || "";
+  const autoPresentDivision = propData?.division ? (language === "bn" ? (DIVISIONS_BN[propData.division] || propData.division) : propData.division) : "";
+  const autoPresentDistrict = propData?.district ? (language === "bn" ? (DISTRICTS_BN[propData.district] || propData.district) : propData.district) : "";
+  const autoPresentThana = propData?.thana ? (language === "bn" ? (THANAS_BN[propData.thana] || propData.thana) : propData.thana) : "";
   const autoPresentVillage = propData?.area || "";
   const autoPresentAddress = [propData?.house_number, propData?.road_number].filter(Boolean).join(", ");
+  const autoPresentPostalCode = propData?.postal_code || "";
 
   // Populate form once tenant data loads
   if (tenant && !isFormLoaded.current) {

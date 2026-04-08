@@ -1,78 +1,62 @@
 
 
-# Tenant Profile Edit Approval System
+# Auto-populate Fields + Tenant Self-Release Feature
 
-## Problem
-Currently, both landlords and tenants can freely edit tenant data. Two new rules are needed:
-1. **Name changes require mutual approval** — if a self-registered tenant changes their name, the landlord must approve. If the landlord edits a self-registered tenant's name, the tenant must approve.
-2. **Registration form data** edited by the tenant also requires landlord approval before it takes effect.
+## What the user wants
 
-## Design
+1. **Auto-populate current address**: When a tenant is under a landlord, the property address should auto-fill as the tenant's current address (বর্তমান ঠিকানা)
+2. **Auto-populate landlord info**: Current landlord name and phone should come from the property owner's profile automatically
+3. **"Reason for leaving" (বাড়ি ছাড়ার কারণ)**: Already exists as `prev_leave_reason` — needs to be saved when a tenant is released, so the release reason populates this field
+4. **Tenant self-release**: Tenant can request release from their profile. Landlord approves → tenant gets archived with reason saved
 
-### New Table: `tenant_edit_requests`
+## Changes
 
-Stores pending edit requests that need approval from the other party.
+### 1. TenantProfile.tsx — Auto-populate from property/landlord data
 
-| Column | Type | Notes |
-|---|---|---|
-| id | uuid PK | |
-| tenant_id | uuid | FK to tenants |
-| requested_by | uuid | user_id of who made the edit |
-| approve_by | uuid | user_id of who needs to approve |
-| field_changes | jsonb | `{"full_name": "New Name", "father_name": "..."}` |
-| status | text | `pending` / `approved` / `rejected` |
-| created_at | timestamptz | |
-| resolved_at | timestamptz | nullable |
+**Current**: Tenant query uses `select("*")` — no joins to rooms/properties/profiles.
 
-RLS: requestor and approver can both read; approver can update status.
+**Change**: 
+- Update tenant query to join: `tenants → rooms → properties` and also fetch landlord profile via `owner_id`
+- When form loads, auto-fill:
+  - `current_landlord_name` from landlord's profile `full_name`
+  - `current_landlord_phone` from landlord's profile `phone`
+  - Present address fields from the property's `division`, `district`, `thana`, `area`, `house_number`, `road_number`
+- These auto-filled fields show as read-only (disabled inputs) since they come from the property/landlord data
+- Only auto-fill when tenant has `owner_id != user_id` (linked to a landlord)
 
-### Logic Flow
+### 2. TenantProfile.tsx — Tenant self-release button
 
-**Tenant edits their own profile:**
-- If tenant has a landlord (`owner_id != user_id`), name change and registration form changes create a `tenant_edit_request` instead of directly updating. Other fields (phone, address, documents) update directly.
-- Toast: "পরিবর্তনের অনুরোধ পাঠানো হয়েছে, বাড়িওয়ালার অনুমোদন প্রয়োজন"
+- Add a "বাড়ি ছাড়তে চাই" (I want to leave) button on the tenant profile page
+- Opens a dialog (reuse `TenantReleaseDialog` style) where tenant selects reason + notes
+- Instead of directly updating status, create a `tenant_edit_requests` entry with `field_changes: { _action: "release", release_reason: "...", release_notes: "..." }` and `approve_by: owner_id`
+- Landlord sees this in the EditApprovalSection as a release request
+- On landlord approval: update tenant status to `inactive`, set `released_at`, `release_reason`, `release_notes`, also save reason to `prev_leave_reason`
 
-**Landlord edits a self-registered tenant:**
-- A tenant is "self-registered" if `user_id IS NOT NULL` and `owner_id != user_id` (or tenant registered themselves).
-- Name and registration form field changes create a `tenant_edit_request` with `approve_by = tenant.user_id`.
-- Toast: "পরিবর্তনের অনুরোধ পাঠানো হয়েছে, ভাড়াটিয়ার অনুমোদন প্রয়োজন"
+### 3. EditApprovalSection.tsx — Handle release requests
 
-**On approval:**
-- The approved field_changes are applied to the `tenants` table.
-- A notification is created for the requestor.
+- Detect `field_changes._action === "release"` type requests
+- Show differently: "ভাড়াটিয়া বাড়ি ছাড়তে চাইছেন" with reason displayed
+- On approve: execute the release logic (update tenant status, clear room, save prev_leave_reason)
 
-**On rejection:**
-- Status set to `rejected`, notification sent to requestor.
+### 4. Tenants.tsx — Release mutation update
 
-### Protected Fields (require approval)
-`full_name`, `father_name`, `marital_status`, `religion`, `education`, `workplace_address`, `passport_number`, `emergency_*`, `domestic_worker_*`, `driver_*`, `prev_landlord_*`, `prev_leave_reason`, `current_landlord_*`, `living_since`
+- When landlord releases a tenant (existing flow), also save the release reason into `prev_leave_reason` field so it persists on the registration form
 
-### File Changes
+### 5. TenantRegistrationPrint.tsx — Ensure auto fields render
 
-1. **Migration** — Create `tenant_edit_requests` table with RLS policies.
+- Pass property data and landlord profile to the print component so current address and landlord info show correctly on the printed form
 
-2. **`src/pages/tenant/TenantProfile.tsx`** — Split save logic:
-   - Direct-save fields (phone, address, documents, avatar) update immediately.
-   - Protected fields → if tenant is linked to a landlord, insert into `tenant_edit_requests` instead.
-   - Show pending edit requests banner with current pending changes.
+## Technical Details
 
-3. **`src/components/tenants/TenantFormDialog.tsx`** — When editing a self-registered tenant:
-   - Protected field changes → insert into `tenant_edit_requests` with `approve_by = tenant.user_id`.
-   - Non-protected fields save directly.
+- **No new DB migration needed** — all columns exist (`prev_leave_reason`, `release_reason`, `release_notes`, `current_landlord_name`, `current_landlord_phone`). The `tenant_edit_requests` table already supports the release request via `field_changes` jsonb.
+- Tenant query in TenantProfile needs to be expanded: `select("*, rooms(room_number, property_id, properties(name, division, district, thana, area, house_number, road_number, postal_code, owner_id))")`
+- Separate query to fetch landlord profile: `profiles.select("full_name, phone").eq("user_id", tenant.owner_id)`
+- Auto-populated fields rendered as disabled/read-only with a small note "স্বয়ংক্রিয়ভাবে আসা তথ্য"
 
-4. **New component: `src/components/tenants/EditApprovalSection.tsx`** — Shows pending edit requests:
-   - For **landlord** (on Tenants page): list of pending requests from tenants with Approve/Reject buttons.
-   - For **tenant** (on Profile page): list of pending requests from landlord with Approve/Reject buttons.
-   - On approve → apply `field_changes` to tenants table via update, set status = `approved`.
-   - On reject → set status = `rejected`.
+## Files to modify
 
-5. **`src/pages/Tenants.tsx`** — Add a badge/indicator on tenant cards showing pending edit requests count. Add the approval UI in tenant detail or as a small dialog.
-
-6. **Notification** — On insert into `tenant_edit_requests`, create a notification row for the `approve_by` user.
-
-### Technical Notes
-- The `field_changes` jsonb approach is flexible — no schema changes needed per field.
-- Approval applies changes atomically by updating the tenants row with the stored jsonb values.
-- Self-registered tenant detection: `tenant.user_id IS NOT NULL AND tenant.user_id != tenant.owner_id`.
-- Landlord-created tenants (no user_id or user_id = owner_id) have no approval requirement — landlord edits directly.
+1. `src/pages/tenant/TenantProfile.tsx` — Expand query, auto-fill, add self-release button
+2. `src/components/tenants/EditApprovalSection.tsx` — Handle release-type requests
+3. `src/pages/Tenants.tsx` — Save `prev_leave_reason` on release
+4. `src/components/tenants/TenantRegistrationPrint.tsx` — Accept and display auto-populated data
 

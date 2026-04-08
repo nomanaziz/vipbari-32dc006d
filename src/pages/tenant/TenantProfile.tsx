@@ -184,17 +184,40 @@ const TenantProfile = () => {
   const updateField = (key: string, value: string) => {
     setForm((f) => {
       const updated = { ...f, [key]: value };
-      // Reset cascading address fields
       if (key === "present_division") {
-        updated.present_district = "";
-        updated.present_thana = "";
+        const next = normalizeDivision(value);
+        const current = normalizeDivision(f.present_division);
+        updated.present_division = next;
+        if (next !== current) {
+          updated.present_district = "";
+          updated.present_thana = "";
+        }
       } else if (key === "present_district") {
-        updated.present_thana = "";
+        const next = normalizeDistrict(value);
+        const current = normalizeDistrict(f.present_district);
+        updated.present_district = next;
+        if (next !== current) {
+          updated.present_thana = "";
+        }
       } else if (key === "permanent_division") {
-        updated.permanent_district = "";
-        updated.permanent_thana = "";
+        const next = normalizeDivision(value);
+        const current = normalizeDivision(f.permanent_division);
+        updated.permanent_division = next;
+        if (next !== current) {
+          updated.permanent_district = "";
+          updated.permanent_thana = "";
+        }
       } else if (key === "permanent_district") {
-        updated.permanent_thana = "";
+        const next = normalizeDistrict(value);
+        const current = normalizeDistrict(f.permanent_district);
+        updated.permanent_district = next;
+        if (next !== current) {
+          updated.permanent_thana = "";
+        }
+      } else if (key === "present_thana") {
+        updated.present_thana = normalizeThana(value);
+      } else if (key === "permanent_thana") {
+        updated.permanent_thana = normalizeThana(value);
       }
       return updated;
     });
@@ -217,14 +240,14 @@ const TenantProfile = () => {
         doc_number: form.doc_number,
         doc_front_url: form.doc_front_url,
         doc_back_url: form.doc_back_url,
-        present_division: form.present_division,
-        present_district: form.present_district,
-        present_thana: form.present_thana,
+        present_division: normalizeDivision(form.present_division),
+        present_district: normalizeDistrict(form.present_district),
+        present_thana: normalizeThana(form.present_thana),
         present_village: form.present_village,
         present_address: form.present_address,
-        permanent_division: form.permanent_division,
-        permanent_district: form.permanent_district,
-        permanent_thana: form.permanent_thana,
+        permanent_division: normalizeDivision(form.permanent_division),
+        permanent_district: normalizeDistrict(form.permanent_district),
+        permanent_thana: normalizeThana(form.permanent_thana),
         permanent_village: form.permanent_village,
         permanent_address: form.permanent_address,
         emergency_contact: form.emergency_contact,
@@ -384,10 +407,17 @@ const TenantProfile = () => {
     );
   }
 
-  const presentDistricts = form.present_division ? DISTRICTS[form.present_division] || [] : [];
-  const presentThanas = form.present_district ? THANAS[form.present_district] || [] : [];
-  const permDistricts = form.permanent_division ? DISTRICTS[form.permanent_division] || [] : [];
-  const permThanas = form.permanent_district ? THANAS[form.permanent_district] || [] : [];
+  const presentDivisionValue = normalizeDivision(form.present_division);
+  const presentDistrictValue = normalizeDistrict(form.present_district);
+  const presentThanaValue = normalizeThana(form.present_thana);
+  const permanentDivisionValue = normalizeDivision(form.permanent_division);
+  const permanentDistrictValue = normalizeDistrict(form.permanent_district);
+  const permanentThanaValue = normalizeThana(form.permanent_thana);
+
+  const presentDistricts = presentDivisionValue ? DISTRICTS[presentDivisionValue] || [] : [];
+  const presentThanas = presentDistrictValue ? THANAS[presentDistrictValue] || [] : [];
+  const permDistricts = permanentDivisionValue ? DISTRICTS[permanentDivisionValue] || [] : [];
+  const permThanas = permanentDistrictValue ? THANAS[permanentDistrictValue] || [] : [];
 
   const renderAddressSelect = (label: string, value: string, onChange: (v: string) => void, options: string[], bnMap: Record<string, string>, placeholder: string) => (
     <div className="space-y-1.5">
@@ -642,9 +672,9 @@ const TenantProfile = () => {
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {renderAddressSelect(t("tenant.division"), form.present_division || "", (v) => updateField("present_division", v), DIVISIONS, DIVISIONS_BN, t("tenant.select_division"))}
-                {renderAddressSelect(t("tenant.district"), form.present_district || "", (v) => updateField("present_district", v), presentDistricts, DISTRICTS_BN, t("tenant.select_district"))}
-                {renderAddressSelect(t("tenant.thana"), form.present_thana || "", (v) => updateField("present_thana", v), presentThanas, THANAS_BN, t("tenant.select_thana"))}
+                {renderAddressSelect(t("tenant.division"), presentDivisionValue || "", (v) => updateField("present_division", v), DIVISIONS, DIVISIONS_BN, t("tenant.select_division"))}
+                {renderAddressSelect(t("tenant.district"), presentDistrictValue || "", (v) => updateField("present_district", v), presentDistricts, DISTRICTS_BN, t("tenant.select_district"))}
+                {renderAddressSelect(t("tenant.thana"), presentThanaValue || "", (v) => updateField("present_thana", v), presentThanas, THANAS_BN, t("tenant.select_thana"))}
                 <div className="space-y-1.5">
                   <Label>{t("tenant.village")}</Label>
                   <Input value={form.present_village || ""} onChange={(e) => updateField("present_village", e.target.value)} />
@@ -665,9 +695,9 @@ const TenantProfile = () => {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {renderAddressSelect(t("tenant.division"), form.permanent_division || "", (v) => updateField("permanent_division", v), DIVISIONS, DIVISIONS_BN, t("tenant.select_division"))}
-              {renderAddressSelect(t("tenant.district"), form.permanent_district || "", (v) => updateField("permanent_district", v), permDistricts, DISTRICTS_BN, t("tenant.select_district"))}
-              {renderAddressSelect(t("tenant.thana"), form.permanent_thana || "", (v) => updateField("permanent_thana", v), permThanas, THANAS_BN, t("tenant.select_thana"))}
+              {renderAddressSelect(t("tenant.division"), permanentDivisionValue || "", (v) => updateField("permanent_division", v), DIVISIONS, DIVISIONS_BN, t("tenant.select_division"))}
+              {renderAddressSelect(t("tenant.district"), permanentDistrictValue || "", (v) => updateField("permanent_district", v), permDistricts, DISTRICTS_BN, t("tenant.select_district"))}
+              {renderAddressSelect(t("tenant.thana"), permanentThanaValue || "", (v) => updateField("permanent_thana", v), permThanas, THANAS_BN, t("tenant.select_thana"))}
               <div className="space-y-1.5">
                 <Label>{t("tenant.village")}</Label>
                 <Input value={form.permanent_village || ""} onChange={(e) => updateField("permanent_village", e.target.value)} />

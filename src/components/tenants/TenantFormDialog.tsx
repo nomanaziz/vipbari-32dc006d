@@ -68,12 +68,19 @@ const TenantFormDialog = ({ open, onOpenChange, editing, availableRooms, onCrede
   const [createAccount, setCreateAccount] = useState(false);
   const [password, setPassword] = useState("");
 
+  const permanentDivisionValue = normalizeDivision(form.permanent_division);
+  const permanentDistrictValue = normalizeDistrict(form.permanent_district);
+  const permanentThanaValue = normalizeThana(form.permanent_thana);
+  const presentDivisionValue = normalizeDivision(form.present_division);
+  const presentDistrictValue = normalizeDistrict(form.present_district);
+  const presentThanaValue = normalizeThana(form.present_thana);
+
   // Permanent address cascading
-  const districts = form.permanent_division ? (DISTRICTS[form.permanent_division] || []) : [];
-  const thanas = form.permanent_district ? (THANAS[form.permanent_district] || []) : [];
+  const districts = permanentDivisionValue ? (DISTRICTS[permanentDivisionValue] || []) : [];
+  const thanas = permanentDistrictValue ? (THANAS[permanentDistrictValue] || []) : [];
   // Present address cascading
-  const presentDistricts = form.present_division ? (DISTRICTS[form.present_division] || []) : [];
-  const presentThanas = form.present_district ? (THANAS[form.present_district] || []) : [];
+  const presentDistricts = presentDivisionValue ? (DISTRICTS[presentDivisionValue] || []) : [];
+  const presentThanas = presentDistrictValue ? (THANAS[presentDistrictValue] || []) : [];
 
   useEffect(() => {
     if (editing) {
@@ -427,8 +434,13 @@ const TenantFormDialog = ({ open, onOpenChange, editing, availableRooms, onCrede
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>{t("tenant.division")}</Label>
-                <Select value={form.permanent_division || "none"} onValueChange={v => {
-                  setForm(f => ({ ...f, permanent_division: v === "none" ? "" : v, permanent_district: "", permanent_thana: "" }));
+                <Select value={permanentDivisionValue || "none"} onValueChange={v => {
+                  const next = v === "none" ? "" : v;
+                  setForm(f => {
+                    const current = normalizeDivision(f.permanent_division);
+                    if (next === current) return { ...f, permanent_division: next };
+                    return { ...f, permanent_division: next, permanent_district: "", permanent_thana: "" };
+                  });
                 }}>
                   <SelectTrigger><SelectValue placeholder={t("tenant.select_division")} /></SelectTrigger>
                   <SelectContent>
@@ -441,8 +453,13 @@ const TenantFormDialog = ({ open, onOpenChange, editing, availableRooms, onCrede
               </div>
               <div className="space-y-2">
                 <Label>{t("tenant.district")}</Label>
-                <Select value={form.permanent_district || "none"} onValueChange={v => {
-                  setForm(f => ({ ...f, permanent_district: v === "none" ? "" : v, permanent_thana: "" }));
+                <Select value={permanentDistrictValue || "none"} onValueChange={v => {
+                  const next = v === "none" ? "" : v;
+                  setForm(f => {
+                    const current = normalizeDistrict(f.permanent_district);
+                    if (next === current) return { ...f, permanent_district: next };
+                    return { ...f, permanent_district: next, permanent_thana: "" };
+                  });
                 }}>
                   <SelectTrigger><SelectValue placeholder={t("tenant.select_district")} /></SelectTrigger>
                   <SelectContent>
@@ -455,7 +472,7 @@ const TenantFormDialog = ({ open, onOpenChange, editing, availableRooms, onCrede
               </div>
               <div className="space-y-2">
                 <Label>{t("tenant.thana")}</Label>
-                <Select value={form.permanent_thana || "none"} onValueChange={v => set("permanent_thana", v === "none" ? "" : v)}>
+                <Select value={permanentThanaValue || "none"} onValueChange={v => set("permanent_thana", v === "none" ? "" : v)}>
                   <SelectTrigger><SelectValue placeholder={t("tenant.select_thana")} /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">—</SelectItem>
@@ -482,8 +499,13 @@ const TenantFormDialog = ({ open, onOpenChange, editing, availableRooms, onCrede
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>{t("tenant.division")}</Label>
-                <Select value={form.present_division || "none"} onValueChange={v => {
-                  setForm(f => ({ ...f, present_division: v === "none" ? "" : v, present_district: "", present_thana: "" }));
+                <Select value={presentDivisionValue || "none"} onValueChange={v => {
+                  const next = v === "none" ? "" : v;
+                  setForm(f => {
+                    const current = normalizeDivision(f.present_division);
+                    if (next === current) return { ...f, present_division: next };
+                    return { ...f, present_division: next, present_district: "", present_thana: "" };
+                  });
                 }}>
                   <SelectTrigger><SelectValue placeholder={t("tenant.select_division")} /></SelectTrigger>
                   <SelectContent>
@@ -496,8 +518,13 @@ const TenantFormDialog = ({ open, onOpenChange, editing, availableRooms, onCrede
               </div>
               <div className="space-y-2">
                 <Label>{t("tenant.district")}</Label>
-                <Select value={form.present_district || "none"} onValueChange={v => {
-                  setForm(f => ({ ...f, present_district: v === "none" ? "" : v, present_thana: "" }));
+                <Select value={presentDistrictValue || "none"} onValueChange={v => {
+                  const next = v === "none" ? "" : v;
+                  setForm(f => {
+                    const current = normalizeDistrict(f.present_district);
+                    if (next === current) return { ...f, present_district: next };
+                    return { ...f, present_district: next, present_thana: "" };
+                  });
                 }}>
                   <SelectTrigger><SelectValue placeholder={t("tenant.select_district")} /></SelectTrigger>
                   <SelectContent>
@@ -510,7 +537,7 @@ const TenantFormDialog = ({ open, onOpenChange, editing, availableRooms, onCrede
               </div>
               <div className="space-y-2">
                 <Label>{t("tenant.thana")}</Label>
-                <Select value={form.present_thana || "none"} onValueChange={v => set("present_thana", v === "none" ? "" : v)}>
+                <Select value={presentThanaValue || "none"} onValueChange={v => set("present_thana", v === "none" ? "" : v)}>
                   <SelectTrigger><SelectValue placeholder={t("tenant.select_thana")} /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">—</SelectItem>

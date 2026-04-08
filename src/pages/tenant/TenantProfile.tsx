@@ -790,17 +790,28 @@ const TenantProfile = () => {
         {/* Current Landlord */}
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2"><Home className="h-4 w-4" />{language === "bn" ? "বর্তমান বাড়িওয়ালার তথ্য" : "Current Landlord Info"}</CardTitle>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Home className="h-4 w-4" />{language === "bn" ? "বর্তমান বাড়িওয়ালার তথ্য" : "Current Landlord Info"}
+              {isLinkedToLandlord && <span className="text-xs font-normal text-muted-foreground ml-2">({language === "bn" ? "স্বয়ংক্রিয়ভাবে আসা তথ্য" : "Auto-populated"})</span>}
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label>{language === "bn" ? "নাম" : "Name"}</Label>
-                <Input value={form.current_landlord_name || ""} onChange={(e) => updateField("current_landlord_name", e.target.value)} />
+                {isLinkedToLandlord ? (
+                  <Input value={autoCurrentLandlordName} disabled className="bg-muted" />
+                ) : (
+                  <Input value={form.current_landlord_name || ""} onChange={(e) => updateField("current_landlord_name", e.target.value)} />
+                )}
               </div>
               <div className="space-y-1.5">
                 <Label>{language === "bn" ? "মোবাইল" : "Mobile"}</Label>
-                <Input value={form.current_landlord_phone || ""} onChange={(e) => updateField("current_landlord_phone", e.target.value)} />
+                {isLinkedToLandlord ? (
+                  <Input value={autoCurrentLandlordPhone} disabled className="bg-muted" />
+                ) : (
+                  <Input value={form.current_landlord_phone || ""} onChange={(e) => updateField("current_landlord_phone", e.target.value)} />
+                )}
               </div>
               <div className="space-y-1.5">
                 <Label>{language === "bn" ? "বসবাসের তারিখ" : "Living Since"}</Label>

@@ -365,8 +365,49 @@ const TenantProfile = () => {
                 <Input value={form.occupation || ""} onChange={(e) => updateField("occupation", e.target.value)} />
               </div>
               <div className="space-y-1.5">
-                <Label>{t("tenant.emergency")}</Label>
-                <Input value={form.emergency_contact || ""} onChange={(e) => updateField("emergency_contact", e.target.value)} />
+                <Label>{language === "bn" ? "পিতার নাম" : "Father's Name"}</Label>
+                <Input value={form.father_name || ""} onChange={(e) => updateField("father_name", e.target.value)} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>{language === "bn" ? "ইমেইল" : "Email"}</Label>
+                <Input value={form.email || ""} onChange={(e) => updateField("email", e.target.value)} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>{language === "bn" ? "পাসপোর্ট নম্বর" : "Passport Number"}</Label>
+                <Input value={form.passport_number || ""} onChange={(e) => updateField("passport_number", e.target.value)} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>{language === "bn" ? "বৈবাহিক অবস্থা" : "Marital Status"}</Label>
+                <Select value={form.marital_status || ""} onValueChange={(v) => updateField("marital_status", v)}>
+                  <SelectTrigger><SelectValue placeholder={language === "bn" ? "নির্বাচন করুন" : "Select"} /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="married">{language === "bn" ? "বিবাহিত" : "Married"}</SelectItem>
+                    <SelectItem value="unmarried">{language === "bn" ? "অবিবাহিত" : "Unmarried"}</SelectItem>
+                    <SelectItem value="divorced">{language === "bn" ? "তালাকপ্রাপ্ত" : "Divorced"}</SelectItem>
+                    <SelectItem value="widowed">{language === "bn" ? "বিধবা/বিপত্নীক" : "Widowed"}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label>{language === "bn" ? "ধর্ম" : "Religion"}</Label>
+                <Select value={form.religion || ""} onValueChange={(v) => updateField("religion", v)}>
+                  <SelectTrigger><SelectValue placeholder={language === "bn" ? "নির্বাচন করুন" : "Select"} /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="islam">{language === "bn" ? "ইসলাম" : "Islam"}</SelectItem>
+                    <SelectItem value="hinduism">{language === "bn" ? "হিন্দু" : "Hinduism"}</SelectItem>
+                    <SelectItem value="christianity">{language === "bn" ? "খ্রিষ্টান" : "Christianity"}</SelectItem>
+                    <SelectItem value="buddhism">{language === "bn" ? "বৌদ্ধ" : "Buddhism"}</SelectItem>
+                    <SelectItem value="other">{language === "bn" ? "অন্যান্য" : "Other"}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label>{language === "bn" ? "শিক্ষাগত যোগ্যতা" : "Education"}</Label>
+                <Input value={form.education || ""} onChange={(e) => updateField("education", e.target.value)} />
+              </div>
+              <div className="space-y-1.5 sm:col-span-2">
+                <Label>{language === "bn" ? "পেশা ও কর্মস্থলের ঠিকানা" : "Workplace Address"}</Label>
+                <Input value={form.workplace_address || ""} onChange={(e) => updateField("workplace_address", e.target.value)} />
               </div>
             </div>
           </CardContent>

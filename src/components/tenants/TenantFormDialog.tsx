@@ -94,13 +94,44 @@ const TenantFormDialog = ({ open, onOpenChange, editing, availableRooms, onCrede
       }
       if (!f.status) f.status = "active";
       if (!f.billing_type) f.billing_type = "billing";
-      // Normalize address fields to canonical English keys
-      f.permanent_division = normalizeDivision(f.permanent_division);
-      f.permanent_district = normalizeDistrict(f.permanent_district);
-      f.permanent_thana = normalizeThana(f.permanent_thana);
-      f.present_division = normalizeDivision(f.present_division);
-      f.present_district = normalizeDistrict(f.present_district);
-      f.present_thana = normalizeThana(f.present_thana);
+
+      // Hierarchy-aware normalization: normalize division first, then validate district under it, then thana under district
+      // Permanent address
+      let permDiv = normalizeDivision(f.permanent_division);
+      let permDist = normalizeDistrict(f.permanent_district);
+      let permThana = normalizeThana(f.permanent_thana);
+      // If district doesn't match division, try to find the correct division
+      if (permDist && !permDiv) {
+        permDiv = findDivisionForDistrict(permDist);
+      }
+      // If thana doesn't match district, try to find the correct district
+      if (permThana && !permDist) {
+        permDist = findDistrictForThana(permThana);
+        if (permDist && !permDiv) {
+          permDiv = findDivisionForDistrict(permDist);
+        }
+      }
+      f.permanent_division = permDiv;
+      f.permanent_district = permDist;
+      f.permanent_thana = permThana;
+
+      // Present address
+      let presDiv = normalizeDivision(f.present_division);
+      let presDist = normalizeDistrict(f.present_district);
+      let presThana = normalizeThana(f.present_thana);
+      if (presDist && !presDiv) {
+        presDiv = findDivisionForDistrict(presDist);
+      }
+      if (presThana && !presDist) {
+        presDist = findDistrictForThana(presThana);
+        if (presDist && !presDiv) {
+          presDiv = findDivisionForDistrict(presDist);
+        }
+      }
+      f.present_division = presDiv;
+      f.present_district = presDist;
+      f.present_thana = presThana;
+
       setForm(f);
       setCreateAccount(false);
       setPassword("");

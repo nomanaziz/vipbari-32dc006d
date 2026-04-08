@@ -535,13 +535,153 @@ const TenantProfile = () => {
           </CardContent>
         </Card>
 
-        <div className="flex justify-end">
+        {/* Emergency Contact */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2"><PhoneIcon className="h-4 w-4" />{language === "bn" ? "জরুরী যোগাযোগ" : "Emergency Contact"}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label>{language === "bn" ? "নাম" : "Name"}</Label>
+                <Input value={form.emergency_name || ""} onChange={(e) => updateField("emergency_name", e.target.value)} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>{language === "bn" ? "সম্পর্ক" : "Relation"}</Label>
+                <Input value={form.emergency_relation || ""} onChange={(e) => updateField("emergency_relation", e.target.value)} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>{language === "bn" ? "মোবাইল নম্বর" : "Mobile"}</Label>
+                <Input value={form.emergency_phone || ""} onChange={(e) => updateField("emergency_phone", e.target.value)} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>{language === "bn" ? "ঠিকানা" : "Address"}</Label>
+                <Input value={form.emergency_address || ""} onChange={(e) => updateField("emergency_address", e.target.value)} />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Domestic Worker */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2"><Briefcase className="h-4 w-4" />{language === "bn" ? "গৃহকর্মী তথ্য" : "Domestic Worker Info"}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label>{language === "bn" ? "নাম" : "Name"}</Label>
+                <Input value={form.domestic_worker_name || ""} onChange={(e) => updateField("domestic_worker_name", e.target.value)} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>{language === "bn" ? "জাতীয় পরিচয়পত্র নং" : "NID"}</Label>
+                <Input value={form.domestic_worker_nid || ""} onChange={(e) => updateField("domestic_worker_nid", e.target.value)} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>{language === "bn" ? "মোবাইল" : "Mobile"}</Label>
+                <Input value={form.domestic_worker_phone || ""} onChange={(e) => updateField("domestic_worker_phone", e.target.value)} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>{language === "bn" ? "স্থায়ী ঠিকানা" : "Address"}</Label>
+                <Input value={form.domestic_worker_address || ""} onChange={(e) => updateField("domestic_worker_address", e.target.value)} />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Driver */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2"><Car className="h-4 w-4" />{language === "bn" ? "ড্রাইভার তথ্য" : "Driver Info"}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label>{language === "bn" ? "নাম" : "Name"}</Label>
+                <Input value={form.driver_name || ""} onChange={(e) => updateField("driver_name", e.target.value)} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>{language === "bn" ? "জাতীয় পরিচয়পত্র নং" : "NID"}</Label>
+                <Input value={form.driver_nid || ""} onChange={(e) => updateField("driver_nid", e.target.value)} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>{language === "bn" ? "মোবাইল" : "Mobile"}</Label>
+                <Input value={form.driver_phone || ""} onChange={(e) => updateField("driver_phone", e.target.value)} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>{language === "bn" ? "স্থায়ী ঠিকানা" : "Address"}</Label>
+                <Input value={form.driver_address || ""} onChange={(e) => updateField("driver_address", e.target.value)} />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Previous Landlord */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2"><Home className="h-4 w-4" />{language === "bn" ? "পূর্ববর্তী বাড়িওয়ালার তথ্য" : "Previous Landlord Info"}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label>{language === "bn" ? "নাম" : "Name"}</Label>
+                <Input value={form.prev_landlord_name || ""} onChange={(e) => updateField("prev_landlord_name", e.target.value)} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>{language === "bn" ? "মোবাইল" : "Mobile"}</Label>
+                <Input value={form.prev_landlord_phone || ""} onChange={(e) => updateField("prev_landlord_phone", e.target.value)} />
+              </div>
+              <div className="space-y-1.5 sm:col-span-2">
+                <Label>{language === "bn" ? "ঠিকানা" : "Address"}</Label>
+                <Input value={form.prev_landlord_address || ""} onChange={(e) => updateField("prev_landlord_address", e.target.value)} />
+              </div>
+              <div className="space-y-1.5 sm:col-span-2">
+                <Label>{language === "bn" ? "পূর্ববর্তী বাসা ছাড়ার কারণ" : "Reason for Leaving"}</Label>
+                <Input value={form.prev_leave_reason || ""} onChange={(e) => updateField("prev_leave_reason", e.target.value)} />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Current Landlord */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2"><Home className="h-4 w-4" />{language === "bn" ? "বর্তমান বাড়িওয়ালার তথ্য" : "Current Landlord Info"}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label>{language === "bn" ? "নাম" : "Name"}</Label>
+                <Input value={form.current_landlord_name || ""} onChange={(e) => updateField("current_landlord_name", e.target.value)} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>{language === "bn" ? "মোবাইল" : "Mobile"}</Label>
+                <Input value={form.current_landlord_phone || ""} onChange={(e) => updateField("current_landlord_phone", e.target.value)} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>{language === "bn" ? "বসবাসের তারিখ" : "Living Since"}</Label>
+                <Input type="date" value={form.living_since || ""} onChange={(e) => updateField("living_since", e.target.value)} />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="flex justify-end gap-2">
+          <Button type="button" variant="outline" className="gap-2" onClick={() => window.print()}>
+            <Printer className="h-4 w-4" />
+            {language === "bn" ? "নিবন্ধন ফরম প্রিন্ট" : "Print Registration Form"}
+          </Button>
           <Button type="submit" disabled={saveMutation.isPending} className="gap-2">
             {saveMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
             {t("common.save")}
           </Button>
         </div>
       </form>
+
+      {/* Hidden print form */}
+      <div className="hidden print:block">
+        <TenantRegistrationPrint tenant={tenant as any} />
+      </div>
     </div>
   );
 };

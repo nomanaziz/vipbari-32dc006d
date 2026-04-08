@@ -407,10 +407,17 @@ const TenantProfile = () => {
     );
   }
 
-  const presentDistricts = form.present_division ? DISTRICTS[form.present_division] || [] : [];
-  const presentThanas = form.present_district ? THANAS[form.present_district] || [] : [];
-  const permDistricts = form.permanent_division ? DISTRICTS[form.permanent_division] || [] : [];
-  const permThanas = form.permanent_district ? THANAS[form.permanent_district] || [] : [];
+  const presentDivisionValue = normalizeDivision(form.present_division);
+  const presentDistrictValue = normalizeDistrict(form.present_district);
+  const presentThanaValue = normalizeThana(form.present_thana);
+  const permanentDivisionValue = normalizeDivision(form.permanent_division);
+  const permanentDistrictValue = normalizeDistrict(form.permanent_district);
+  const permanentThanaValue = normalizeThana(form.permanent_thana);
+
+  const presentDistricts = presentDivisionValue ? DISTRICTS[presentDivisionValue] || [] : [];
+  const presentThanas = presentDistrictValue ? THANAS[presentDistrictValue] || [] : [];
+  const permDistricts = permanentDivisionValue ? DISTRICTS[permanentDivisionValue] || [] : [];
+  const permThanas = permanentDistrictValue ? THANAS[permanentDistrictValue] || [] : [];
 
   const renderAddressSelect = (label: string, value: string, onChange: (v: string) => void, options: string[], bnMap: Record<string, string>, placeholder: string) => (
     <div className="space-y-1.5">

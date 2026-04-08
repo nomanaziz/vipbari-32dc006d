@@ -19,6 +19,7 @@ import TenantReleaseDialog from "@/components/tenants/TenantReleaseDialog";
 import {
   DIVISIONS, DIVISIONS_BN, DISTRICTS, DISTRICTS_BN, THANAS, THANAS_BN,
   normalizeDivision, normalizeDistrict, normalizeThana,
+  findDivisionForDistrict, findDistrictForThana,
 } from "@/data/bangladeshAddress";
 
 const PROTECTED_FIELDS = [

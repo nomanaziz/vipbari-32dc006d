@@ -672,9 +672,9 @@ const TenantProfile = () => {
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {renderAddressSelect(t("tenant.division"), form.present_division || "", (v) => updateField("present_division", v), DIVISIONS, DIVISIONS_BN, t("tenant.select_division"))}
-                {renderAddressSelect(t("tenant.district"), form.present_district || "", (v) => updateField("present_district", v), presentDistricts, DISTRICTS_BN, t("tenant.select_district"))}
-                {renderAddressSelect(t("tenant.thana"), form.present_thana || "", (v) => updateField("present_thana", v), presentThanas, THANAS_BN, t("tenant.select_thana"))}
+                {renderAddressSelect(t("tenant.division"), presentDivisionValue || "", (v) => updateField("present_division", v), DIVISIONS, DIVISIONS_BN, t("tenant.select_division"))}
+                {renderAddressSelect(t("tenant.district"), presentDistrictValue || "", (v) => updateField("present_district", v), presentDistricts, DISTRICTS_BN, t("tenant.select_district"))}
+                {renderAddressSelect(t("tenant.thana"), presentThanaValue || "", (v) => updateField("present_thana", v), presentThanas, THANAS_BN, t("tenant.select_thana"))}
                 <div className="space-y-1.5">
                   <Label>{t("tenant.village")}</Label>
                   <Input value={form.present_village || ""} onChange={(e) => updateField("present_village", e.target.value)} />

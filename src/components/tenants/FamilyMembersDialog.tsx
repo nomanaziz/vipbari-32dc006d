@@ -183,7 +183,7 @@ const FamilyMembersDialog = ({ tenant, onClose }: Props) => {
                   )}
                 </div>
               );
-            }))
+            })
           )}
         </div>
 

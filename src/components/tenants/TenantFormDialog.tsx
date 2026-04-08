@@ -434,8 +434,13 @@ const TenantFormDialog = ({ open, onOpenChange, editing, availableRooms, onCrede
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>{t("tenant.division")}</Label>
-                <Select value={form.permanent_division || "none"} onValueChange={v => {
-                  setForm(f => ({ ...f, permanent_division: v === "none" ? "" : v, permanent_district: "", permanent_thana: "" }));
+                <Select value={permanentDivisionValue || "none"} onValueChange={v => {
+                  const next = v === "none" ? "" : v;
+                  setForm(f => {
+                    const current = normalizeDivision(f.permanent_division);
+                    if (next === current) return { ...f, permanent_division: next };
+                    return { ...f, permanent_division: next, permanent_district: "", permanent_thana: "" };
+                  });
                 }}>
                   <SelectTrigger><SelectValue placeholder={t("tenant.select_division")} /></SelectTrigger>
                   <SelectContent>
@@ -448,8 +453,13 @@ const TenantFormDialog = ({ open, onOpenChange, editing, availableRooms, onCrede
               </div>
               <div className="space-y-2">
                 <Label>{t("tenant.district")}</Label>
-                <Select value={form.permanent_district || "none"} onValueChange={v => {
-                  setForm(f => ({ ...f, permanent_district: v === "none" ? "" : v, permanent_thana: "" }));
+                <Select value={permanentDistrictValue || "none"} onValueChange={v => {
+                  const next = v === "none" ? "" : v;
+                  setForm(f => {
+                    const current = normalizeDistrict(f.permanent_district);
+                    if (next === current) return { ...f, permanent_district: next };
+                    return { ...f, permanent_district: next, permanent_thana: "" };
+                  });
                 }}>
                   <SelectTrigger><SelectValue placeholder={t("tenant.select_district")} /></SelectTrigger>
                   <SelectContent>

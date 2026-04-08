@@ -544,7 +544,7 @@ const Properties = () => {
               {/* House/Road/Block/Sector/Postal */}
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
-                  <Label>{t("property.house_number")}</Label>
+                  <Label>{t("property.house_number")} *</Label>
                   <Input
                     value={form.house_number}
                     onChange={e => setForm(f => ({ ...f, house_number: e.target.value }))}

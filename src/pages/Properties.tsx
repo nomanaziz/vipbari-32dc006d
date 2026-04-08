@@ -407,6 +407,27 @@ const Properties = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    // Validate mandatory address fields
+    if (!form.house_number.trim()) {
+      toast.error(language === "bn" ? "বাড়ি/হোল্ডিং নম্বর দিতে হবে" : "House/Holding number is required");
+      return;
+    }
+    if (!form.division) {
+      toast.error(language === "bn" ? "বিভাগ নির্বাচন করতে হবে" : "Division is required");
+      return;
+    }
+    if (!form.district) {
+      toast.error(language === "bn" ? "জেলা নির্বাচন করতে হবে" : "District is required");
+      return;
+    }
+    if (!form.thana) {
+      toast.error(language === "bn" ? "থানা/উপজেলা নির্বাচন করতে হবে" : "Thana is required");
+      return;
+    }
+    if (!form.postal_code.trim()) {
+      toast.error(language === "bn" ? "পোস্টাল কোড দিতে হবে" : "Postal code is required");
+      return;
+    }
     if (editing) {
       updateMutation.mutate({ ...form, id: editing.id });
     } else {
@@ -484,7 +505,7 @@ const Properties = () => {
               {/* Structured Address */}
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
-                  <Label>{t("property.division")}</Label>
+                  <Label>{t("property.division")} *</Label>
                   <Select value={form.division} onValueChange={v => setForm(f => ({ ...f, division: v, district: "", thana: "" }))}>
                     <SelectTrigger><SelectValue placeholder={t("property.division")} /></SelectTrigger>
                     <SelectContent>
@@ -493,7 +514,7 @@ const Properties = () => {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label>{t("property.district")}</Label>
+                  <Label>{t("property.district")} *</Label>
                   <Select value={form.district} onValueChange={v => setForm(f => ({ ...f, district: v, thana: "" }))} disabled={!form.division}>
                     <SelectTrigger><SelectValue placeholder={t("property.district")} /></SelectTrigger>
                     <SelectContent>
@@ -502,7 +523,7 @@ const Properties = () => {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label>{t("property.thana")}</Label>
+                  <Label>{t("property.thana")} *</Label>
                   <Select value={form.thana} onValueChange={v => setForm(f => ({ ...f, thana: v }))} disabled={!form.district}>
                     <SelectTrigger><SelectValue placeholder={t("property.thana")} /></SelectTrigger>
                     <SelectContent>
@@ -523,7 +544,7 @@ const Properties = () => {
               {/* House/Road/Block/Sector/Postal */}
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
-                  <Label>{t("property.house_number")}</Label>
+                  <Label>{t("property.house_number")} *</Label>
                   <Input
                     value={form.house_number}
                     onChange={e => setForm(f => ({ ...f, house_number: e.target.value }))}
@@ -555,7 +576,7 @@ const Properties = () => {
                   />
                 </div>
                 <div className="space-y-2 col-span-2">
-                  <Label>{t("property.postal_code")}</Label>
+                  <Label>{t("property.postal_code")} *</Label>
                   <Input
                     value={form.postal_code}
                     onChange={e => setForm(f => ({ ...f, postal_code: e.target.value }))}

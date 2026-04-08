@@ -33,7 +33,7 @@ export function TenantDetailDialog({ open, onOpenChange, tenantId }: TenantDetai
     queryFn: async () => {
       const { data } = await supabase
         .from("tenants")
-        .select("*, rooms(room_number, rent_amount, property_id, properties(name))")
+        .select("*, rooms(room_number, rent_amount, property_id, properties(name, division, district, thana, area, house_number, road_number, postal_code))")
         .eq("id", tenantId!)
         .maybeSingle();
       return data;

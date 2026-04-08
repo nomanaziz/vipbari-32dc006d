@@ -39,7 +39,8 @@ const Tenants = () => {
   const [releaseTenant, setReleaseTenant] = useState<any>(null);
   const [credentials, setCredentials] = useState<{ phone: string; password: string } | null>(null);
   const [shiftTenant, setShiftTenant] = useState<any>(null);
-
+  const [printTenant, setPrintTenant] = useState<any>(null);
+  const [printMembers, setPrintMembers] = useState<any[]>([]);
   const { data: rooms } = useQuery({
     queryKey: ["rooms-for-assign", effectiveOwnerId],
     queryFn: async () => {

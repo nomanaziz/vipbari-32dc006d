@@ -666,6 +666,10 @@ const TenantProfile = () => {
                   <Label>{t("tenant.village")}</Label>
                   <Input value={autoPresentVillage} disabled className="bg-muted" />
                 </div>
+                <div className="space-y-1.5">
+                  <Label>{language === "bn" ? "পোস্টাল কোড" : "Postal Code"}</Label>
+                  <Input value={autoPresentPostalCode} disabled className="bg-muted" />
+                </div>
                 <div className="space-y-1.5 sm:col-span-2">
                   <Label>{t("tenant.address_detail")}</Label>
                   <Input value={autoPresentAddress} disabled className="bg-muted" />

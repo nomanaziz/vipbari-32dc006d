@@ -240,6 +240,17 @@
     padding: 3mm !important;
     font-size: 11px !important;
   }
+  /* Print registration form */
+  .print-form-container,
+  .print-form-container * {
+    visibility: visible !important;
+  }
+  .print-form-container {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
   @page {
     size: A4;
     margin: 5mm;

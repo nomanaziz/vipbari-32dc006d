@@ -9,12 +9,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { User, MapPin, FileText, Save, Loader2, Upload, X, Camera, ImagePlus, Printer, Briefcase, Phone as PhoneIcon, Car, Home } from "lucide-react";
+import { User, MapPin, FileText, Save, Loader2, Upload, X, Camera, ImagePlus, Printer, Briefcase, Phone as PhoneIcon, Car, Home, LogOut } from "lucide-react";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import ImageCropDialog from "@/components/ImageCropDialog";
 import TenantRegistrationPrint from "@/components/tenants/TenantRegistrationPrint";
 import EditApprovalSection from "@/components/tenants/EditApprovalSection";
+import TenantReleaseDialog from "@/components/tenants/TenantReleaseDialog";
 import {
   DIVISIONS, DIVISIONS_BN, DISTRICTS, DISTRICTS_BN, THANAS, THANAS_BN,
 } from "@/data/bangladeshAddress";

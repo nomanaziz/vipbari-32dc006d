@@ -624,6 +624,7 @@ const Tenants = () => {
   );
 };
 
+const TenantsPage = () => (
   <PermissionGuard permission="view_tenants">
     <Tenants />
   </PermissionGuard>

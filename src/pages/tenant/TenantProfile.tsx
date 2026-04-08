@@ -13,6 +13,7 @@ import { User, MapPin, FileText, Save, Loader2, Upload, X, Camera, ImagePlus, Pr
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import ImageCropDialog from "@/components/ImageCropDialog";
+import TenantRegistrationPrint from "@/components/tenants/TenantRegistrationPrint";
 import {
   DIVISIONS, DIVISIONS_BN, DISTRICTS, DISTRICTS_BN, THANAS, THANAS_BN,
 } from "@/data/bangladeshAddress";

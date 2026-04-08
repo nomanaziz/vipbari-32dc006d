@@ -11,10 +11,11 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Plus, Users, Pencil, Trash2, Phone, Search, MapPin, CalendarDays, MoreVertical, UserPlus, UserMinus, Link, RotateCcw, Archive, ArrowRightLeft, ShieldBan } from "lucide-react";
+import { Plus, Users, Pencil, Trash2, Phone, Search, MapPin, CalendarDays, MoreVertical, UserPlus, UserMinus, Link, RotateCcw, Archive, ArrowRightLeft, ShieldBan, Printer } from "lucide-react";
 import { toast } from "sonner";
 
 import TenantFormDialog from "@/components/tenants/TenantFormDialog";
+import TenantRegistrationPrint from "@/components/tenants/TenantRegistrationPrint";
 import TenantCredentialsDialog from "@/components/tenants/TenantCredentialsDialog";
 import FamilyMembersDialog from "@/components/tenants/FamilyMembersDialog";
 import PendingRequestsSection from "@/components/tenants/PendingRequestsSection";
@@ -38,7 +39,8 @@ const Tenants = () => {
   const [releaseTenant, setReleaseTenant] = useState<any>(null);
   const [credentials, setCredentials] = useState<{ phone: string; password: string } | null>(null);
   const [shiftTenant, setShiftTenant] = useState<any>(null);
-
+  const [printTenant, setPrintTenant] = useState<any>(null);
+  const [printMembers, setPrintMembers] = useState<any[]>([]);
   const { data: rooms } = useQuery({
     queryKey: ["rooms-for-assign", effectiveOwnerId],
     queryFn: async () => {
@@ -286,7 +288,17 @@ const Tenants = () => {
     return reason;
   };
 
-  
+  const handlePrintTenant = async (tenant: any) => {
+    // Fetch family members for the print form
+    const { data: members } = await supabase
+      .from("tenant_members")
+      .select("*")
+      .eq("tenant_id", tenant.id)
+      .eq("status", "approved");
+    setPrintMembers(members || []);
+    setPrintTenant(tenant);
+    setTimeout(() => window.print(), 300);
+  };
 
   return (
     <div className="space-y-6">
@@ -490,6 +502,10 @@ const Tenants = () => {
                               <UserPlus className="h-3.5 w-3.5 mr-2" />
                               {language === "bn" ? "পরিবারের সদস্য" : "Family Members"}
                             </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handlePrintTenant(tenant)}>
+                              <Printer className="h-3.5 w-3.5 mr-2" />
+                              {language === "bn" ? "নিবন্ধন ফরম প্রিন্ট" : "Print Registration Form"}
+                            </DropdownMenuItem>
                             <DropdownMenuItem className="text-orange-600" onClick={() => setReleaseTenant(tenant)}>
                               <UserMinus className="h-3.5 w-3.5 mr-2" />
                               {language === "bn" ? "রিলিজ করুন" : "Release"}
@@ -597,6 +613,13 @@ const Tenants = () => {
         tenant={shiftTenant}
         availableRooms={vacantRooms}
       />
+
+      {/* Print Registration Form (hidden, shown only during print) */}
+      {printTenant && (
+        <div className="hidden print:block">
+          <TenantRegistrationPrint tenant={printTenant} familyMembers={printMembers} />
+        </div>
+      )}
     </div>
   );
 };

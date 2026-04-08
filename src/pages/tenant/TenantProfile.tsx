@@ -9,10 +9,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { User, MapPin, FileText, Save, Loader2, Upload, X, Camera, ImagePlus } from "lucide-react";
+import { User, MapPin, FileText, Save, Loader2, Upload, X, Camera, ImagePlus, Printer, Briefcase, Phone as PhoneIcon, Car, Home } from "lucide-react";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import ImageCropDialog from "@/components/ImageCropDialog";
+import TenantRegistrationPrint from "@/components/tenants/TenantRegistrationPrint";
 import {
   DIVISIONS, DIVISIONS_BN, DISTRICTS, DISTRICTS_BN, THANAS, THANAS_BN,
 } from "@/data/bangladeshAddress";
@@ -63,29 +64,57 @@ const TenantProfile = () => {
 
   // Populate form once tenant data loads
   if (tenant && !isFormLoaded.current) {
+    const t = tenant as any;
     setForm({
-      full_name: tenant.full_name || "",
-      phone: tenant.phone || "",
-      secondary_phone: tenant.secondary_phone || "",
-      date_of_birth: tenant.date_of_birth || "",
-      gender: (tenant as any).gender || "",
-      occupation: (tenant as any).occupation || "",
-      nid: tenant.nid || "",
-      doc_type: (tenant as any).doc_type || "",
-      doc_number: (tenant as any).doc_number || "",
-      doc_front_url: (tenant as any).doc_front_url || "",
-      doc_back_url: (tenant as any).doc_back_url || "",
-      present_division: (tenant as any).present_division || "",
-      present_district: (tenant as any).present_district || "",
-      present_thana: (tenant as any).present_thana || "",
-      present_village: (tenant as any).present_village || "",
-      present_address: (tenant as any).present_address || "",
-      permanent_division: tenant.permanent_division || "",
-      permanent_district: tenant.permanent_district || "",
-      permanent_thana: tenant.permanent_thana || "",
-      permanent_village: tenant.permanent_village || "",
-      permanent_address: tenant.permanent_address || "",
-      emergency_contact: tenant.emergency_contact || "",
+      full_name: t.full_name || "",
+      phone: t.phone || "",
+      secondary_phone: t.secondary_phone || "",
+      date_of_birth: t.date_of_birth || "",
+      gender: t.gender || "",
+      occupation: t.occupation || "",
+      nid: t.nid || "",
+      doc_type: t.doc_type || "",
+      doc_number: t.doc_number || "",
+      doc_front_url: t.doc_front_url || "",
+      doc_back_url: t.doc_back_url || "",
+      present_division: t.present_division || "",
+      present_district: t.present_district || "",
+      present_thana: t.present_thana || "",
+      present_village: t.present_village || "",
+      present_address: t.present_address || "",
+      permanent_division: t.permanent_division || "",
+      permanent_district: t.permanent_district || "",
+      permanent_thana: t.permanent_thana || "",
+      permanent_village: t.permanent_village || "",
+      permanent_address: t.permanent_address || "",
+      emergency_contact: t.emergency_contact || "",
+      // Police form fields
+      father_name: t.father_name || "",
+      marital_status: t.marital_status || "",
+      religion: t.religion || "",
+      education: t.education || "",
+      workplace_address: t.workplace_address || "",
+      passport_number: t.passport_number || "",
+      email: t.email || "",
+      emergency_name: t.emergency_name || "",
+      emergency_relation: t.emergency_relation || "",
+      emergency_address: t.emergency_address || "",
+      emergency_phone: t.emergency_phone || "",
+      domestic_worker_name: t.domestic_worker_name || "",
+      domestic_worker_nid: t.domestic_worker_nid || "",
+      domestic_worker_phone: t.domestic_worker_phone || "",
+      domestic_worker_address: t.domestic_worker_address || "",
+      driver_name: t.driver_name || "",
+      driver_nid: t.driver_nid || "",
+      driver_phone: t.driver_phone || "",
+      driver_address: t.driver_address || "",
+      prev_landlord_name: t.prev_landlord_name || "",
+      prev_landlord_phone: t.prev_landlord_phone || "",
+      prev_landlord_address: t.prev_landlord_address || "",
+      prev_leave_reason: t.prev_leave_reason || "",
+      current_landlord_name: t.current_landlord_name || "",
+      current_landlord_phone: t.current_landlord_phone || "",
+      living_since: t.living_since || "",
     });
     isFormLoaded.current = true;
   }
@@ -111,32 +140,60 @@ const TenantProfile = () => {
 
   const saveMutation = useMutation({
     mutationFn: async () => {
+      const payload: Record<string, any> = {
+        full_name: form.full_name,
+        phone: form.phone,
+        secondary_phone: form.secondary_phone,
+        date_of_birth: form.date_of_birth || null,
+        gender: form.gender,
+        occupation: form.occupation,
+        nid: form.nid,
+        doc_type: form.doc_type,
+        doc_number: form.doc_number,
+        doc_front_url: form.doc_front_url,
+        doc_back_url: form.doc_back_url,
+        present_division: form.present_division,
+        present_district: form.present_district,
+        present_thana: form.present_thana,
+        present_village: form.present_village,
+        present_address: form.present_address,
+        permanent_division: form.permanent_division,
+        permanent_district: form.permanent_district,
+        permanent_thana: form.permanent_thana,
+        permanent_village: form.permanent_village,
+        permanent_address: form.permanent_address,
+        emergency_contact: form.emergency_contact,
+        // Police form fields
+        father_name: form.father_name,
+        marital_status: form.marital_status,
+        religion: form.religion,
+        education: form.education,
+        workplace_address: form.workplace_address,
+        passport_number: form.passport_number,
+        email: form.email,
+        emergency_name: form.emergency_name,
+        emergency_relation: form.emergency_relation,
+        emergency_address: form.emergency_address,
+        emergency_phone: form.emergency_phone,
+        domestic_worker_name: form.domestic_worker_name,
+        domestic_worker_nid: form.domestic_worker_nid,
+        domestic_worker_phone: form.domestic_worker_phone,
+        domestic_worker_address: form.domestic_worker_address,
+        driver_name: form.driver_name,
+        driver_nid: form.driver_nid,
+        driver_phone: form.driver_phone,
+        driver_address: form.driver_address,
+        prev_landlord_name: form.prev_landlord_name,
+        prev_landlord_phone: form.prev_landlord_phone,
+        prev_landlord_address: form.prev_landlord_address,
+        prev_leave_reason: form.prev_leave_reason,
+        current_landlord_name: form.current_landlord_name,
+        current_landlord_phone: form.current_landlord_phone,
+        living_since: form.living_since,
+      };
       const { error } = await supabase
         .from("tenants")
-        .update({
-          full_name: form.full_name,
-          phone: form.phone,
-          secondary_phone: form.secondary_phone,
-          date_of_birth: form.date_of_birth || null,
-          gender: form.gender,
-          occupation: form.occupation,
-          nid: form.nid,
-          doc_type: form.doc_type,
-          doc_number: form.doc_number,
-          doc_front_url: form.doc_front_url,
-          doc_back_url: form.doc_back_url,
-          present_division: form.present_division,
-          present_district: form.present_district,
-          present_thana: form.present_thana,
-          present_village: form.present_village,
-          present_address: form.present_address,
-          permanent_division: form.permanent_division,
-          permanent_district: form.permanent_district,
-          permanent_thana: form.permanent_thana,
-          permanent_village: form.permanent_village,
-          permanent_address: form.permanent_address,
-          emergency_contact: form.emergency_contact,
-        } as any)
+        .update(payload as any)
         .eq("user_id", user!.id);
       if (error) throw error;
     },
@@ -308,8 +365,49 @@ const TenantProfile = () => {
                 <Input value={form.occupation || ""} onChange={(e) => updateField("occupation", e.target.value)} />
               </div>
               <div className="space-y-1.5">
-                <Label>{t("tenant.emergency")}</Label>
-                <Input value={form.emergency_contact || ""} onChange={(e) => updateField("emergency_contact", e.target.value)} />
+                <Label>{language === "bn" ? "পিতার নাম" : "Father's Name"}</Label>
+                <Input value={form.father_name || ""} onChange={(e) => updateField("father_name", e.target.value)} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>{language === "bn" ? "ইমেইল" : "Email"}</Label>
+                <Input value={form.email || ""} onChange={(e) => updateField("email", e.target.value)} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>{language === "bn" ? "পাসপোর্ট নম্বর" : "Passport Number"}</Label>
+                <Input value={form.passport_number || ""} onChange={(e) => updateField("passport_number", e.target.value)} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>{language === "bn" ? "বৈবাহিক অবস্থা" : "Marital Status"}</Label>
+                <Select value={form.marital_status || ""} onValueChange={(v) => updateField("marital_status", v)}>
+                  <SelectTrigger><SelectValue placeholder={language === "bn" ? "নির্বাচন করুন" : "Select"} /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="married">{language === "bn" ? "বিবাহিত" : "Married"}</SelectItem>
+                    <SelectItem value="unmarried">{language === "bn" ? "অবিবাহিত" : "Unmarried"}</SelectItem>
+                    <SelectItem value="divorced">{language === "bn" ? "তালাকপ্রাপ্ত" : "Divorced"}</SelectItem>
+                    <SelectItem value="widowed">{language === "bn" ? "বিধবা/বিপত্নীক" : "Widowed"}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label>{language === "bn" ? "ধর্ম" : "Religion"}</Label>
+                <Select value={form.religion || ""} onValueChange={(v) => updateField("religion", v)}>
+                  <SelectTrigger><SelectValue placeholder={language === "bn" ? "নির্বাচন করুন" : "Select"} /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="islam">{language === "bn" ? "ইসলাম" : "Islam"}</SelectItem>
+                    <SelectItem value="hinduism">{language === "bn" ? "হিন্দু" : "Hinduism"}</SelectItem>
+                    <SelectItem value="christianity">{language === "bn" ? "খ্রিষ্টান" : "Christianity"}</SelectItem>
+                    <SelectItem value="buddhism">{language === "bn" ? "বৌদ্ধ" : "Buddhism"}</SelectItem>
+                    <SelectItem value="other">{language === "bn" ? "অন্যান্য" : "Other"}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label>{language === "bn" ? "শিক্ষাগত যোগ্যতা" : "Education"}</Label>
+                <Input value={form.education || ""} onChange={(e) => updateField("education", e.target.value)} />
+              </div>
+              <div className="space-y-1.5 sm:col-span-2">
+                <Label>{language === "bn" ? "পেশা ও কর্মস্থলের ঠিকানা" : "Workplace Address"}</Label>
+                <Input value={form.workplace_address || ""} onChange={(e) => updateField("workplace_address", e.target.value)} />
               </div>
             </div>
           </CardContent>
@@ -437,13 +535,153 @@ const TenantProfile = () => {
           </CardContent>
         </Card>
 
-        <div className="flex justify-end">
+        {/* Emergency Contact */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2"><PhoneIcon className="h-4 w-4" />{language === "bn" ? "জরুরী যোগাযোগ" : "Emergency Contact"}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label>{language === "bn" ? "নাম" : "Name"}</Label>
+                <Input value={form.emergency_name || ""} onChange={(e) => updateField("emergency_name", e.target.value)} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>{language === "bn" ? "সম্পর্ক" : "Relation"}</Label>
+                <Input value={form.emergency_relation || ""} onChange={(e) => updateField("emergency_relation", e.target.value)} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>{language === "bn" ? "মোবাইল নম্বর" : "Mobile"}</Label>
+                <Input value={form.emergency_phone || ""} onChange={(e) => updateField("emergency_phone", e.target.value)} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>{language === "bn" ? "ঠিকানা" : "Address"}</Label>
+                <Input value={form.emergency_address || ""} onChange={(e) => updateField("emergency_address", e.target.value)} />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Domestic Worker */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2"><Briefcase className="h-4 w-4" />{language === "bn" ? "গৃহকর্মী তথ্য" : "Domestic Worker Info"}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label>{language === "bn" ? "নাম" : "Name"}</Label>
+                <Input value={form.domestic_worker_name || ""} onChange={(e) => updateField("domestic_worker_name", e.target.value)} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>{language === "bn" ? "জাতীয় পরিচয়পত্র নং" : "NID"}</Label>
+                <Input value={form.domestic_worker_nid || ""} onChange={(e) => updateField("domestic_worker_nid", e.target.value)} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>{language === "bn" ? "মোবাইল" : "Mobile"}</Label>
+                <Input value={form.domestic_worker_phone || ""} onChange={(e) => updateField("domestic_worker_phone", e.target.value)} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>{language === "bn" ? "স্থায়ী ঠিকানা" : "Address"}</Label>
+                <Input value={form.domestic_worker_address || ""} onChange={(e) => updateField("domestic_worker_address", e.target.value)} />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Driver */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2"><Car className="h-4 w-4" />{language === "bn" ? "ড্রাইভার তথ্য" : "Driver Info"}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label>{language === "bn" ? "নাম" : "Name"}</Label>
+                <Input value={form.driver_name || ""} onChange={(e) => updateField("driver_name", e.target.value)} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>{language === "bn" ? "জাতীয় পরিচয়পত্র নং" : "NID"}</Label>
+                <Input value={form.driver_nid || ""} onChange={(e) => updateField("driver_nid", e.target.value)} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>{language === "bn" ? "মোবাইল" : "Mobile"}</Label>
+                <Input value={form.driver_phone || ""} onChange={(e) => updateField("driver_phone", e.target.value)} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>{language === "bn" ? "স্থায়ী ঠিকানা" : "Address"}</Label>
+                <Input value={form.driver_address || ""} onChange={(e) => updateField("driver_address", e.target.value)} />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Previous Landlord */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2"><Home className="h-4 w-4" />{language === "bn" ? "পূর্ববর্তী বাড়িওয়ালার তথ্য" : "Previous Landlord Info"}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label>{language === "bn" ? "নাম" : "Name"}</Label>
+                <Input value={form.prev_landlord_name || ""} onChange={(e) => updateField("prev_landlord_name", e.target.value)} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>{language === "bn" ? "মোবাইল" : "Mobile"}</Label>
+                <Input value={form.prev_landlord_phone || ""} onChange={(e) => updateField("prev_landlord_phone", e.target.value)} />
+              </div>
+              <div className="space-y-1.5 sm:col-span-2">
+                <Label>{language === "bn" ? "ঠিকানা" : "Address"}</Label>
+                <Input value={form.prev_landlord_address || ""} onChange={(e) => updateField("prev_landlord_address", e.target.value)} />
+              </div>
+              <div className="space-y-1.5 sm:col-span-2">
+                <Label>{language === "bn" ? "পূর্ববর্তী বাসা ছাড়ার কারণ" : "Reason for Leaving"}</Label>
+                <Input value={form.prev_leave_reason || ""} onChange={(e) => updateField("prev_leave_reason", e.target.value)} />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Current Landlord */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2"><Home className="h-4 w-4" />{language === "bn" ? "বর্তমান বাড়িওয়ালার তথ্য" : "Current Landlord Info"}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label>{language === "bn" ? "নাম" : "Name"}</Label>
+                <Input value={form.current_landlord_name || ""} onChange={(e) => updateField("current_landlord_name", e.target.value)} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>{language === "bn" ? "মোবাইল" : "Mobile"}</Label>
+                <Input value={form.current_landlord_phone || ""} onChange={(e) => updateField("current_landlord_phone", e.target.value)} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>{language === "bn" ? "বসবাসের তারিখ" : "Living Since"}</Label>
+                <Input type="date" value={form.living_since || ""} onChange={(e) => updateField("living_since", e.target.value)} />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="flex justify-end gap-2">
+          <Button type="button" variant="outline" className="gap-2" onClick={() => window.print()}>
+            <Printer className="h-4 w-4" />
+            {language === "bn" ? "নিবন্ধন ফরম প্রিন্ট" : "Print Registration Form"}
+          </Button>
           <Button type="submit" disabled={saveMutation.isPending} className="gap-2">
             {saveMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
             {t("common.save")}
           </Button>
         </div>
       </form>
+
+      {/* Hidden print form */}
+      <div className="hidden print:block">
+        <TenantRegistrationPrint tenant={tenant as any} />
+      </div>
     </div>
   );
 };

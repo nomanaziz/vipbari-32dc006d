@@ -1,176 +1,175 @@
 
-# ঠিক কী সমস্যা এখন আছে
 
-আমি code দেখে এখন issue-টা দুই ভাগে clearভাবে দেখছি:
+# Asset Management + Service Management + Reports যোগ করা
 
-1. **বর্তমান ঠিকানা (Current Address)**  
-   tenant portal-এ এটা `rooms -> properties` থেকে auto আসে।  
-   কিন্তু landlord/admin-side edit flow-এ এখনো `tenants.present_*` field নিয়েই কাজ হচ্ছে।  
-   তাই **একই current address দুই জায়গায় দুই source থেকে আসছে**।
+## বিশ্লেষণ
+FlatManage সাইট থেকে যা দেখলাম:
 
-2. **স্থায়ী ঠিকানা (Permanent Address)**  
-   `division → district → thana` dropdown cascade আছে, কিন্তু normalization এখন parent-aware না।  
-   ফলে saved value division/district hierarchy-এর সাথে mismatch হলে district/thana blank হয়ে যাচ্ছে, যদিও DB-তে data থাকতে পারে।
+**Asset Management** (৩টি sub-page):
+- **Assets**: Name, Category (Electrical Equipment etc.), Condition (Good/Fair/Poor), Property/Tower, Floor, Room, Location, Purchase Date, Document upload
+- **Maintenance Schedule**: Asset-wise schedule (monthly/half-year/yearly), Date, Status (Pending/Done), Amount
+- **Issue Report**: Issue Title, Asset Name, Status (Pending/Resolved), Priority (Low/Medium/High)
 
-স্ক্রিনশট + code মিলিয়ে আমি যেটা বুঝেছি:
-- tenant portal-এর current address property-based হওয়া ঠিক
-- admin/landlord side-এও linked tenant হলে same property address দেখানো উচিত
-- permanent address tenant নিজে update করলে সেটা tenant table-এ stableভাবে থেকে যেতে হবে
-- district/thana disappearing issue আসছে form state + normalization/cascade mismatch থেকে
+**Service Management** (২টি sub-page):
+- **Services**: Service Type categories (Maid, Cook, Driver, School Bus, Doctor, Gardener, Nanny, Milkman, Newspaper, Laundry, Car Cleaner, Tuition Teacher, Gym Instructor, Yoga Instructor, Pet Walker, Sports Teacher, House Keeper, Electrician, Plumber, Carpenter, Pest Control, AC Service, Blood Test, Scrap Dealer, Internet Repair, Cable/TV, Maid Pickup, Staff, Other) + Contact Person, Contact Number, Property/Floor/Room link, Daily Help checkbox, Payment Frequency, Price, Status, Photo
+- **Clock-in/Clock-out**: Service Person tracking with date filter, clock-in/out times
 
-## Root cause summary
+**Reports** (আপনার request অনুযায়ী):
+- Maintenance Report: কোন asset কতবার repair হয়েছে
+- Financial Report: maintenance cost summary
 
-### A) Current address-এর source mismatch
-- `TenantProfile.tsx`-এ linked tenant হলে current address property থেকে auto-populated
-- `TenantFormDialog.tsx`-এ landlord এখনো `present_division`, `present_district`, `present_thana` manually edit করতে পারে
-- ফলে admin/landlord panel আর tenant portal একই truth follow করছে না
+## Implementation Plan
 
-### B) District/Thana normalization অসম্পূর্ণ
-`normalizeDistrict()` আর `normalizeThana()` এখন শুধু raw label/value normalize করে, কিন্তু:
-- selected division-এর মধ্যে district valid কি না
-- selected district-এর মধ্যে thana valid কি না  
-এটা check করে না
+### 1) Database Migration — 5 নতুন table
 
-ফলে load/save সময়:
-- division canonical হয়েছে
-- district/thana old/mismatched value হলে dropdown option list-এ পড়ে না
-- UI blank দেখায়
-- পরে save হলে empty value overwrite হওয়ার risk থাকে
+```sql
+-- assets: building/property-level assets
+CREATE TABLE assets (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  owner_id uuid REFERENCES auth.users(id) NOT NULL,
+  property_id uuid REFERENCES properties(id),
+  room_id uuid REFERENCES rooms(id),
+  name text NOT NULL,
+  category text NOT NULL, -- electrical_equipment, plumbing, furniture, etc.
+  condition text DEFAULT 'good', -- good, fair, poor, damaged
+  location text,
+  purchase_date date,
+  document_url text,
+  notes text,
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now()
+);
 
-## আমি কী implement করার plan দিচ্ছি
+-- asset_maintenance: scheduled maintenance
+CREATE TABLE asset_maintenance (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  owner_id uuid REFERENCES auth.users(id) NOT NULL,
+  asset_id uuid REFERENCES assets(id) ON DELETE CASCADE NOT NULL,
+  maintenance_date date NOT NULL,
+  schedule_type text DEFAULT 'one_time', -- monthly, quarterly, half_year, yearly, one_time
+  status text DEFAULT 'pending', -- pending, completed, overdue
+  amount numeric DEFAULT 0,
+  description text,
+  completed_at timestamptz,
+  created_at timestamptz DEFAULT now()
+);
 
-### 1) Address helper-কে hierarchy-aware করা
-`src/data/bangladeshAddress.ts`-এ helper বাড়ানো হবে:
+-- asset_issues: issue reports against assets
+CREATE TABLE asset_issues (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  owner_id uuid REFERENCES auth.users(id) NOT NULL,
+  asset_id uuid REFERENCES assets(id) ON DELETE CASCADE NOT NULL,
+  title text NOT NULL,
+  description text,
+  priority text DEFAULT 'medium', -- low, medium, high, urgent
+  status text DEFAULT 'pending', -- pending, in_progress, resolved
+  reported_by uuid REFERENCES auth.users(id),
+  resolved_at timestamptz,
+  created_at timestamptz DEFAULT now()
+);
 
-- division-aware district normalize
-- district-aware thana normalize
-- “value exists globally” না দেখে “value valid under selected parent” check
-- helper থাকবে যেমন:
-  - `normalizeDistrictForDivision(division, district)`
-  - `normalizeThanaForDistrict(district, thana)`
-  - optional validator:
-    - `isDistrictInDivision`
-    - `isThanaInDistrict`
+-- services: service providers (maid, plumber, etc.)
+CREATE TABLE services (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  owner_id uuid REFERENCES auth.users(id) NOT NULL,
+  property_id uuid REFERENCES properties(id),
+  room_id uuid REFERENCES rooms(id),
+  service_type text NOT NULL,
+  is_daily_help boolean DEFAULT false,
+  contact_name text NOT NULL,
+  contact_phone text NOT NULL,
+  company_name text,
+  website_link text,
+  payment_frequency text DEFAULT 'per_visit', -- per_visit, daily, weekly, monthly
+  price numeric DEFAULT 0,
+  description text,
+  status text DEFAULT 'available', -- available, unavailable, on_leave
+  photo_url text,
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now()
+);
 
-এতে mismatched child silently blank না হয়ে controlledভাবে handle হবে।
-
-### 2) Permanent address load/save harden করা
-`src/components/tenants/TenantFormDialog.tsx` এবং `src/pages/tenant/TenantProfile.tsx`-এ:
-
-- initial load-এর সময়
-  - division আগে normalize
-  - তারপর ওই division অনুযায়ী district normalize
-  - তারপর ওই district অনুযায়ী thana normalize
-- save payload-এর সময়ও একই ordered normalization apply হবে
-
-অর্থাৎ:
-```text
-division -> validate district under division -> validate thana under district
+-- service_clock_entries: clock-in/out tracking
+CREATE TABLE service_clock_entries (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  owner_id uuid REFERENCES auth.users(id) NOT NULL,
+  service_id uuid REFERENCES services(id) ON DELETE CASCADE NOT NULL,
+  clock_in timestamptz NOT NULL,
+  clock_out timestamptz,
+  notes text,
+  created_at timestamptz DEFAULT now()
+);
 ```
 
-এতে tenant নিজে permanent address update করলে district/thana আর গায়েব হবে না।
+RLS policies: owner_id = auth.uid() for all CRUD. Tenant read access for services linked to their property.
 
-### 3) Cascade reset logic safe করা
-এখন child reset হচ্ছে parent change হলে, কিন্তু logic আরও safe করা হবে:
+### 2) নতুন Pages তৈরি
 
-- division unchanged হলে district/thana reset না
-- district unchanged হলে thana reset না
-- load-time normalization-এর সময় accidental reset না
-- parent বদলালে child value valid থাকলে preserve, invalid হলে তবেই clear
+| Route | Page | বিষয়বস্তু |
+|-------|------|-----------|
+| `/assets` | Assets.tsx | Asset list + Add/Edit dialog, search, filter by property/category/condition |
+| `/asset-maintenance` | AssetMaintenance.tsx | Maintenance schedule list, Add/Edit, status update |
+| `/asset-issues` | AssetIssues.tsx | Issue report list, Add/Edit, priority filter |
+| `/services` | Services.tsx | Service type icon grid (30+ categories) + list, Add/Edit dialog |
+| `/service-clock` | ServiceClock.tsx | Clock-in/out log, date range filter |
+| `/reports` | Reports.tsx | Tabs: Maintenance Report + Financial Report |
 
-এতে edit form খুললেই district/thana blank হয়ে যাওয়ার bug বন্ধ হবে।
+### 3) Components তৈরি
 
-### 4) Current address-এর single source of truth ঠিক করা
-linked tenant-এর ক্ষেত্রে **current address tenant table থেকে না, property থেকে derive** করা হবে — সব relevant UI-তে একইভাবে।
+- `AssetFormDialog.tsx` — Add/Edit asset form (name, category, condition, property, room, location, purchase date, document upload)
+- `MaintenanceFormDialog.tsx` — Add/Edit maintenance schedule
+- `IssueFormDialog.tsx` — Add/Edit issue report
+- `ServiceFormDialog.tsx` — Add/Edit service provider with type selection grid
+- `ClockEntryDialog.tsx` — Add clock-in/out entry
+- `ServiceTypeGrid.tsx` — Icon-based service category selector (Maid, Cook, Driver, etc.)
 
-#### Linked tenant হলে:
-- current address fields read-only / auto-filled
-- source:
-  - property.division
-  - property.district
-  - property.thana
-  - property.area
-  - property.house_number
-  - property.road_number
-  - property.postal_code
+### 4) Sidebar এ নতুন menu group যোগ
 
-#### Unlinked/manual tenant হলে:
-- existing `tenants.present_*` fields editable থাকবে
+AppSidebar-এ দুটি নতুন group:
+- **সম্পদ (Assets)**: Assets, Maintenance Schedule, Issue Report
+- **সেবা (Services)**: Services, Clock-in/Clock-out
 
-এতে landlord/admin panel আর tenant portal একই address দেখাবে।
+### 5) Reports Page
 
-### 5) Landlord/Admin edit dialog-এ current address UI align করা
-`TenantFormDialog.tsx`-এ linked/assigned tenant-এর জন্য present address section update হবে:
+**Maintenance Report tab:**
+- Property-wise asset maintenance history
+- কোন asset কতবার repair হয়েছে (count)
+- Total cost per asset
+- Date range filter
 
-- যদি tenant-এর assigned room/property থাকে:
-  - Present Address section property-based read-only preview দেখাবে
-  - landlord manually এটা edit করবে না
-- যদি room/property link না থাকে:
-  - current manual fields editable থাকবে
+**Financial Report tab:**
+- Monthly/yearly maintenance expense summary
+- Service provider payment summary
+- Chart visualization (bar/pie)
 
-এটাই user expectation-এর সাথে match করে:
-“যে property-তে আছে, current address ওইটাই হবে।”
+### 6) Permission Integration
 
-### 6) Tenant portal display fallback improve করা
-`TenantProfile.tsx`-এ:
-- property relation থাকলে property address show
-- relation missing হলে readable fallback message
-- Bangla label mapping consistent রাখা
-- postal code + house/road display stable রাখা
+`permissionGroups.ts`-এ নতুন permission যোগ:
+- `assets` — Asset management access
+- `services` — Service management access
 
-এতে tenant side-এ current address predictable থাকবে।
+## যেসব file তৈরি/পরিবর্তন হবে
 
-### 7) Admin/landlord views-এ same address reflect করা
-যেসব জায়গায় tenant address summary দেখানো হয়, সেখানে current address display same rule follow করবে:
+**নতুন files (~12):**
+- `src/pages/Assets.tsx`
+- `src/pages/AssetMaintenance.tsx`
+- `src/pages/AssetIssues.tsx`
+- `src/pages/Services.tsx`
+- `src/pages/ServiceClock.tsx`
+- `src/pages/Reports.tsx`
+- `src/components/assets/AssetFormDialog.tsx`
+- `src/components/assets/MaintenanceFormDialog.tsx`
+- `src/components/assets/IssueFormDialog.tsx`
+- `src/components/services/ServiceFormDialog.tsx`
+- `src/components/services/ClockEntryDialog.tsx`
+- `src/components/services/ServiceTypeGrid.tsx`
 
-সম্ভাব্য file:
-- `src/components/bills/TenantDetailDialog.tsx`
-- `src/components/tenants/TenantRegistrationPrint.tsx`
-- প্রয়োজনে tenant list/detail summary usage
+**পরিবর্তন (~4):**
+- `src/App.tsx` — নতুন routes
+- `src/components/AppSidebar.tsx` / `src/hooks/useSidebarOrder.ts` — sidebar items
+- `src/lib/permissionGroups.ts` — permissions
+- `supabase/migrations/` — DB tables + RLS
 
-Rule:
-- current address = linked property address
-- permanent address = tenant’s own saved permanent fields
+## এটা বড় কাজ
+এই feature set অনেক বড়। আমি **ধাপে ধাপে** করব — প্রথমে DB + Asset Management, তারপর Service Management, তারপর Reports।
 
-### 8) Police verification form consistency
-`TenantRegistrationPrint.tsx` already property data use করে, কিন্তু display consistency check হবে:
-
-- division
-- thana
-- district/area
-- house/road
-- postal code
-
-সব format tenant portal/admin panel-এর সাথে consistent থাকবে।
-
-## কোন কোন file likely change হবে
-
-1. `src/data/bangladeshAddress.ts`
-2. `src/components/tenants/TenantFormDialog.tsx`
-3. `src/pages/tenant/TenantProfile.tsx`
-4. `src/components/bills/TenantDetailDialog.tsx`
-5. `src/components/tenants/TenantRegistrationPrint.tsx`
-
-প্রয়োজনে:
-6. `src/pages/Tenants.tsx` বা related admin display file
-
-## Expected result
-
-ফিক্সের পর:
-
-- tenant নিজের **স্থায়ী ঠিকানা** update করলে district/thana আর গায়েব হবে না
-- landlord/admin edit খুললেও saved permanent address stable থাকবে
-- **current address** linked property থেকে tenant portal ও admin/landlord panel — দুই জায়গাতেই same দেখাবে
-- police verification form-এও same property address reflect করবে
-- বর্তমান ঠিকানা আর manual duplicate source থেকে conflict করবে না
-
-## Technical note
-
-এটা এখন mainly **form-state + address hierarchy + source-of-truth problem**।  
-আগের RLS fix tenant portal property fetch-এর জন্য দরকার ছিল, কিন্তু আপনার এখনকার remaining issue resolve করতে front-end address flow unification দরকার।
-
-সবচেয়ে গুরুত্বপূর্ণ fix হবে:
-```text
-Permanent address = tenant-owned saved data
-Current address = property-derived data (when tenant is linked to a property)
-```

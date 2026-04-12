@@ -81,7 +81,12 @@ const MyListings = lazy(() => import("./pages/MyListings"));
 const AdminSaleListings = lazy(() => import("./pages/admin/AdminSaleListings"));
 const AdminBlocks = lazy(() => import("./pages/admin/AdminBlocks"));
 const Leases = lazy(() => import("./pages/Leases"));
-
+const Assets = lazy(() => import("./pages/Assets"));
+const AssetMaintenance = lazy(() => import("./pages/AssetMaintenance"));
+const AssetIssues = lazy(() => import("./pages/AssetIssues"));
+const ServicesPage = lazy(() => import("./pages/Services"));
+const ServiceClock = lazy(() => import("./pages/ServiceClock"));
+const Reports = lazy(() => import("./pages/Reports"));
 const queryClient = new QueryClient();
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -153,6 +158,12 @@ const App = () => (
               <Route path="/accounting" element={<ProtectedRoute><Suspense fallback={<div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>}><Accounting /></Suspense></ProtectedRoute>} />
               <Route path="/my-listings" element={<ProtectedRoute><Suspense fallback={<div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>}><MyListings /></Suspense></ProtectedRoute>} />
               <Route path="/leases" element={<ProtectedRoute><Suspense fallback={<div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>}><Leases /></Suspense></ProtectedRoute>} />
+              <Route path="/assets" element={<ProtectedRoute><Suspense fallback={<div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>}><Assets /></Suspense></ProtectedRoute>} />
+              <Route path="/asset-maintenance" element={<ProtectedRoute><Suspense fallback={<div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>}><AssetMaintenance /></Suspense></ProtectedRoute>} />
+              <Route path="/asset-issues" element={<ProtectedRoute><Suspense fallback={<div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>}><AssetIssues /></Suspense></ProtectedRoute>} />
+              <Route path="/services" element={<ProtectedRoute><Suspense fallback={<div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>}><ServicesPage /></Suspense></ProtectedRoute>} />
+              <Route path="/service-clock" element={<ProtectedRoute><Suspense fallback={<div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>}><ServiceClock /></Suspense></ProtectedRoute>} />
+              <Route path="/reports" element={<ProtectedRoute><Suspense fallback={<div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>}><Reports /></Suspense></ProtectedRoute>} />
               {/* sale-messages merged into /messages?tab=sale */}
               <Route path="/tenant/profile" element={<ProtectedRoute><Suspense fallback={<div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>}><TenantProfile /></Suspense></ProtectedRoute>} />
               <Route path="/tenant/family" element={<ProtectedRoute><Suspense fallback={<div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>}><TenantFamily /></Suspense></ProtectedRoute>} />

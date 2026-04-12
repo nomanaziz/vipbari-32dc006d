@@ -104,6 +104,24 @@ export const PERMISSION_GROUPS: PermissionGroup[] = [
     ],
   },
   {
+    key: "assets",
+    label_bn: "সম্পদ",
+    label_en: "Assets",
+    permissions: [
+      { key: "view_assets", label_bn: "সম্পদ দেখতে পারবে", label_en: "Can view assets" },
+      { key: "manage_assets", label_bn: "সম্পদ পরিচালনা করতে পারবে", label_en: "Can manage assets" },
+    ],
+  },
+  {
+    key: "services",
+    label_bn: "সেবা",
+    label_en: "Services",
+    permissions: [
+      { key: "view_services", label_bn: "সেবা দেখতে পারবে", label_en: "Can view services" },
+      { key: "manage_services", label_bn: "সেবা পরিচালনা করতে পারবে", label_en: "Can manage services" },
+    ],
+  },
+  {
     key: "staff",
     label_bn: "স্টাফ",
     label_en: "Staff",

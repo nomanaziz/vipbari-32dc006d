@@ -1,6 +1,6 @@
 import { useState } from "react";
 import {
-  LayoutDashboard, Building2, DoorOpen, Users, Receipt, CreditCard, Settings, Shield, Gauge, Home, Inbox, MessageSquare, UserCog, User, AlertTriangle, Bell, Car, Crown, Calculator, ShoppingBag, Send, FileText, GripVertical, SettingsIcon, RotateCcw
+  LayoutDashboard, Building2, DoorOpen, Users, Receipt, CreditCard, Settings, Shield, Gauge, Home, Inbox, MessageSquare, UserCog, User, AlertTriangle, Bell, Car, Crown, Calculator, ShoppingBag, Send, FileText, GripVertical, SettingsIcon, RotateCcw, Package, Wrench, AlertCircle, Headphones, Clock, FileBarChart
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -127,12 +127,30 @@ export function AppSidebar() {
       ],
     },
     {
+      id: "assets",
+      label: L("Asset Management", "সম্পদ ব্যবস্থাপনা"),
+      items: [
+        { id: "assets", title: L("Assets", "সম্পদ"), url: "/assets", icon: Package },
+        { id: "asset-maintenance", title: L("Maintenance", "রক্ষণাবেক্ষণ"), url: "/asset-maintenance", icon: Wrench },
+        { id: "asset-issues", title: L("Issue Report", "সমস্যা রিপোর্ট"), url: "/asset-issues", icon: AlertCircle },
+      ],
+    },
+    {
+      id: "services",
+      label: L("Services", "সেবা"),
+      items: [
+        { id: "services", title: L("Services", "সেবা"), url: "/services", icon: Headphones },
+        { id: "service-clock", title: L("Clock In/Out", "প্রবেশ/প্রস্থান"), url: "/service-clock", icon: Clock },
+      ],
+    },
+    {
       id: "admin",
       label: L("Administration", "প্রশাসন"),
       items: [
         { id: "staff", title: t("nav.staff") || "Staff", url: "/staff", icon: UserCog },
         { id: "roles", title: t("nav.roles") || "Roles", url: "/roles", icon: Shield },
         { id: "subscription", title: L("Subscription", "সাবস্ক্রিপশন"), url: "/subscription", icon: Crown },
+        { id: "reports", title: L("Reports", "রিপোর্ট"), url: "/reports", icon: FileBarChart },
         { id: "settings", title: t("nav.settings"), url: "/settings", icon: Settings },
         ...((role === "admin" || role === "employee") ? [{ id: "admin-panel", title: t("nav.admin_panel") || "Admin Panel", url: "/admin", icon: Shield }] : []),
       ],
@@ -219,6 +237,8 @@ export function AppSidebar() {
     { id: "bills", title: t("nav.bills"), url: "/bills", icon: Receipt, permission: "view_bills" },
     { id: "payments", title: t("nav.payments"), url: "/payments", icon: CreditCard, permission: "view_payments" },
     { id: "accounting", title: L("Accounting", "হিসাব"), url: "/accounting", icon: Calculator, permission: "view_accounting" },
+    { id: "assets", title: L("Assets", "সম্পদ"), url: "/assets", icon: Package, permission: "view_assets" },
+    { id: "services", title: L("Services", "সেবা"), url: "/services", icon: Headphones, permission: "view_services" },
     { id: "messages", title: t("nav.messages") || "Messages", url: "/messages", icon: MessageSquare, permission: null },
     { id: "settings", title: t("nav.settings"), url: "/settings", icon: Settings, permission: null },
   ].filter(item => !item.permission || hasPermission(item.permission));

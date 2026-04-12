@@ -113,6 +113,166 @@ export type Database = {
         }
         Relationships: []
       }
+      asset_issues: {
+        Row: {
+          asset_id: string
+          created_at: string
+          description: string | null
+          id: string
+          owner_id: string
+          priority: string
+          reported_by: string | null
+          resolved_at: string | null
+          status: string
+          title: string
+        }
+        Insert: {
+          asset_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          owner_id: string
+          priority?: string
+          reported_by?: string | null
+          resolved_at?: string | null
+          status?: string
+          title?: string
+        }
+        Update: {
+          asset_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          owner_id?: string
+          priority?: string
+          reported_by?: string | null
+          resolved_at?: string | null
+          status?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asset_issues_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      asset_maintenance: {
+        Row: {
+          amount: number
+          asset_id: string
+          completed_at: string | null
+          created_at: string
+          description: string | null
+          id: string
+          maintenance_date: string
+          owner_id: string
+          schedule_type: string
+          status: string
+        }
+        Insert: {
+          amount?: number
+          asset_id: string
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          maintenance_date?: string
+          owner_id: string
+          schedule_type?: string
+          status?: string
+        }
+        Update: {
+          amount?: number
+          asset_id?: string
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          maintenance_date?: string
+          owner_id?: string
+          schedule_type?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asset_maintenance_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      assets: {
+        Row: {
+          category: string
+          condition: string
+          created_at: string
+          document_url: string | null
+          floor: number | null
+          id: string
+          location: string | null
+          name: string
+          notes: string | null
+          owner_id: string
+          property_id: string | null
+          purchase_date: string | null
+          room_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          condition?: string
+          created_at?: string
+          document_url?: string | null
+          floor?: number | null
+          id?: string
+          location?: string | null
+          name: string
+          notes?: string | null
+          owner_id: string
+          property_id?: string | null
+          purchase_date?: string | null
+          room_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          condition?: string
+          created_at?: string
+          document_url?: string | null
+          floor?: number | null
+          id?: string
+          location?: string | null
+          name?: string
+          notes?: string | null
+          owner_id?: string
+          property_id?: string | null
+          purchase_date?: string | null
+          room_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assets_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assets_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bills: {
         Row: {
           advance: number
@@ -1949,6 +2109,119 @@ export type Database = {
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_clock_entries: {
+        Row: {
+          clock_in: string
+          clock_out: string | null
+          created_at: string
+          id: string
+          notes: string | null
+          owner_id: string
+          service_id: string
+        }
+        Insert: {
+          clock_in: string
+          clock_out?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          owner_id: string
+          service_id: string
+        }
+        Update: {
+          clock_in?: string
+          clock_out?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          owner_id?: string
+          service_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_clock_entries_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      services: {
+        Row: {
+          company_name: string | null
+          contact_name: string
+          contact_phone: string
+          created_at: string
+          description: string | null
+          id: string
+          is_daily_help: boolean
+          owner_id: string
+          payment_frequency: string
+          photo_url: string | null
+          price: number
+          property_id: string | null
+          room_id: string | null
+          service_type: string
+          status: string
+          updated_at: string
+          website_link: string | null
+        }
+        Insert: {
+          company_name?: string | null
+          contact_name?: string
+          contact_phone?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_daily_help?: boolean
+          owner_id: string
+          payment_frequency?: string
+          photo_url?: string | null
+          price?: number
+          property_id?: string | null
+          room_id?: string | null
+          service_type?: string
+          status?: string
+          updated_at?: string
+          website_link?: string | null
+        }
+        Update: {
+          company_name?: string | null
+          contact_name?: string
+          contact_phone?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_daily_help?: boolean
+          owner_id?: string
+          payment_frequency?: string
+          photo_url?: string | null
+          price?: number
+          property_id?: string | null
+          room_id?: string | null
+          service_type?: string
+          status?: string
+          updated_at?: string
+          website_link?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "services_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "services_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "rooms"
             referencedColumns: ["id"]
           },
         ]

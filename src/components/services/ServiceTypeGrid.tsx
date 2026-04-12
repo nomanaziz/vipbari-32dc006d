@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 
 export const SERVICE_TYPES = [
-  { value: "maid", bn: "কাজের বউ", en: "Maid", icon: User },
+  { value: "maid", bn: "কাজের বুয়া", en: "Maid", icon: User },
   { value: "cook", bn: "রাঁধুনি", en: "Cook", icon: UtensilsCrossed },
   { value: "driver", bn: "ড্রাইভার", en: "Driver", icon: Car },
   { value: "school_bus", bn: "স্কুল বাস", en: "School Bus", icon: Bus },

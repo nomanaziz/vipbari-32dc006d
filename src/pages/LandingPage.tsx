@@ -295,15 +295,21 @@ const LandingPage = () => {
                   <th className="p-3 text-center">{lc("compare_excel", "landing.compare_excel")}</th>
                 </tr>
               </thead>
-               <tbody className="bg-background">
+              <tbody className="bg-background">
                 {cmpRows.map((row, i) => {
-                   const excelCell = <XCircle className="h-4 w-4 text-destructive mx-auto" />;
+                   // Excel can partially do: Payment Tracking (row 3), Data Backup (row 5)
+                   const excelCanDo = [2, 4].includes(i);
                    return (
                      <tr key={i} className="border-t">
                        <td className="p-3">{row}</td>
                        <td className="p-3 text-center"><CheckCircle2 className="h-4 w-4 text-green-500 mx-auto" /></td>
                        <td className="p-3 text-center"><XCircle className="h-4 w-4 text-destructive mx-auto" /></td>
-                       <td className="p-3 text-center">{excelCell}</td>
+                       <td className="p-3 text-center">
+                         {excelCanDo
+                           ? <CheckCircle2 className="h-4 w-4 text-green-500 mx-auto" />
+                           : <XCircle className="h-4 w-4 text-destructive mx-auto" />
+                         }
+                       </td>
                      </tr>
                    );
                  })}

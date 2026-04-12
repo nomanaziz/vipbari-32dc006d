@@ -360,6 +360,7 @@ const translations: Record<string, Record<Language, string>> = {
   "landing.tenant_2": { bn: "অনলাইনে ভাড়া পরিশোধ করুন", en: "Pay rent online" },
   "landing.tenant_3": { bn: "বিল নোটিফিকেশন পান", en: "Get bill notifications" },
   "landing.tenant_4": { bn: "পেমেন্ট রসিদ ডাউনলোড করুন", en: "Download payment receipts" },
+  "landing.tenant_5": { bn: "অভিযোগ ও রক্ষণাবেক্ষণ রিকুয়েস্ট পাঠান", en: "Submit complaints & maintenance requests" },
 
   "landing.how_title": { bn: "কিভাবে শুরু করবেন?", en: "How to Get Started?" },
   "landing.step1": { bn: "অ্যাকাউন্ট খুলুন", en: "Create Account" },

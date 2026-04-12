@@ -237,6 +237,8 @@ export function AppSidebar() {
     { id: "bills", title: t("nav.bills"), url: "/bills", icon: Receipt, permission: "view_bills" },
     { id: "payments", title: t("nav.payments"), url: "/payments", icon: CreditCard, permission: "view_payments" },
     { id: "accounting", title: L("Accounting", "হিসাব"), url: "/accounting", icon: Calculator, permission: "view_accounting" },
+    { id: "assets", title: L("Assets", "সম্পদ"), url: "/assets", icon: Package, permission: "view_assets" },
+    { id: "services", title: L("Services", "সেবা"), url: "/services", icon: Headphones, permission: "view_services" },
     { id: "messages", title: t("nav.messages") || "Messages", url: "/messages", icon: MessageSquare, permission: null },
     { id: "settings", title: t("nav.settings"), url: "/settings", icon: Settings, permission: null },
   ].filter(item => !item.permission || hasPermission(item.permission));

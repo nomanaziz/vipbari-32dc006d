@@ -81,7 +81,12 @@ const MyListings = lazy(() => import("./pages/MyListings"));
 const AdminSaleListings = lazy(() => import("./pages/admin/AdminSaleListings"));
 const AdminBlocks = lazy(() => import("./pages/admin/AdminBlocks"));
 const Leases = lazy(() => import("./pages/Leases"));
-
+const Assets = lazy(() => import("./pages/Assets"));
+const AssetMaintenance = lazy(() => import("./pages/AssetMaintenance"));
+const AssetIssues = lazy(() => import("./pages/AssetIssues"));
+const ServicesPage = lazy(() => import("./pages/Services"));
+const ServiceClock = lazy(() => import("./pages/ServiceClock"));
+const Reports = lazy(() => import("./pages/Reports"));
 const queryClient = new QueryClient();
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {

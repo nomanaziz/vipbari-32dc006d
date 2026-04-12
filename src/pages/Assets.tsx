@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Search, Pencil, Trash2, Package } from "lucide-react";
 import { AssetFormDialog } from "@/components/assets/AssetFormDialog";
-import { DeleteConfirmDialog } from "@/components/DeleteConfirmDialog";
+import DeleteConfirmDialog from "@/components/DeleteConfirmDialog";
 import { toast } from "sonner";
 
 const CATEGORY_LABELS: Record<string, { bn: string; en: string }> = {

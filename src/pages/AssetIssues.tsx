@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Pencil, Trash2, AlertCircle } from "lucide-react";
 import { IssueFormDialog } from "@/components/assets/IssueFormDialog";
-import { DeleteConfirmDialog } from "@/components/DeleteConfirmDialog";
+import DeleteConfirmDialog from "@/components/DeleteConfirmDialog";
 import { toast } from "sonner";
 
 const PRIORITY_COLORS: Record<string, string> = {

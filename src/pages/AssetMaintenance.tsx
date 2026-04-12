@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Pencil, Trash2, Wrench } from "lucide-react";
 import { MaintenanceFormDialog } from "@/components/assets/MaintenanceFormDialog";
-import { DeleteConfirmDialog } from "@/components/DeleteConfirmDialog";
+import DeleteConfirmDialog from "@/components/DeleteConfirmDialog";
 import { toast } from "sonner";
 
 const STATUS_COLORS: Record<string, string> = {

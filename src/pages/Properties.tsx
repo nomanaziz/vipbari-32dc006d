@@ -995,7 +995,12 @@ const Properties = () => {
 
                   {/* Bottom actions row */}
                   <div className="flex items-center justify-between mt-3 pt-3 border-t">
-                    {propertyHasSaleListing(p.id) ? (
+                    {(p as any).status === 'draft' ? (
+                      <Button variant="outline" size="sm" className="gap-1 text-xs h-7 border-primary text-primary" onClick={() => activateMutation.mutate(p.id)} disabled={activateMutation.isPending}>
+                        <Check className="h-3 w-3" />
+                        {language === "bn" ? "সক্রিয় করুন" : "Activate"}
+                      </Button>
+                    ) : propertyHasSaleListing(p.id) ? (
                       <Button variant="outline" size="sm" className="gap-1 text-xs h-7 border-emerald-500 text-emerald-600" onClick={() => handleRemovePropertySale(p.id)}>
                         <ShoppingBag className="h-3 w-3" />
                         {language === "bn" ? "বিক্রয় সরান" : "Remove Sale"}

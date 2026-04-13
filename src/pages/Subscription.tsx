@@ -280,12 +280,12 @@ const Subscription = () => {
     return { base, durationDiscount: durationDiscountAmt, specialDiscount: specialDiscountAmt, total };
   };
 
-  const roomPrice = calcLinePrice(roomCount, PRICE_PER_ROOM, true);
-  const toletPrice = calcLinePrice(toletCount, PRICE_PER_TOLET, true);
-  const salePrice = calcLinePrice(saleCount, PRICE_PER_SALE_LISTING, true);
-  const boost3Price = calcLinePrice(boost3Count, BOOST_PRICES["3_day"], false);
-  const boost7Price = calcLinePrice(boost7Count, BOOST_PRICES["7_day"], false);
-  const smsPrice = calcLinePrice(smsCount, PRICE_PER_SMS, false);
+  const roomPrice = productFlags.room ? calcLinePrice(roomCount, PRICE_PER_ROOM, true) : { base: 0, durationDiscount: 0, specialDiscount: 0, total: 0 };
+  const toletPrice = productFlags.tolet ? calcLinePrice(toletCount, PRICE_PER_TOLET, true) : { base: 0, durationDiscount: 0, specialDiscount: 0, total: 0 };
+  const salePrice = productFlags.sale_listing ? calcLinePrice(saleCount, PRICE_PER_SALE_LISTING, true) : { base: 0, durationDiscount: 0, specialDiscount: 0, total: 0 };
+  const boost3Price = productFlags.boost ? calcLinePrice(boost3Count, BOOST_PRICES["3_day"], false) : { base: 0, durationDiscount: 0, specialDiscount: 0, total: 0 };
+  const boost7Price = productFlags.boost ? calcLinePrice(boost7Count, BOOST_PRICES["7_day"], false) : { base: 0, durationDiscount: 0, specialDiscount: 0, total: 0 };
+  const smsPrice = productFlags.sms ? calcLinePrice(smsCount, PRICE_PER_SMS, false) : { base: 0, durationDiscount: 0, specialDiscount: 0, total: 0 };
 
   const grandTotal = roomPrice.total + toletPrice.total + salePrice.total + boost3Price.total + boost7Price.total + smsPrice.total;
   const totalBase = roomPrice.base + toletPrice.base + salePrice.base + boost3Price.base + boost7Price.base + smsPrice.base;
@@ -366,12 +366,12 @@ const Subscription = () => {
 
   /* ─── Summary Line Items ─── */
   const summaryLines: { label: string; detail: string; price: number }[] = [];
-  if (roomCount > 0) summaryLines.push({ label: language === "bn" ? "রুম/ফ্ল্যাট" : "Room/Flat", detail: `${roomCount} × ${getDurationLabel(duration, language)}`, price: roomPrice.total });
-  if (toletCount > 0) summaryLines.push({ label: language === "bn" ? "টু-লেট" : "To-Let", detail: `${toletCount} × ${getDurationLabel(duration, language)}`, price: toletPrice.total });
-  if (saleCount > 0) summaryLines.push({ label: language === "bn" ? "বিক্রয় লিস্টিং" : "Sale Listing", detail: `${saleCount} × ${getDurationLabel(duration, language)}`, price: salePrice.total });
-  if (boost3Count > 0) summaryLines.push({ label: language === "bn" ? "৩ দিনের বুস্ট" : "3-Day Boost", detail: `× ${boost3Count}`, price: boost3Price.total });
-  if (boost7Count > 0) summaryLines.push({ label: language === "bn" ? "৭ দিনের বুস্ট" : "7-Day Boost", detail: `× ${boost7Count}`, price: boost7Price.total });
-  if (smsCount > 0) summaryLines.push({ label: "SMS", detail: `× ${smsCount}`, price: smsPrice.total });
+  if (productFlags.room && roomCount > 0) summaryLines.push({ label: language === "bn" ? "রুম/ফ্ল্যাট" : "Room/Flat", detail: `${roomCount} × ${getDurationLabel(duration, language)}`, price: roomPrice.total });
+  if (productFlags.tolet && toletCount > 0) summaryLines.push({ label: language === "bn" ? "টু-লেট" : "To-Let", detail: `${toletCount} × ${getDurationLabel(duration, language)}`, price: toletPrice.total });
+  if (productFlags.sale_listing && saleCount > 0) summaryLines.push({ label: language === "bn" ? "বিক্রয় লিস্টিং" : "Sale Listing", detail: `${saleCount} × ${getDurationLabel(duration, language)}`, price: salePrice.total });
+  if (productFlags.boost && boost3Count > 0) summaryLines.push({ label: language === "bn" ? "৩ দিনের বুস্ট" : "3-Day Boost", detail: `× ${boost3Count}`, price: boost3Price.total });
+  if (productFlags.boost && boost7Count > 0) summaryLines.push({ label: language === "bn" ? "৭ দিনের বুস্ট" : "7-Day Boost", detail: `× ${boost7Count}`, price: boost7Price.total });
+  if (productFlags.sms && smsCount > 0) summaryLines.push({ label: "SMS", detail: `× ${smsCount}`, price: smsPrice.total });
 
   /* ─── Summary Panel (reused desktop + mobile) ─── */
   const SummaryContent = () => (

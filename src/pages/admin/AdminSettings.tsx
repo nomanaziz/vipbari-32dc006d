@@ -37,7 +37,7 @@ const defaultSettings = {
 };
 
 const AdminSettings = () => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const queryClient = useQueryClient();
   const [settings, setSettings] = useState(defaultSettings);
 

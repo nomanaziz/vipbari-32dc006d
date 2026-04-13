@@ -11,7 +11,7 @@ export const propertyTypeGroups: PropertyTypeGroup[] = [
     label_en: "Residential",
     label_bn: "আবাসিক",
     types: [
-      { value: "building", en: "Building", bn: "পাকা বিল্ডিং" },
+      { value: "building", en: "Building", bn: "বিল্ডিং" },
       { value: "house", en: "House", bn: "বাড়ি" },
       { value: "duplex", en: "Duplex", bn: "ডুপ্লেক্স" },
       { value: "semi_pucca", en: "Semi-Pucca", bn: "সেমি-পাকা" },

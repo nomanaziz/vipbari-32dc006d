@@ -110,6 +110,7 @@ const AdminProperties = () => {
               <TableHead>{t("property.address")}</TableHead>
               <TableHead>{t("property.type")}</TableHead>
               <TableHead>{t("dashboard.total_rooms")}</TableHead>
+              <TableHead>{language === "bn" ? "স্ট্যাটাস" : "Status"}</TableHead>
               <TableHead>{t("common.actions")}</TableHead>
             </TableRow>
           </TableHeader>

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { LanguageToggle } from "@/components/LanguageToggle";
@@ -29,6 +30,7 @@ interface AppLayoutProps {
 export function AppLayout({ children }: AppLayoutProps) {
   const { profile, signOut, role } = useAuth();
   const { t, language } = useLanguage();
+  const [showCalc, setShowCalc] = useState(false);
 
   const getRoleLabel = (r: string | null) => {
     if (!r) return "";

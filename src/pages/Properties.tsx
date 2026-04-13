@@ -243,8 +243,8 @@ const Properties = () => {
 
   const isTrialOnly = userSubs && userSubs.length > 0 && userSubs.every(s => Number(s.discount_percent) >= 100);
   const trialPropertyLimit = 1;
-  const propertyCount = properties?.length || 0;
-  const canAddProperty = !isTrialOnly || propertyCount < trialPropertyLimit;
+  const activePropertyCount = properties?.filter(p => (p as any).status !== 'draft').length || 0;
+  const canAddProperty = !isTrialOnly || activePropertyCount < trialPropertyLimit;
 
   const createMutation = useMutation({
     mutationFn: async (values: typeof form) => {

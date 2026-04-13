@@ -5,7 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -33,6 +33,26 @@ const CONDITION_COLORS: Record<string, string> = {
   poor: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200",
   damaged: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
 };
+
+function getWarrantyBadge(warrantyEndDate: string | null, language: string) {
+  if (!warrantyEndDate) return null;
+  const today = new Date();
+  const end = new Date(warrantyEndDate);
+  const diffDays = Math.ceil((end.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+
+  if (diffDays < 0) {
+    return <Badge variant="destructive" className="text-xs">{language === "bn" ? "মেয়াদ শেষ" : "Expired"}</Badge>;
+  }
+  if (diffDays <= 30) {
+    return <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200 text-xs">
+      {diffDays}{language === "bn" ? " দিন বাকি" : "d left"}
+    </Badge>;
+  }
+  const months = Math.floor(diffDays / 30);
+  return <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 text-xs">
+    {months > 0 ? `${months}${language === "bn" ? " মাস" : "m"}` : `${diffDays}${language === "bn" ? " দিন" : "d"}`}
+  </Badge>;
+}
 
 export default function Assets() {
   const { user } = useAuth();
@@ -121,47 +141,55 @@ export default function Assets() {
           ) : filtered.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">{L("No assets found", "কোন সম্পদ পাওয়া যায়নি")}</div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{L("Name", "নাম")}</TableHead>
-                  <TableHead>{L("Category", "ক্যাটাগরি")}</TableHead>
-                  <TableHead>{L("Condition", "অবস্থা")}</TableHead>
-                  <TableHead>{L("Property", "প্রপার্টি")}</TableHead>
-                  <TableHead>{L("Location", "অবস্থান")}</TableHead>
-                  <TableHead className="text-right">{L("Actions", "অ্যাকশন")}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filtered.map((asset: any) => (
-                  <TableRow key={asset.id}>
-                    <TableCell className="font-medium">{asset.name}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline">
-                        {CATEGORY_LABELS[asset.category]?.[language === "bn" ? "bn" : "en"] || asset.category}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${CONDITION_COLORS[asset.condition] || ""}`}>
-                        {asset.condition === "good" ? L("Good", "ভালো") :
-                         asset.condition === "fair" ? L("Fair", "মোটামুটি") :
-                         asset.condition === "poor" ? L("Poor", "খারাপ") : L("Damaged", "ক্ষতিগ্রস্ত")}
-                      </span>
-                    </TableCell>
-                    <TableCell>{(asset as any).properties?.name || "—"}</TableCell>
-                    <TableCell>{asset.location || "—"}</TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="ghost" size="icon" onClick={() => { setEditAsset(asset); setFormOpen(true); }}>
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={() => setDeleteId(asset.id)}>
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
-                    </TableCell>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>{L("Name", "নাম")}</TableHead>
+                    <TableHead>{L("Category", "ক্যাটাগরি")}</TableHead>
+                    <TableHead>{L("Condition", "অবস্থা")}</TableHead>
+                    <TableHead>{L("Price", "মূল্য")}</TableHead>
+                    <TableHead>{L("Warranty", "ওয়ারেন্টি")}</TableHead>
+                    <TableHead>{L("Property", "প্রপার্টি")}</TableHead>
+                    <TableHead className="text-right">{L("Actions", "অ্যাকশন")}</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {filtered.map((asset: any) => (
+                    <TableRow key={asset.id}>
+                      <TableCell className="font-medium">{asset.name}</TableCell>
+                      <TableCell>
+                        <Badge variant="outline">
+                          {CATEGORY_LABELS[asset.category]?.[language === "bn" ? "bn" : "en"] || asset.category}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${CONDITION_COLORS[asset.condition] || ""}`}>
+                          {asset.condition === "good" ? L("Good", "ভালো") :
+                           asset.condition === "fair" ? L("Fair", "মোটামুটি") :
+                           asset.condition === "poor" ? L("Poor", "খারাপ") : L("Damaged", "ক্ষতিগ্রস্ত")}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        {asset.purchase_price > 0 ? `৳${Number(asset.purchase_price).toLocaleString()}` : "—"}
+                      </TableCell>
+                      <TableCell>
+                        {getWarrantyBadge(asset.warranty_end_date, language) || "—"}
+                      </TableCell>
+                      <TableCell>{(asset as any).properties?.name || "—"}</TableCell>
+                      <TableCell className="text-right">
+                        <Button variant="ghost" size="icon" onClick={() => { setEditAsset(asset); setFormOpen(true); }}>
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => setDeleteId(asset.id)}>
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           )}
         </CardContent>
       </Card>

@@ -34,6 +34,7 @@ export default function TenantLandlord() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [landlord, setLandlord] = useState<LandlordInfo | null>(null);
+  const [landlordUserId, setLandlordUserId] = useState<string | null>(null);
   const [room, setRoom] = useState<RoomInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [isUnlinked, setIsUnlinked] = useState(false);

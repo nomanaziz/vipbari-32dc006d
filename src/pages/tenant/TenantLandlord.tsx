@@ -107,6 +107,7 @@ export default function TenantLandlord() {
 
   const isLandlordBlocked = !!blockRecord;
 
+  useEffect(() => {
     if (!user) return;
     const fetchData = async () => {
       setLoading(true);

@@ -1,10 +1,12 @@
+import { useState } from "react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Globe, LogOut, Settings, User, Building2, UserCog, Users } from "lucide-react";
+import { Globe, LogOut, Settings, User, Building2, UserCog, Users, Calculator } from "lucide-react";
+import { FloatingCalculator } from "@/components/FloatingCalculator";
 import { NotificationBell } from "@/components/NotificationBell";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -28,6 +30,7 @@ interface AppLayoutProps {
 export function AppLayout({ children }: AppLayoutProps) {
   const { profile, signOut, role } = useAuth();
   const { t, language } = useLanguage();
+  const [showCalc, setShowCalc] = useState(false);
 
   const getRoleLabel = (r: string | null) => {
     if (!r) return "";
@@ -59,6 +62,9 @@ export function AppLayout({ children }: AppLayoutProps) {
               </Badge>
             </div>
             <div className="flex items-center gap-0.5 sm:gap-2 shrink-0">
+              <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => setShowCalc(v => !v)} title="ক্যালকুলেটর">
+                <Calculator className="h-4 w-4" />
+              </Button>
               <NotificationBell />
               {/* Profile dropdown — always visible, contains Visit Site, Language, Theme on mobile */}
               <div className="pl-1 sm:pl-2 sm:border-l sm:ml-1">
@@ -121,6 +127,7 @@ export function AppLayout({ children }: AppLayoutProps) {
           </main>
           <MobileBottomNav />
           <ScrollToTop />
+          {showCalc && <FloatingCalculator onClose={() => setShowCalc(false)} />}
         </div>
       </div>
     </SidebarProvider>

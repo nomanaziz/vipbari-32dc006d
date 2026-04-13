@@ -6,6 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import { Trash2, Search, History, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import DeleteConfirmDialog from "@/components/DeleteConfirmDialog";
@@ -109,12 +110,13 @@ const AdminProperties = () => {
               <TableHead>{t("property.address")}</TableHead>
               <TableHead>{t("property.type")}</TableHead>
               <TableHead>{t("dashboard.total_rooms")}</TableHead>
+              <TableHead>{language === "bn" ? "স্ট্যাটাস" : "Status"}</TableHead>
               <TableHead>{t("common.actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
-              <TableRow><TableCell colSpan={7} className="text-center py-8">{t("common.loading")}</TableCell></TableRow>
+              <TableRow><TableCell colSpan={8} className="text-center py-8">{t("common.loading")}</TableCell></TableRow>
             ) : filtered?.map((p) => (
               <TableRow key={p.id}>
                 <TableCell><Checkbox checked={selectedIds.has(p.id)} onCheckedChange={() => toggleSelect(p.id)} /></TableCell>
@@ -123,6 +125,11 @@ const AdminProperties = () => {
                 <TableCell>{p.address}</TableCell>
                 <TableCell>{p.property_type}</TableCell>
                 <TableCell>{p.total_rooms}</TableCell>
+                <TableCell>
+                  <Badge variant={(p as any).status === 'draft' ? 'outline' : 'default'} className="text-[10px]">
+                    {(p as any).status === 'draft' ? (language === "bn" ? "ড্রাফট" : "Draft") : (language === "bn" ? "সক্রিয়" : "Active")}
+                  </Badge>
+                </TableCell>
                 <TableCell>
                   <div className="flex gap-1">
                     <Button variant="ghost" size="icon" title={language === "bn" ? "হস্তান্তর" : "Reassign"} onClick={() => setReassignItem({ id: p.id, name: p.name })}>

@@ -13,7 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel } from "@/components/ui/select";
 import { propertyTypeGroups, getPropertyTypeLabel } from "@/lib/propertyTypes";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, Building2, MapPin, Pencil, Trash2, Shield, Flame, Zap, Users, Wifi, Tv, Camera, ArrowUpFromLine, BatteryCharging, Car, Fuel, Droplets, Home, Phone, Map, ShoppingBag, ArrowRightLeft, Check, X, UserCheck, UserX } from "lucide-react";
+import { Plus, Building2, MapPin, Pencil, Trash2, Shield, Flame, Zap, Users, Wifi, Tv, Camera, ArrowUpFromLine, BatteryCharging, Car, Fuel, Droplets, Home, Phone, Map, ShoppingBag, ArrowRightLeft, Check, X, UserCheck, UserX, FileText } from "lucide-react";
 import { SellDialog } from "@/components/sale/SellDialog";
 import PropertyHistoryDialog from "@/components/properties/PropertyHistoryDialog";
 import { toast } from "sonner";
@@ -59,6 +59,7 @@ type Property = {
   common_kitchens: number;
   common_stoves: number;
   utilities_included: boolean;
+  status: string;
 };
 
 type PropertyImage = { id: string; image_url: string; sort_order: number; property_id: string };
@@ -242,15 +243,13 @@ const Properties = () => {
 
   const isTrialOnly = userSubs && userSubs.length > 0 && userSubs.every(s => Number(s.discount_percent) >= 100);
   const trialPropertyLimit = 1;
-  const propertyCount = properties?.length || 0;
-  const canAddProperty = !isTrialOnly || propertyCount < trialPropertyLimit;
+  const activePropertyCount = properties?.filter(p => (p as any).status !== 'draft').length || 0;
+  const canAddProperty = !isTrialOnly || activePropertyCount < trialPropertyLimit;
 
   const createMutation = useMutation({
     mutationFn: async (values: typeof form) => {
-      // Enforce trial property limit
-      if (isTrialOnly && propertyCount >= trialPropertyLimit) {
-        throw new Error(language === "bn" ? "ট্রায়াল পিরিয়ডে সর্বোচ্চ ১টি সম্পত্তি যোগ করা যায়। সাবস্ক্রিপশন কিনুন।" : "Trial allows max 1 property. Please subscribe for more.");
-      }
+      // Determine if this should be draft or active
+      const shouldBeDraft = isTrialOnly && activePropertyCount >= trialPropertyLimit;
       const facilityData = Object.fromEntries(facilityKeys.map(k => [k, values[k]]));
       const { data, error } = await supabase.from("properties").insert({
         name: values.name,
@@ -271,6 +270,7 @@ const Properties = () => {
         owner_id: effectiveOwnerId!,
         tolet_phone: values.tolet_phone,
         map_url: values.map_url,
+        status: shouldBeDraft ? 'draft' : 'active',
         ...facilityData,
         common_bathrooms: values.common_bathrooms,
         common_washrooms: values.common_washrooms,
@@ -286,15 +286,19 @@ const Properties = () => {
           selectedStaff.map(sid => ({ property_id: data.id, staff_user_id: sid, owner_id: effectiveOwnerId! }))
         );
       }
-      return data;
+      return { ...data, isDraft: shouldBeDraft };
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["properties"] });
       queryClient.invalidateQueries({ queryKey: ["property_images"] });
       queryClient.invalidateQueries({ queryKey: ["property_staff"] });
       setOpen(false);
       resetForm();
-      toast.success(t("property.added") || "Property added");
+      if (data.isDraft) {
+        toast.info(language === "bn" ? "ড্রাফট হিসেবে সংরক্ষিত। সাবস্ক্রিপশন কিনলে সক্রিয় হবে।" : "Saved as draft. Subscribe to activate.");
+      } else {
+        toast.success(t("property.added") || "Property added");
+      }
     },
     onError: (e) => toast.error(e.message),
   });
@@ -369,6 +373,21 @@ const Properties = () => {
         toast.error(msg);
       }
     },
+  });
+
+  const activateMutation = useMutation({
+    mutationFn: async (id: string) => {
+      if (isTrialOnly && activePropertyCount >= trialPropertyLimit) {
+        throw new Error(language === "bn" ? "ট্রায়াল লিমিট পূর্ণ। সাবস্ক্রিপশন কিনুন।" : "Trial limit reached. Please subscribe.");
+      }
+      const { error } = await supabase.from("properties").update({ status: 'active' } as any).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["properties"] });
+      toast.success(language === "bn" ? "সম্পত্তি সক্রিয় করা হয়েছে" : "Property activated");
+    },
+    onError: (e) => toast.error(e.message),
   });
 
   const resetForm = () => { setForm(defaultForm); setSelectedStaff([]); };
@@ -883,19 +902,25 @@ const Properties = () => {
               .map(ps => staffMembers?.find(s => s.user_id === ps.staff_user_id)?.full_name)
               .filter(Boolean);
             return (
-              <Card key={p.id} className="hover:shadow-md transition-shadow overflow-hidden">
+              <Card key={p.id} className={`hover:shadow-md transition-shadow overflow-hidden ${(p as any).status === 'draft' ? 'opacity-70 border-dashed' : ''}`}>
                 {coverImage && (
                   <div className="h-36 overflow-hidden">
                     <img src={coverImage.image_url} alt={p.name} className="w-full h-full object-cover" />
                   </div>
                 )}
                 <CardContent className="p-4">
-                  {/* Header: icon + name + type badge */}
+                  {/* Header: icon + name + type badge + draft badge */}
                   <div className="flex items-center gap-2">
                     <div className="p-1.5 rounded-md bg-primary/10 text-primary shrink-0">
                       <Building2 className="h-4 w-4" />
                     </div>
                     <h3 className="font-semibold text-base truncate flex-1">{p.name}</h3>
+                    {(p as any).status === 'draft' && (
+                      <Badge variant="outline" className="text-[10px] shrink-0 border-orange-400 text-orange-600 dark:text-orange-400">
+                        <FileText className="h-3 w-3 mr-0.5" />
+                        {language === "bn" ? "ড্রাফট" : "Draft"}
+                      </Badge>
+                    )}
                     <span className="text-[10px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground shrink-0">
                       {getTypeLabel(p.property_type)}
                     </span>
@@ -970,7 +995,12 @@ const Properties = () => {
 
                   {/* Bottom actions row */}
                   <div className="flex items-center justify-between mt-3 pt-3 border-t">
-                    {propertyHasSaleListing(p.id) ? (
+                    {(p as any).status === 'draft' ? (
+                      <Button variant="outline" size="sm" className="gap-1 text-xs h-7 border-primary text-primary" onClick={() => activateMutation.mutate(p.id)} disabled={activateMutation.isPending}>
+                        <Check className="h-3 w-3" />
+                        {language === "bn" ? "সক্রিয় করুন" : "Activate"}
+                      </Button>
+                    ) : propertyHasSaleListing(p.id) ? (
                       <Button variant="outline" size="sm" className="gap-1 text-xs h-7 border-emerald-500 text-emerald-600" onClick={() => handleRemovePropertySale(p.id)}>
                         <ShoppingBag className="h-3 w-3" />
                         {language === "bn" ? "বিক্রয় সরান" : "Remove Sale"}

@@ -1379,6 +1379,7 @@ export type Database = {
           property_type: string
           road_number: string
           sector: string
+          status: string
           thana: string
           tolet_phone: string
           total_rooms: number
@@ -1419,6 +1420,7 @@ export type Database = {
           property_type?: string
           road_number?: string
           sector?: string
+          status?: string
           thana?: string
           tolet_phone?: string
           total_rooms?: number
@@ -1459,6 +1461,7 @@ export type Database = {
           property_type?: string
           road_number?: string
           sector?: string
+          status?: string
           thana?: string
           tolet_phone?: string
           total_rooms?: number

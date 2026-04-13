@@ -897,7 +897,7 @@ const Properties = () => {
                     </div>
                     <h3 className="font-semibold text-base truncate flex-1">{p.name}</h3>
                     <span className="text-[10px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground shrink-0">
-                      {typeLabels[p.property_type] || p.property_type}
+                      {getTypeLabel(p.property_type)}
                     </span>
                   </div>
 

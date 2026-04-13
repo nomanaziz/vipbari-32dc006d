@@ -209,7 +209,7 @@ export default function SaleListingDetail() {
             <div className="grid grid-cols-2 gap-3">
               <div className="flex items-center gap-2 text-sm">
                 <Building2 className="h-4 w-4 text-muted-foreground" />
-                {typeLabels[listing.property_type] || listing.property_type}
+                {getTypeLabel(listing.property_type)}
               </div>
               {listing.bedrooms > 0 && (
                 <div className="flex items-center gap-2 text-sm">

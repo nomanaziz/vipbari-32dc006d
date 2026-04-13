@@ -492,6 +492,12 @@ const Tenants = () => {
                               {tenant.billing_type === "billing" ? (language === "bn" ? "বিলিং" : "Billing") : tenant.billing_type === "free" ? (language === "bn" ? "ফ্রি" : "Free") : (language === "bn" ? "পার্সোনাল" : "Personal")}
                             </Badge>
                           )}
+                          {Number(tenant.advance_balance || 0) > 0 && (
+                            <Badge variant="outline" className="text-xs gap-1 cursor-pointer" onClick={() => setBookingTenant(tenant)}>
+                              <Wallet className="h-3 w-3" />
+                              ৳{Number(tenant.advance_balance).toLocaleString()}
+                            </Badge>
+                          )}
                         </div>
                         {/* Meta info */}
                         <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
@@ -557,6 +563,10 @@ const Tenants = () => {
                             <DropdownMenuItem className="text-orange-600" onClick={() => setReleaseTenant(tenant)}>
                               <UserMinus className="h-3.5 w-3.5 mr-2" />
                               {language === "bn" ? "রিলিজ করুন" : "Release"}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setBookingTenant(tenant)}>
+                              <Wallet className="h-3.5 w-3.5 mr-2" />
+                              {language === "bn" ? "বুকিং মানি" : "Booking Money"}
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => setShiftTenant(tenant)}>
                               <ArrowRightLeft className="h-3.5 w-3.5 mr-2" />

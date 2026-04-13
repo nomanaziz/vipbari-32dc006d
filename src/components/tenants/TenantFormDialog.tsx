@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -41,6 +41,19 @@ const EDUCATION_OPTIONS = [
   { value: "phd", bn: "পিএইচডি (PhD)", en: "PhD" },
   { value: "other", bn: "অন্যান্য", en: "Other" },
 ];
+
+// ✅ FIX #1: SectionCollapsible moved OUTSIDE the component to prevent re-mount on every render
+const SectionCollapsible = ({ title, children, defaultOpen }: { title: string; children: React.ReactNode; defaultOpen?: boolean }) => (
+  <Collapsible defaultOpen={defaultOpen}>
+    <CollapsibleTrigger className="flex items-center justify-between w-full py-2 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors">
+      {title}
+      <ChevronDown className="h-4 w-4 transition-transform [[data-state=open]>&]:rotate-180" />
+    </CollapsibleTrigger>
+    <CollapsibleContent className="pt-2">
+      {children}
+    </CollapsibleContent>
+  </Collapsible>
+);
 
 interface Props {
   open: boolean;
@@ -86,6 +99,48 @@ const TenantFormDialog = ({ open, onOpenChange, editing, availableRooms, onCrede
   const [password, setPassword] = useState("");
   const [customEducation, setCustomEducation] = useState("");
 
+  // ✅ FIX #3: Previous landlord auto-fill from phone
+  const prevLandlordFetchedRef = useRef<string>("");
+
+  const fetchPreviousLandlordInfo = useCallback(async (phone: string) => {
+    if (!phone || phone.length < 11 || editing) return;
+    if (prevLandlordFetchedRef.current === phone) return;
+    prevLandlordFetchedRef.current = phone;
+
+    try {
+      // Find inactive tenant records with this phone from OTHER landlords
+      const { data: prevTenants } = await supabase
+        .from("tenants")
+        .select("owner_id, release_reason, release_notes, prev_leave_reason")
+        .eq("phone", phone.trim())
+        .eq("status", "inactive")
+        .order("released_at", { ascending: false })
+        .limit(1);
+
+      if (prevTenants && prevTenants.length > 0) {
+        const prev = prevTenants[0];
+        // Get previous landlord's profile
+        const { data: landlordProfile } = await supabase
+          .from("profiles")
+          .select("full_name, phone")
+          .eq("user_id", prev.owner_id)
+          .single();
+
+        if (landlordProfile) {
+          setForm(f => ({
+            ...f,
+            prev_landlord_name: f.prev_landlord_name || landlordProfile.full_name || "",
+            prev_landlord_phone: f.prev_landlord_phone || landlordProfile.phone || "",
+            prev_leave_reason: f.prev_leave_reason || prev.release_reason || prev.prev_leave_reason || "",
+          }));
+          toast.info(language === "bn" ? "পূর্ববর্তী বাড়িওয়ালার তথ্য স্বয়ংক্রিয়ভাবে পূরণ হয়েছে" : "Previous landlord info auto-filled");
+        }
+      }
+    } catch {
+      // Silently fail
+    }
+  }, [editing, language]);
+
   // Check if education value is a known option or custom
   const isKnownEducation = (val: string) => EDUCATION_OPTIONS.some(o => o.value === val);
   const educationSelectValue = form.education ? (isKnownEducation(form.education) ? form.education : "other") : "none";
@@ -124,8 +179,7 @@ const TenantFormDialog = ({ open, onOpenChange, editing, availableRooms, onCrede
       if (!f.status) f.status = "active";
       if (!f.billing_type) f.billing_type = "billing";
 
-      // Hierarchy-aware normalization: normalize division first, then validate district under it, then thana under district
-      // Permanent address
+      // Hierarchy-aware normalization
       let permDiv = normalizeDivision(f.permanent_division);
       let permDist = normalizeDistrict(f.permanent_district);
       let permThana = normalizeThana(f.permanent_thana);
@@ -142,7 +196,6 @@ const TenantFormDialog = ({ open, onOpenChange, editing, availableRooms, onCrede
       f.permanent_district = permDist;
       f.permanent_thana = permThana;
 
-      // Present address
       let presDiv = normalizeDivision(f.present_division);
       let presDist = normalizeDistrict(f.present_district);
       let presThana = normalizeThana(f.present_thana);
@@ -162,7 +215,6 @@ const TenantFormDialog = ({ open, onOpenChange, editing, availableRooms, onCrede
       setForm(f);
       setCreateAccount(false);
       setPassword("");
-      // Set custom education if not a known value
       if (f.education && !isKnownEducation(f.education)) {
         setCustomEducation(f.education);
       } else {
@@ -173,8 +225,18 @@ const TenantFormDialog = ({ open, onOpenChange, editing, availableRooms, onCrede
       setCreateAccount(false);
       setPassword("");
       setCustomEducation("");
+      prevLandlordFetchedRef.current = "";
     }
   }, [editing, open]);
+
+  // Debounced phone lookup for previous landlord
+  useEffect(() => {
+    if (editing || !form.phone || form.phone.length < 11) return;
+    const timer = setTimeout(() => {
+      fetchPreviousLandlordInfo(form.phone);
+    }, 800);
+    return () => clearTimeout(timer);
+  }, [form.phone, editing, fetchPreviousLandlordInfo]);
 
   const buildPayload = (values: typeof emptyForm & { id?: string; old_room_id?: string }) => {
     const payload: Record<string, any> = {};
@@ -188,7 +250,6 @@ const TenantFormDialog = ({ open, onOpenChange, editing, availableRooms, onCrede
         payload[key] = val;
       }
     }
-    // Ensure address fields are canonical English keys
     payload.permanent_division = normalizeDivision(payload.permanent_division);
     payload.permanent_district = normalizeDistrict(payload.permanent_district);
     payload.permanent_thana = normalizeThana(payload.permanent_thana);
@@ -328,18 +389,6 @@ const TenantFormDialog = ({ open, onOpenChange, editing, availableRooms, onCrede
   // Determine if present address should be auto-filled from property
   const hasPropertyAddress = editing ? !!editing?.rooms?.properties : !!selectedRoomProperty;
   const propertyForAddress = editing ? editing?.rooms?.properties : selectedRoomProperty;
-
-  const SectionCollapsible = ({ title, children }: { title: string; children: React.ReactNode }) => (
-    <Collapsible>
-      <CollapsibleTrigger className="flex items-center justify-between w-full py-2 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors">
-        {title}
-        <ChevronDown className="h-4 w-4 transition-transform [[data-state=open]>&]:rotate-180" />
-      </CollapsibleTrigger>
-      <CollapsibleContent className="pt-2">
-        {children}
-      </CollapsibleContent>
-    </Collapsible>
-  );
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -582,7 +631,7 @@ const TenantFormDialog = ({ open, onOpenChange, editing, availableRooms, onCrede
                   const next = v === "none" ? "" : v;
                   setForm(f => {
                     const current = normalizeDivision(f.permanent_division);
-                    if (next === current) return { ...f, permanent_division: next };
+                    if (next === current) return f;
                     return { ...f, permanent_division: next, permanent_district: "", permanent_thana: "" };
                   });
                 }}>
@@ -601,7 +650,7 @@ const TenantFormDialog = ({ open, onOpenChange, editing, availableRooms, onCrede
                   const next = v === "none" ? "" : v;
                   setForm(f => {
                     const current = normalizeDistrict(f.permanent_district);
-                    if (next === current) return { ...f, permanent_district: next };
+                    if (next === current) return f;
                     return { ...f, permanent_district: next, permanent_thana: "" };
                   });
                 }}>
@@ -677,7 +726,7 @@ const TenantFormDialog = ({ open, onOpenChange, editing, availableRooms, onCrede
                       const next = v === "none" ? "" : v;
                       setForm(f => {
                         const current = normalizeDivision(f.present_division);
-                        if (next === current) return { ...f, present_division: next };
+                        if (next === current) return f;
                         return { ...f, present_division: next, present_district: "", present_thana: "" };
                       });
                     }}>
@@ -696,7 +745,7 @@ const TenantFormDialog = ({ open, onOpenChange, editing, availableRooms, onCrede
                       const next = v === "none" ? "" : v;
                       setForm(f => {
                         const current = normalizeDistrict(f.present_district);
-                        if (next === current) return { ...f, present_district: next };
+                        if (next === current) return f;
                         return { ...f, present_district: next, present_thana: "" };
                       });
                     }}>

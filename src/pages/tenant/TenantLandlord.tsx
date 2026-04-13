@@ -288,36 +288,52 @@ export default function TenantLandlord() {
                     <Mail className="h-4 w-4 text-muted-foreground" />
                     <span className="text-foreground">{landlord.email || t("Not available", "পাওয়া যায়নি")}</span>
                   </div>
-                  {/* Block Landlord button */}
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="mt-2 text-destructive border-destructive/30 hover:bg-destructive/10"
-                    onClick={async () => {
-                      try {
-                        // Find landlord user_id from profiles
-                        const { data: lp } = await supabase
-                          .from("profiles")
-                          .select("user_id")
-                          .eq("full_name", landlord.full_name)
-                          .eq("phone", landlord.phone)
-                          .maybeSingle();
-                        if (!lp) { toast.error("Could not find landlord"); return; }
-                        const { error } = await supabase.from("user_blocks").insert({
-                          blocker_id: user!.id,
-                          blocked_id: lp.user_id,
-                          reason: "",
-                        });
-                        if (error) throw error;
-                        toast.success(t("Landlord blocked", "বাড়িওয়ালাকে ব্লক করা হয়েছে"));
-                      } catch (e: any) {
-                        toast.error(e.message);
-                      }
-                    }}
-                  >
-                    <ShieldBan className="h-3.5 w-3.5 mr-1" />
-                    {t("Block Landlord", "বাড়িওয়ালা ব্লক করুন")}
-                  </Button>
+                  {/* Block/Unblock Landlord button */}
+                  {isLandlordBlocked ? (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="mt-2"
+                      onClick={async () => {
+                        try {
+                          if (blockRecord) {
+                            await supabase.from("user_blocks").delete().eq("id", blockRecord.id);
+                            refetchBlock();
+                            toast.success(t("Landlord unblocked", "বাড়িওয়ালাকে আনব্লক করা হয়েছে"));
+                          }
+                        } catch (e: any) {
+                          toast.error(e.message);
+                        }
+                      }}
+                    >
+                      <ShieldCheck className="h-3.5 w-3.5 mr-1" />
+                      {t("Unblock Landlord", "বাড়িওয়ালা আনব্লক করুন")}
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="mt-2 text-destructive border-destructive/30 hover:bg-destructive/10"
+                      onClick={async () => {
+                        try {
+                          if (!landlordUserId) { toast.error("Could not find landlord"); return; }
+                          const { error } = await supabase.from("user_blocks").insert({
+                            blocker_id: user!.id,
+                            blocked_id: landlordUserId,
+                            reason: "",
+                          });
+                          if (error) throw error;
+                          refetchBlock();
+                          toast.success(t("Landlord blocked", "বাড়িওয়ালাকে ব্লক করা হয়েছে"));
+                        } catch (e: any) {
+                          toast.error(e.message);
+                        }
+                      }}
+                    >
+                      <ShieldBan className="h-3.5 w-3.5 mr-1" />
+                      {t("Block Landlord", "বাড়িওয়ালা ব্লক করুন")}
+                    </Button>
+                  )}
                 </div>
               </div>
             ) : (

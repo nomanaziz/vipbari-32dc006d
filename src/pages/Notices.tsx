@@ -21,7 +21,7 @@ const Notices = () => {
   const { user, effectiveOwnerId } = useAuth();
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [form, setForm] = useState({ title: "", description: "", target_type: "all", target_id: "" });
+  const [form, setForm] = useState({ title: "", description: "", target_type: "all", target_id: "", is_pinned: false });
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -68,6 +68,7 @@ const Notices = () => {
         description: values.description,
         target_type: values.target_type,
         target_id: values.target_type === "all" ? null : values.target_id || null,
+        is_pinned: values.is_pinned,
       });
       if (error) throw error;
 
@@ -105,7 +106,7 @@ const Notices = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["landlord-notices"] });
-      setForm({ title: "", description: "", target_type: "all", target_id: "" });
+      setForm({ title: "", description: "", target_type: "all", target_id: "", is_pinned: false });
       setDialogOpen(false);
       setEditingId(null);
       toast.success(editingId ? L("Notice updated", "নোটিশ আপডেট হয়েছে") : L("Notice created", "নোটিশ তৈরি হয়েছে"));
@@ -120,12 +121,13 @@ const Notices = () => {
         description: values.description,
         target_type: values.target_type,
         target_id: values.target_type === "all" ? null : values.target_id || null,
+        is_pinned: values.is_pinned,
       }).eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["landlord-notices"] });
-      setForm({ title: "", description: "", target_type: "all", target_id: "" });
+      setForm({ title: "", description: "", target_type: "all", target_id: "", is_pinned: false });
       setDialogOpen(false);
       setEditingId(null);
       toast.success(L("Notice updated", "নোটিশ আপডেট হয়েছে"));
@@ -160,6 +162,7 @@ const Notices = () => {
       description: n.description || "",
       target_type: n.target_type || "all",
       target_id: n.target_id || "",
+      is_pinned: n.is_pinned || false,
     });
     setEditingId(n.id);
     setDialogOpen(true);
@@ -185,8 +188,18 @@ const Notices = () => {
     return "bg-muted text-muted-foreground";
   };
 
-  const pinnedNotice = notices?.[0];
-  const restNotices = notices?.slice(1) || [];
+  const pinMutation = useMutation({
+    mutationFn: async ({ id, pinned }: { id: string; pinned: boolean }) => {
+      const { error } = await supabase.from("notices").update({ is_pinned: pinned }).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["landlord-notices"] });
+    },
+  });
+
+  const pinnedNotices = notices?.filter((n: any) => n.is_pinned) || [];
+  const unpinnedNotices = notices?.filter((n: any) => !n.is_pinned) || [];
 
   const NoticeCard = ({ n, index, isPinned = false }: { n: any; index?: number; isPinned?: boolean }) => {
     const isExpanded = expandedId === n.id;
@@ -244,9 +257,12 @@ const Notices = () => {
                       {isExpanded ? L("Show less", "সংক্ষেপে") : L("Read more", "বিস্তারিত দেখুন")}
                     </Button>
                   )}
-                  <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => handleEdit(n)}>
-                    <Pencil className="h-3.5 w-3.5" />
-                  </Button>
+                   <Button variant="ghost" size="icon" className={`h-7 w-7 transition-opacity ${n.is_pinned ? "text-primary" : "text-muted-foreground opacity-0 group-hover:opacity-100"}`} onClick={() => pinMutation.mutate({ id: n.id, pinned: !n.is_pinned })} title={n.is_pinned ? L("Unpin", "আনপিন") : L("Pin", "পিন করুন")}>
+                     <Pin className={`h-3.5 w-3.5 ${n.is_pinned ? "fill-primary" : ""}`} />
+                   </Button>
+                   <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => handleEdit(n)}>
+                     <Pencil className="h-3.5 w-3.5" />
+                   </Button>
                   <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => setDeleteId(n.id)}>
                     <Trash2 className="h-3.5 w-3.5" />
                   </Button>
@@ -271,7 +287,7 @@ const Notices = () => {
             {L("All your important notices in one place", "আপনার সকল গুরুত্বপূর্ণ ঘোষণা এখানে দেখুন")}
           </p>
         </div>
-        <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) { setEditingId(null); setForm({ title: "", description: "", target_type: "all", target_id: "" }); } }}>
+        <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) { setEditingId(null); setForm({ title: "", description: "", target_type: "all", target_id: "", is_pinned: false }); } }}>
           <DialogTrigger asChild>
             <Button className="gap-2"><Plus className="h-4 w-4" />{L("Create Notice", "নোটিশ তৈরি করুন")}</Button>
           </DialogTrigger>
@@ -325,6 +341,10 @@ const Notices = () => {
                   </Select>
                 </div>
               )}
+              <div className="flex items-center gap-2">
+                <input type="checkbox" id="is_pinned" checked={form.is_pinned} onChange={e => setForm(f => ({ ...f, is_pinned: e.target.checked }))} className="h-4 w-4 rounded border-primary text-primary" />
+                <Label htmlFor="is_pinned" className="text-sm cursor-pointer">{L("Pin this notice (sticky)", "পিন করুন (স্টিকি)")}</Label>
+              </div>
               <div className="flex justify-end gap-2">
                 <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>{L("Cancel", "বাতিল")}</Button>
                 <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>{editingId ? L("Update", "আপডেট করুন") : L("Create", "তৈরি করুন")}</Button>
@@ -346,26 +366,26 @@ const Notices = () => {
         </Card>
       ) : (
         <div className="space-y-6">
-          {/* Pinned / Latest Notice */}
-          {pinnedNotice && (
+          {pinnedNotices.length > 0 && (
             <div>
               <h2 className="text-sm font-semibold text-muted-foreground mb-3 uppercase tracking-wider">
-                {L("Latest Notice", "সর্বশেষ ঘোষণা")}
+                {L("Pinned Notices", "পিন করা নোটিশ")}
               </h2>
-              <div className="max-w-2xl">
-                <NoticeCard n={pinnedNotice} isPinned />
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {pinnedNotices.map((n: any) => (
+                  <NoticeCard key={n.id} n={n} isPinned />
+                ))}
               </div>
             </div>
           )}
 
-          {/* All Notices Grid */}
-          {restNotices.length > 0 && (
+          {unpinnedNotices.length > 0 && (
             <div>
               <h2 className="text-sm font-semibold text-muted-foreground mb-3 uppercase tracking-wider">
                 {L("All Notices", "সকল ঘোষণা")}
               </h2>
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {restNotices.map((n: any, i: number) => (
+                {unpinnedNotices.map((n: any, i: number) => (
                   <NoticeCard key={n.id} n={n} index={i} />
                 ))}
               </div>

@@ -573,6 +573,7 @@ const Subscription = () => {
         {/* Left: Product Sections */}
         <div className="lg:col-span-2 space-y-5">
           {/* Room/Flat */}
+          {productFlags.room && (
           <Card>
             <CardContent className="p-4 space-y-3">
               <div className="flex items-center gap-2">
@@ -583,8 +584,10 @@ const Subscription = () => {
               <ChipSelector chips={ROOM_CHIPS} value={roomCount} onChange={setRoomCount} />
             </CardContent>
           </Card>
+          )}
 
           {/* To-Let */}
+          {productFlags.tolet && (
           <Card>
             <CardContent className="p-4 space-y-3">
               <div className="flex items-center gap-2">
@@ -601,8 +604,10 @@ const Subscription = () => {
               <ChipSelector chips={TOLET_CHIPS} value={toletCount} onChange={setToletCount} />
             </CardContent>
           </Card>
+          )}
 
           {/* Sale Listing */}
+          {productFlags.sale_listing && (
           <Card>
             <CardContent className="p-4 space-y-3">
               <div className="flex items-center gap-2">
@@ -613,6 +618,7 @@ const Subscription = () => {
               <ChipSelector chips={SALE_CHIPS} value={saleCount} onChange={setSaleCount} />
             </CardContent>
           </Card>
+          )}
 
           {/* Duration (shared) */}
           {(roomCount > 0 || toletCount > 0 || saleCount > 0) && (
@@ -639,6 +645,7 @@ const Subscription = () => {
           )}
 
           {/* Boost */}
+          {productFlags.boost && (
           <Card>
             <CardContent className="p-4 space-y-4">
               <div className="flex items-center gap-2">
@@ -657,8 +664,10 @@ const Subscription = () => {
               </div>
             </CardContent>
           </Card>
+          )}
 
           {/* SMS */}
+          {productFlags.sms && (
           <Card>
             <CardContent className="p-4 space-y-3">
               <div className="flex items-center gap-2">
@@ -669,6 +678,7 @@ const Subscription = () => {
               <ChipSelector chips={SMS_CHIPS} value={smsCount} onChange={setSmsCount} />
             </CardContent>
           </Card>
+          )}
 
           {/* Coupon */}
           <Card>

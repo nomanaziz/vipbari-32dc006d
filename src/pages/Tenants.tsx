@@ -11,7 +11,8 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Plus, Users, Pencil, Trash2, Phone, Search, MapPin, CalendarDays, MoreVertical, UserPlus, UserMinus, Link, RotateCcw, Archive, ArrowRightLeft, ShieldBan, Printer } from "lucide-react";
+import { Plus, Users, Pencil, Trash2, Phone, Search, MapPin, CalendarDays, MoreVertical, UserPlus, UserMinus, Link, RotateCcw, Archive, ArrowRightLeft, ShieldBan, ShieldCheck, Printer } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 
 import TenantFormDialog from "@/components/tenants/TenantFormDialog";
@@ -157,7 +158,35 @@ const Tenants = () => {
     enabled: !!effectiveOwnerId,
   });
 
+  // Query blocked users by this landlord
+  const { data: blockedUsers, refetch: refetchBlocks } = useQuery({
+    queryKey: ["user-blocks", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("user_blocks")
+        .select("id, blocked_id, reason, created_at")
+        .eq("blocker_id", user!.id);
+      if (!data || data.length === 0) return [];
+      const blockedIds = data.map((b: any) => b.blocked_id);
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("user_id, full_name, phone")
+        .in("user_id", blockedIds);
+      const profileMap = Object.fromEntries((profiles || []).map((p: any) => [p.user_id, p]));
+      return data.map((b: any) => ({
+        ...b,
+        full_name: profileMap[b.blocked_id]?.full_name || "",
+        phone: profileMap[b.blocked_id]?.phone || "",
+      }));
+    },
+    enabled: !!user,
+  });
+
+  const blockedUserIds = new Set((blockedUsers || []).map((b: any) => b.blocked_id));
+  const [blockedListOpen, setBlockedListOpen] = useState(false);
+
   const hasBills = (tenantId: string) => (tenantBillCounts?.[tenantId] || 0) > 0;
+
 
   const deleteMutation = useMutation({
     mutationFn: async (tenant: any) => {
@@ -318,6 +347,13 @@ const Tenants = () => {
           </p>
         </div>
         <div className="flex gap-2">
+          {(blockedUsers?.length || 0) > 0 && (
+            <Button variant="outline" size="sm" className="gap-1.5 text-xs sm:text-sm" onClick={() => setBlockedListOpen(true)}>
+              <ShieldBan className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">{language === "bn" ? "ব্লক তালিকা" : "Block List"}</span>
+              <Badge variant="secondary" className="ml-0.5 h-5 px-1.5 text-xs">{blockedUsers?.length}</Badge>
+            </Button>
+          )}
           <Button variant="outline" size="sm" className="gap-1.5 text-xs sm:text-sm" onClick={() => setLinkDialogOpen(true)}>
             <Link className="h-3.5 w-3.5" />
             <span className="hidden sm:inline">{language === "bn" ? "ভাড়াটিয়া লিংক" : "Link Tenant"}</span>
@@ -525,24 +561,45 @@ const Tenants = () => {
                               {language === "bn" ? "রুম শিফট" : "Room Shift"}
                             </DropdownMenuItem>
                             {tenant.user_id && tenant.user_id !== user?.id && (
-                              <DropdownMenuItem
-                                className="text-destructive"
-                                onClick={async () => {
-                                  try {
-                                    await supabase.from("user_blocks").insert({
-                                      blocker_id: user!.id,
-                                      blocked_id: tenant.user_id,
-                                      reason: "",
-                                    });
-                                    toast.success(language === "bn" ? "ব্লক করা হয়েছে" : "User blocked");
-                                  } catch (e: any) {
-                                    toast.error(e.message);
-                                  }
-                                }}
-                              >
-                                <ShieldBan className="h-3.5 w-3.5 mr-2" />
-                                {language === "bn" ? "ব্লক করুন" : "Block"}
-                              </DropdownMenuItem>
+                              blockedUserIds.has(tenant.user_id) ? (
+                                <DropdownMenuItem
+                                  onClick={async () => {
+                                    try {
+                                      const block = blockedUsers?.find((b: any) => b.blocked_id === tenant.user_id);
+                                      if (block) {
+                                        await supabase.from("user_blocks").delete().eq("id", block.id);
+                                        refetchBlocks();
+                                        toast.success(language === "bn" ? "আনব্লক করা হয়েছে" : "User unblocked");
+                                      }
+                                    } catch (e: any) {
+                                      toast.error(e.message);
+                                    }
+                                  }}
+                                >
+                                  <ShieldCheck className="h-3.5 w-3.5 mr-2" />
+                                  {language === "bn" ? "আনব্লক করুন" : "Unblock"}
+                                </DropdownMenuItem>
+                              ) : (
+                                <DropdownMenuItem
+                                  className="text-destructive"
+                                  onClick={async () => {
+                                    try {
+                                      await supabase.from("user_blocks").insert({
+                                        blocker_id: user!.id,
+                                        blocked_id: tenant.user_id,
+                                        reason: "",
+                                      });
+                                      refetchBlocks();
+                                      toast.success(language === "bn" ? "ব্লক করা হয়েছে" : "User blocked");
+                                    } catch (e: any) {
+                                      toast.error(e.message);
+                                    }
+                                  }}
+                                >
+                                  <ShieldBan className="h-3.5 w-3.5 mr-2" />
+                                  {language === "bn" ? "ব্লক করুন" : "Block"}
+                                </DropdownMenuItem>
+                              )
                             )}
                           </>
                         )}
@@ -630,6 +687,50 @@ const Tenants = () => {
           <TenantRegistrationPrint tenant={printTenant} familyMembers={printMembers} />
         </div>
       )}
+
+      {/* Blocked Users List Dialog */}
+      <Dialog open={blockedListOpen} onOpenChange={setBlockedListOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>{language === "bn" ? "ব্লক তালিকা" : "Blocked Users"}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2 max-h-[60vh] overflow-y-auto">
+            {(!blockedUsers || blockedUsers.length === 0) ? (
+              <p className="text-sm text-muted-foreground text-center py-6">
+                {language === "bn" ? "কোনো ব্লক করা ব্যবহারকারী নেই" : "No blocked users"}
+              </p>
+            ) : (
+              blockedUsers.map((b: any) => (
+                <div key={b.id} className="flex items-center justify-between p-3 rounded-lg border">
+                  <div>
+                    <p className="font-medium text-sm">{b.full_name || (language === "bn" ? "অজানা" : "Unknown")}</p>
+                    <p className="text-xs text-muted-foreground">{b.phone}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {language === "bn" ? "ব্লক করা হয়েছে" : "Blocked"}: {new Date(b.created_at).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={async () => {
+                      try {
+                        await supabase.from("user_blocks").delete().eq("id", b.id);
+                        refetchBlocks();
+                        toast.success(language === "bn" ? "আনব্লক করা হয়েছে" : "Unblocked");
+                      } catch (e: any) {
+                        toast.error(e.message);
+                      }
+                    }}
+                  >
+                    <ShieldCheck className="h-3.5 w-3.5 mr-1" />
+                    {language === "bn" ? "আনব্লক" : "Unblock"}
+                  </Button>
+                </div>
+              ))
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

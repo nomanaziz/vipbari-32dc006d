@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Building2, Phone, Mail, Home, MapPin, DoorOpen, User, Info, CheckCircle2, XCircle, Send, ShieldBan } from "lucide-react";
+import { Building2, Phone, Mail, Home, MapPin, DoorOpen, User, Info, CheckCircle2, XCircle, Send, ShieldBan, ShieldCheck } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
@@ -34,6 +34,7 @@ export default function TenantLandlord() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [landlord, setLandlord] = useState<LandlordInfo | null>(null);
+  const [landlordUserId, setLandlordUserId] = useState<string | null>(null);
   const [room, setRoom] = useState<RoomInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [isUnlinked, setIsUnlinked] = useState(false);
@@ -89,6 +90,23 @@ export default function TenantLandlord() {
     onError: (e: any) => toast.error(e.message),
   });
 
+  // Check if landlord is blocked
+  const { data: blockRecord, refetch: refetchBlock } = useQuery({
+    queryKey: ["landlord-block-status", user?.id, landlordUserId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("user_blocks")
+        .select("id")
+        .eq("blocker_id", user!.id)
+        .eq("blocked_id", landlordUserId!)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!user && !!landlordUserId,
+  });
+
+  const isLandlordBlocked = !!blockRecord;
+
   useEffect(() => {
     if (!user) return;
     const fetchData = async () => {
@@ -107,6 +125,7 @@ export default function TenantLandlord() {
 
       if (!tenantIsSelfOwned) {
         landlordId = tenant.owner_id;
+        setLandlordUserId(tenant.owner_id);
       } else {
         const { data: acceptedReq } = await supabase
           .from("tolet_requests")
@@ -119,6 +138,7 @@ export default function TenantLandlord() {
 
         if (acceptedReq) {
           landlordId = acceptedReq.landlord_user_id;
+          setLandlordUserId(acceptedReq.landlord_user_id);
           fallbackRoomId = acceptedReq.room_id;
         }
         setIsUnlinked(!acceptedReq);
@@ -268,36 +288,52 @@ export default function TenantLandlord() {
                     <Mail className="h-4 w-4 text-muted-foreground" />
                     <span className="text-foreground">{landlord.email || t("Not available", "পাওয়া যায়নি")}</span>
                   </div>
-                  {/* Block Landlord button */}
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="mt-2 text-destructive border-destructive/30 hover:bg-destructive/10"
-                    onClick={async () => {
-                      try {
-                        // Find landlord user_id from profiles
-                        const { data: lp } = await supabase
-                          .from("profiles")
-                          .select("user_id")
-                          .eq("full_name", landlord.full_name)
-                          .eq("phone", landlord.phone)
-                          .maybeSingle();
-                        if (!lp) { toast.error("Could not find landlord"); return; }
-                        const { error } = await supabase.from("user_blocks").insert({
-                          blocker_id: user!.id,
-                          blocked_id: lp.user_id,
-                          reason: "",
-                        });
-                        if (error) throw error;
-                        toast.success(t("Landlord blocked", "বাড়িওয়ালাকে ব্লক করা হয়েছে"));
-                      } catch (e: any) {
-                        toast.error(e.message);
-                      }
-                    }}
-                  >
-                    <ShieldBan className="h-3.5 w-3.5 mr-1" />
-                    {t("Block Landlord", "বাড়িওয়ালা ব্লক করুন")}
-                  </Button>
+                  {/* Block/Unblock Landlord button */}
+                  {isLandlordBlocked ? (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="mt-2"
+                      onClick={async () => {
+                        try {
+                          if (blockRecord) {
+                            await supabase.from("user_blocks").delete().eq("id", blockRecord.id);
+                            refetchBlock();
+                            toast.success(t("Landlord unblocked", "বাড়িওয়ালাকে আনব্লক করা হয়েছে"));
+                          }
+                        } catch (e: any) {
+                          toast.error(e.message);
+                        }
+                      }}
+                    >
+                      <ShieldCheck className="h-3.5 w-3.5 mr-1" />
+                      {t("Unblock Landlord", "বাড়িওয়ালা আনব্লক করুন")}
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="mt-2 text-destructive border-destructive/30 hover:bg-destructive/10"
+                      onClick={async () => {
+                        try {
+                          if (!landlordUserId) { toast.error("Could not find landlord"); return; }
+                          const { error } = await supabase.from("user_blocks").insert({
+                            blocker_id: user!.id,
+                            blocked_id: landlordUserId,
+                            reason: "",
+                          });
+                          if (error) throw error;
+                          refetchBlock();
+                          toast.success(t("Landlord blocked", "বাড়িওয়ালাকে ব্লক করা হয়েছে"));
+                        } catch (e: any) {
+                          toast.error(e.message);
+                        }
+                      }}
+                    >
+                      <ShieldBan className="h-3.5 w-3.5 mr-1" />
+                      {t("Block Landlord", "বাড়িওয়ালা ব্লক করুন")}
+                    </Button>
+                  )}
                 </div>
               </div>
             ) : (

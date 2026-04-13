@@ -1,49 +1,35 @@
 
-সমস্যাটা আমি read-only mode-এ দেখে confirm করেছি: error-এর root cause frontend code না, database constraint.
 
-কি হচ্ছে:
-- `PaymentAccountCard.tsx` এ save করার সময়:
-  `upsert(..., { onConflict: "owner_id" })`
-- `UtilitySettingsTab.tsx` এ save করার সময়:
-  `upsert(..., { onConflict: "owner_id,key" })`
+# সম্পত্তি Draft/Active স্ট্যাটাস ফিচার
 
-কিন্তু database table schema-তে এই `ON CONFLICT` target-এর জন্য required unique constraint নেই:
-- `payment_accounts.owner_id` এ unique নেই
-- `landlord_settings (owner_id, key)` এ composite unique নেই
+## সমস্যা
+Trial period-এ শুধু ১টি সম্পত্তি add করা যায়। ব্যবহারকারী আরো add করতে চাইলে block হয়ে যায়।
 
-এই কারণেই payment আর utility দুই জায়গাতেই একই error আসছে:
-`there is no unique or exclusion constraint matching the ON CONFLICT specification`
+## সমাধান
+সম্পত্তি add-এর limit তুলে দেওয়া হবে। Trial user-রা যতখুশি সম্পত্তি add করতে পারবে, কিন্তু trial-এ সেগুলো **draft** হিসেবে save হবে। Subscription কেনার পর draft গুলো **active** করা যাবে।
 
-আমি language issue-ও check করেছি:
-- বাংলা/English switch feature already আছে
-- এটা `AdvanceSettingsTab` এর ভিতরে আছে
-- তাই “শুধু English আছে” সমস্যা feature-missing না, বরং UI placement/visibility issue হতে পারে
+## পরিবর্তন
 
-Implementation plan:
-
-1. Database migration দিয়ে দুইটা unique constraint add করবো
+### 1) Database Migration
+`properties` table-এ `status` column যোগ:
 ```sql
-ALTER TABLE public.payment_accounts
-ADD CONSTRAINT payment_accounts_owner_id_key UNIQUE (owner_id);
-
-ALTER TABLE public.landlord_settings
-ADD CONSTRAINT landlord_settings_owner_id_key_key UNIQUE (owner_id, key);
+ALTER TABLE public.properties ADD COLUMN status text NOT NULL DEFAULT 'active';
 ```
 
-2. Existing settings save flow একই থাকবে
-- `PaymentAccountCard.tsx`-এর `upsert(onConflict: "owner_id")`
-- `UtilitySettingsTab.tsx`-এর `upsert(onConflict: "owner_id,key")`
-এগুলো database fix-এর পর কাজ করবে
+### 2) Properties.tsx পরিবর্তন
+- **Trial limit সরানো** — `canAddProperty` check আর block করবে না
+- **Create mutation**: Trial user হলে `status: 'draft'` দিয়ে insert, paid user হলে `status: 'active'`
+- **Property card-এ Draft badge** — draft সম্পত্তিতে "ড্রাফট" / "Draft" badge দেখাবে
+- **"সক্রিয় করুন" / "Activate" button** — draft সম্পত্তিতে, paid user হলে click করে active করা যাবে। Trial user হলে "সাবস্ক্রিপশন কিনুন" message দেখাবে
+- **Form-এ "ড্রাফট হিসেবে সংরক্ষণ করুন" option** — trial user হলে save button-এ automatically draft হিসেবে save হবে, সাথে info message দেখাবে
+- **Draft property sorting** — Active properties আগে, drafts পরে দেখাবে
 
-3. Settings page-এ language option visibility improve করবো
-- বাংলা/English switch যেন clearly দেখা যায় সেটা adjust করবো
-- দরকার হলে profile/settings area-তে আরও visible position-এ আনবো
-- plain readable text রাখবো
+### 3) অন্যান্য pages
+- Rooms, Bills ইত্যাদি page-এ draft property-র রুম/বিল তৈরি করা যাবে না (শুধু active property দেখাবে dropdown-এ)
+- Admin panel-এ draft status দেখাবে
 
-4. Quick audit করবো advance settings-এ একই pattern আছে কিনা
-- future-এ আর কোনো settings save এ একই conflict error না আসে সেটা verify করবো
+### পরিবর্তিত files
+- `supabase/migrations/` — নতুন migration (status column)
+- `src/pages/Properties.tsx` — trial limit removal, draft logic, activate button
+- `src/integrations/supabase/types.ts` — auto-updated
 
-Technical notes:
-- `payment_accounts` table এখন single-row-per-owner pattern use করছে, তাই `owner_id` unique হওয়া দরকার
-- `landlord_settings` key-value settings table, তাই `(owner_id, key)` unique হওয়া দরকার
-- এটি schema fix; frontend logic মূলত ঠিকই আছে

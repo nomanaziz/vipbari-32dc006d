@@ -347,6 +347,13 @@ const Tenants = () => {
           </p>
         </div>
         <div className="flex gap-2">
+          {(blockedUsers?.length || 0) > 0 && (
+            <Button variant="outline" size="sm" className="gap-1.5 text-xs sm:text-sm" onClick={() => setBlockedListOpen(true)}>
+              <ShieldBan className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">{language === "bn" ? "ব্লক তালিকা" : "Block List"}</span>
+              <Badge variant="secondary" className="ml-0.5 h-5 px-1.5 text-xs">{blockedUsers?.length}</Badge>
+            </Button>
+          )}
           <Button variant="outline" size="sm" className="gap-1.5 text-xs sm:text-sm" onClick={() => setLinkDialogOpen(true)}>
             <Link className="h-3.5 w-3.5" />
             <span className="hidden sm:inline">{language === "bn" ? "ভাড়াটিয়া লিংক" : "Link Tenant"}</span>

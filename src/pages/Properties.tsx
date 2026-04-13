@@ -59,6 +59,7 @@ type Property = {
   common_kitchens: number;
   common_stoves: number;
   utilities_included: boolean;
+  status: string;
 };
 
 type PropertyImage = { id: string; image_url: string; sort_order: number; property_id: string };

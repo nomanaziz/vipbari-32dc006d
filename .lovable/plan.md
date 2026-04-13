@@ -1,35 +1,41 @@
 
 
-# সম্পত্তি Draft/Active স্ট্যাটাস ফিচার
+# ভাড়াটিয়া ফর্মে দুইটি পরিবর্তন
 
-## সমস্যা
-Trial period-এ শুধু ১টি সম্পত্তি add করা যায়। ব্যবহারকারী আরো add করতে চাইলে block হয়ে যায়।
+## পরিবর্তন ১: শিক্ষাগত যোগ্যতা Select + Custom
 
-## সমাধান
-সম্পত্তি add-এর limit তুলে দেওয়া হবে। Trial user-রা যতখুশি সম্পত্তি add করতে পারবে, কিন্তু trial-এ সেগুলো **draft** হিসেবে save হবে। Subscription কেনার পর draft গুলো **active** করা যাবে।
+**বর্তমান অবস্থা:** Education field একটি plain text Input (line 392-395)
 
-## পরিবর্তন
+**পরিবর্তন:** Select dropdown দিয়ে বাংলাদেশী শিক্ষাগত যোগ্যতা options + "অন্যান্য" option-এ custom text input
 
-### 1) Database Migration
-`properties` table-এ `status` column যোগ:
-```sql
-ALTER TABLE public.properties ADD COLUMN status text NOT NULL DEFAULT 'active';
-```
+Options:
+- অশিক্ষিত / Illiterate
+- পঞ্চম পাস / PSC
+- অষ্টম পাস / JSC
+- এসএসসি / SSC
+- এইচএসসি / HSC
+- ডিপ্লোমা / Diploma
+- অনার্স / Honours
+- বিএসসি / BSc
+- মাস্টার্স / Masters
+- এমএসসি / MSc
+- এমবিএ / MBA
+- এমবিবিএস / MBBS
+- পিএইচডি / PhD
+- অন্যান্য / Other (custom text input দেখাবে)
 
-### 2) Properties.tsx পরিবর্তন
-- **Trial limit সরানো** — `canAddProperty` check আর block করবে না
-- **Create mutation**: Trial user হলে `status: 'draft'` দিয়ে insert, paid user হলে `status: 'active'`
-- **Property card-এ Draft badge** — draft সম্পত্তিতে "ড্রাফট" / "Draft" badge দেখাবে
-- **"সক্রিয় করুন" / "Activate" button** — draft সম্পত্তিতে, paid user হলে click করে active করা যাবে। Trial user হলে "সাবস্ক্রিপশন কিনুন" message দেখাবে
-- **Form-এ "ড্রাফট হিসেবে সংরক্ষণ করুন" option** — trial user হলে save button-এ automatically draft হিসেবে save হবে, সাথে info message দেখাবে
-- **Draft property sorting** — Active properties আগে, drafts পরে দেখাবে
+## পরিবর্তন ২: Room select আগে আনা + বর্তমান ঠিকানা auto-fill
 
-### 3) অন্যান্য pages
-- Rooms, Bills ইত্যাদি page-এ draft property-র রুম/বিল তৈরি করা যাবে না (শুধু active property দেখাবে dropdown-এ)
-- Admin panel-এ draft status দেখাবে
+**বর্তমান অবস্থা:** 
+- Room selection ফর্মের একদম শেষে (line 730+)
+- নতুন tenant তৈরি করার সময় বর্তমান ঠিকানা editable fields দেখায়
+- Room select করলে property address auto-fill হয় না
 
-### পরিবর্তিত files
-- `supabase/migrations/` — নতুন migration (status column)
-- `src/pages/Properties.tsx` — trial limit removal, draft logic, activate button
-- `src/integrations/supabase/types.ts` — auto-updated
+**পরিবর্তন:**
+- "রুম ও অ্যাসাইনমেন্ট" section-টি **স্থায়ী ঠিকানার আগে** নিয়ে আসবো (Basic Info-র পরে)
+- নতুন tenant-এ room select করলে `availableRooms` থেকে ঐ room-এর property data নিয়ে বর্তমান ঠিকানা auto-fill + disabled দেখাবে
+- Room select না করলে manual editable fields দেখাবে
+
+### পরিবর্তিত file
+- `src/components/tenants/TenantFormDialog.tsx` — education dropdown, room section reorder, present address auto-fill
 

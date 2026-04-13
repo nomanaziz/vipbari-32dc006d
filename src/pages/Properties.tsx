@@ -248,10 +248,8 @@ const Properties = () => {
 
   const createMutation = useMutation({
     mutationFn: async (values: typeof form) => {
-      // Enforce trial property limit
-      if (isTrialOnly && propertyCount >= trialPropertyLimit) {
-        throw new Error(language === "bn" ? "ট্রায়াল পিরিয়ডে সর্বোচ্চ ১টি সম্পত্তি যোগ করা যায়। সাবস্ক্রিপশন কিনুন।" : "Trial allows max 1 property. Please subscribe for more.");
-      }
+      // Determine if this should be draft or active
+      const shouldBeDraft = isTrialOnly && activePropertyCount >= trialPropertyLimit;
       const facilityData = Object.fromEntries(facilityKeys.map(k => [k, values[k]]));
       const { data, error } = await supabase.from("properties").insert({
         name: values.name,
@@ -272,6 +270,7 @@ const Properties = () => {
         owner_id: effectiveOwnerId!,
         tolet_phone: values.tolet_phone,
         map_url: values.map_url,
+        status: shouldBeDraft ? 'draft' : 'active',
         ...facilityData,
         common_bathrooms: values.common_bathrooms,
         common_washrooms: values.common_washrooms,
@@ -287,15 +286,19 @@ const Properties = () => {
           selectedStaff.map(sid => ({ property_id: data.id, staff_user_id: sid, owner_id: effectiveOwnerId! }))
         );
       }
-      return data;
+      return { ...data, isDraft: shouldBeDraft };
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["properties"] });
       queryClient.invalidateQueries({ queryKey: ["property_images"] });
       queryClient.invalidateQueries({ queryKey: ["property_staff"] });
       setOpen(false);
       resetForm();
-      toast.success(t("property.added") || "Property added");
+      if (data.isDraft) {
+        toast.info(language === "bn" ? "ড্রাফট হিসেবে সংরক্ষিত। সাবস্ক্রিপশন কিনলে সক্রিয় হবে।" : "Saved as draft. Subscribe to activate.");
+      } else {
+        toast.success(t("property.added") || "Property added");
+      }
     },
     onError: (e) => toast.error(e.message),
   });

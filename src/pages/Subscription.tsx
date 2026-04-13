@@ -313,12 +313,12 @@ const Subscription = () => {
   const handleAddAllToCart = () => {
     if (!hasSelection) return;
     let added = 0;
-    if (roomCount > 0) { addItem({ type: "room_management", label: "Room/Flat", labelBn: "রুম/ফ্ল্যাট", count: roomCount, durationMonths: duration, unitPrice: PRICE_PER_ROOM, discountPercent: durationDiscountPct, couponCode, lineTotal: roomPrice.total }); added++; }
-    if (toletCount > 0) { addItem({ type: "tolet", label: "To-Let", labelBn: "টু-লেট", count: toletCount, durationMonths: duration, unitPrice: PRICE_PER_TOLET, discountPercent: durationDiscountPct, couponCode, lineTotal: toletPrice.total }); added++; }
-    if (saleCount > 0) { addItem({ type: "sale_listing", label: "Sale Listing", labelBn: "বিক্রয় লিস্টিং", count: saleCount, durationMonths: duration, unitPrice: PRICE_PER_SALE_LISTING, discountPercent: durationDiscountPct, couponCode, lineTotal: salePrice.total }); added++; }
-    if (boost3Count > 0) { addItem({ type: "boost_3_day", label: "3-Day Boost", labelBn: "৩ দিনের বুস্ট", count: boost3Count, durationMonths: 0, unitPrice: BOOST_PRICES["3_day"], discountPercent: 0, couponCode: "", lineTotal: boost3Price.total }); added++; }
-    if (boost7Count > 0) { addItem({ type: "boost_7_day", label: "7-Day Boost", labelBn: "৭ দিনের বুস্ট", count: boost7Count, durationMonths: 0, unitPrice: BOOST_PRICES["7_day"], discountPercent: 0, couponCode: "", lineTotal: boost7Price.total }); added++; }
-    if (smsCount > 0) { addItem({ type: "sms", label: "SMS", labelBn: "SMS", count: smsCount, durationMonths: 0, unitPrice: PRICE_PER_SMS, discountPercent: 0, couponCode: "", lineTotal: smsPrice.total }); added++; }
+    if (productFlags.room && roomCount > 0) { addItem({ type: "room_management", label: "Room/Flat", labelBn: "রুম/ফ্ল্যাট", count: roomCount, durationMonths: duration, unitPrice: PRICE_PER_ROOM, discountPercent: durationDiscountPct, couponCode, lineTotal: roomPrice.total }); added++; }
+    if (productFlags.tolet && toletCount > 0) { addItem({ type: "tolet", label: "To-Let", labelBn: "টু-লেট", count: toletCount, durationMonths: duration, unitPrice: PRICE_PER_TOLET, discountPercent: durationDiscountPct, couponCode, lineTotal: toletPrice.total }); added++; }
+    if (productFlags.sale_listing && saleCount > 0) { addItem({ type: "sale_listing", label: "Sale Listing", labelBn: "বিক্রয় লিস্টিং", count: saleCount, durationMonths: duration, unitPrice: PRICE_PER_SALE_LISTING, discountPercent: durationDiscountPct, couponCode, lineTotal: salePrice.total }); added++; }
+    if (productFlags.boost && boost3Count > 0) { addItem({ type: "boost_3_day", label: "3-Day Boost", labelBn: "৩ দিনের বুস্ট", count: boost3Count, durationMonths: 0, unitPrice: BOOST_PRICES["3_day"], discountPercent: 0, couponCode: "", lineTotal: boost3Price.total }); added++; }
+    if (productFlags.boost && boost7Count > 0) { addItem({ type: "boost_7_day", label: "7-Day Boost", labelBn: "৭ দিনের বুস্ট", count: boost7Count, durationMonths: 0, unitPrice: BOOST_PRICES["7_day"], discountPercent: 0, couponCode: "", lineTotal: boost7Price.total }); added++; }
+    if (productFlags.sms && smsCount > 0) { addItem({ type: "sms", label: "SMS", labelBn: "SMS", count: smsCount, durationMonths: 0, unitPrice: PRICE_PER_SMS, discountPercent: 0, couponCode: "", lineTotal: smsPrice.total }); added++; }
     if (added > 0) {
       toast.success(language === "bn" ? `${added}টি আইটেম কার্টে যোগ হয়েছে!` : `${added} item(s) added to cart!`);
       setIsCartOpen(true);

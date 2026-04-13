@@ -90,7 +90,23 @@ export default function TenantLandlord() {
     onError: (e: any) => toast.error(e.message),
   });
 
-  useEffect(() => {
+  // Check if landlord is blocked
+  const { data: blockRecord, refetch: refetchBlock } = useQuery({
+    queryKey: ["landlord-block-status", user?.id, landlordUserId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("user_blocks")
+        .select("id")
+        .eq("blocker_id", user!.id)
+        .eq("blocked_id", landlordUserId!)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!user && !!landlordUserId,
+  });
+
+  const isLandlordBlocked = !!blockRecord;
+
     if (!user) return;
     const fetchData = async () => {
       setLoading(true);

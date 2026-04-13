@@ -97,8 +97,8 @@ const TenantNotices = () => {
   };
 
   const isUnlinked = tenant && tenant.owner_id === user?.id && !acceptedRequest;
-  const pinnedNotice = notices?.[0];
-  const restNotices = notices?.slice(1) || [];
+  const pinnedNotices = notices?.filter((n: any) => n.is_pinned) || [];
+  const unpinnedNotices = notices?.filter((n: any) => !n.is_pinned) || [];
 
   const NoticeCard = ({ n, index, isPinned = false }: { n: any; index?: number; isPinned?: boolean }) => {
     const isExpanded = expandedId === n.id;
@@ -199,24 +199,26 @@ const TenantNotices = () => {
         </Card>
       ) : (
         <div className="space-y-6">
-          {pinnedNotice && (
+          {pinnedNotices.length > 0 && (
             <div>
               <h2 className="text-sm font-semibold text-muted-foreground mb-3 uppercase tracking-wider">
-                {L("Latest Notice", "সর্বশেষ ঘোষণা")}
+                {L("Pinned Notices", "পিন করা নোটিশ")}
               </h2>
-              <div className="max-w-2xl">
-                <NoticeCard n={pinnedNotice} isPinned />
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {pinnedNotices.map((n: any) => (
+                  <NoticeCard key={n.id} n={n} isPinned />
+                ))}
               </div>
             </div>
           )}
 
-          {restNotices.length > 0 && (
+          {unpinnedNotices.length > 0 && (
             <div>
               <h2 className="text-sm font-semibold text-muted-foreground mb-3 uppercase tracking-wider">
                 {L("All Notices", "সকল ঘোষণা")}
               </h2>
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {restNotices.map((n: any, i: number) => (
+                {unpinnedNotices.map((n: any, i: number) => (
                   <NoticeCard key={n.id} n={n} index={i} />
                 ))}
               </div>

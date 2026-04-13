@@ -1,66 +1,72 @@
 
 
-# ভাড়াটিয়া ফর্মের ৩টি বাগ ফিক্স
+# বুকিং মানি / অগ্রিম টাকা ট্র্যাকিং সিস্টেম
 
-## সমস্যা ১: Collapsible section গুলো টাইপ করলে বন্ধ হয়ে যায়
+## বর্তমান অবস্থা
+- `tenants` table-এ `advance_balance` (numeric) column আছে — শুধু একটা number, কোনো transaction history নেই
+- Accounting page-এ manual income/expense entry আছে, কিন্তু booking money এর dedicated tracking নেই
 
-**Root Cause:** `SectionCollapsible` component টি `TenantFormDialog` এর ভিতরে define করা আছে (line 332-342)। প্রতিটি re-render এ React এটাকে **নতুন component** মনে করে, তাই unmount/remount হয় এবং collapsible এর open state হারিয়ে যায়।
+## কি তৈরি হবে
 
-**Fix:** `SectionCollapsible` কে component-এর বাইরে আলাদা function হিসেবে move করবো। এতে React component identity ঠিক থাকবে এবং typing এ collapse হবে না।
+**ভাড়াটিয়া-ভিত্তিক বুকিং মানি লেজার** — প্রতিটি টাকা জমা, কর্তন বা ফেরতের ইতিহাস রাখবে।
 
-## সমস্যা ২: স্থায়ী ঠিকানায় জেলা ও থানা মুছে যায়
+### পলিসি সাপোর্ট:
+1. **চুক্তি শেষে পূর্ণ ফেরত** — দোকান/মার্কেটের জন্য, চুক্তি শেষ হলে পুরো টাকা ফেরত
+2. **ভাড়া থেকে কর্তন** — বুকিং মানি থেকে মাসিক ভাড়া কেটে রাখা (যেমন শেষ ৬ মাসের ভাড়া)
+3. **ক্যাশ ফেরত** — নগদ টাকা ফেরত দেওয়া
 
-**Root Cause:** Collapsible re-mount issue সহ Select component গুলোর value management এ সমস্যা। Division change handler district/thana clear করে, কিন্তু same-value re-selection এও clear হতে পারে যদি normalization mismatch হয়।
+---
 
-**Fix:** 
-- Division change handler এ আরও robust check দিবো
-- District ও thana value retention নিশ্চিত করবো
-- Computed values (districts, thanas arrays) stable রাখবো
+## ১) Database Migration
 
-## সমস্যা ৩: পূর্ববর্তী বাড়িওয়ালার তথ্য auto-fill
-
-**বর্তমান অবস্থা:** Manual input fields আছে। Tenant release করার সময় `release_reason` ও `prev_leave_reason` DB-তে save হয়।
-
-**পরিকল্পনা:** 
-- নতুন tenant তৈরি করার সময়, phone number দিলে DB-তে check করবো যে এই phone-এ কোনো পুরানো inactive tenant আছে কিনা
-- যদি থাকে, তার `owner_id` থেকে পূর্ববর্তী বাড়িওয়ালার নাম/ফোন এবং `prev_leave_reason` auto-fill করবো
-- বাড়িওয়ালা চাইলে overwrite করতে পারবে (disabled করবো না)
-
-## পরিবর্তিত file
-- `src/components/tenants/TenantFormDialog.tsx`
-  - `SectionCollapsible` কে component-এর বাইরে নিয়ে যাওয়া
-  - Address cascading logic robust করা
-  - Phone number দিলে পুরানো tenant data fetch করে previous landlord auto-fill
-
-## Technical Details
-
-```text
-Current SectionCollapsible (BUGGY):
-  const TenantFormDialog = () => {
-    const SectionCollapsible = ({...}) => (  // ← re-created each render!
-      <Collapsible>...</Collapsible>
-    );
-  }
-
-Fixed:
-  const SectionCollapsible = ({...}) => (   // ← stable identity
-    <Collapsible>...</Collapsible>
-  );
-  const TenantFormDialog = () => {
-    // uses SectionCollapsible from outer scope
-  }
+নতুন `booking_transactions` table:
+```sql
+CREATE TABLE public.booking_transactions (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  owner_id uuid NOT NULL,
+  tenant_id uuid NOT NULL,
+  type text NOT NULL DEFAULT 'deposit',  -- deposit, rent_deduct, cash_refund, full_refund
+  amount numeric NOT NULL DEFAULT 0,
+  description text DEFAULT '',
+  transaction_date date NOT NULL DEFAULT CURRENT_DATE,
+  created_at timestamptz DEFAULT now()
+);
+-- RLS: owner can manage, tenant can view own
 ```
 
-Previous landlord auto-fill flow:
-```text
-Phone input → debounced query → 
-  supabase.from("tenants")
-    .select("*, profiles!inner(full_name, phone)")
-    .eq("phone", phoneValue)
-    .eq("status", "inactive")
-    .neq("owner_id", currentUserId)
-    .order("released_at", {ascending: false})
-    .limit(1)
-→ auto-fill prev_landlord_name, prev_landlord_phone, prev_leave_reason
-```
+`tenants` table-এ `advance_balance` column ইতোমধ্যে আছে — এটা `booking_transactions` sum থেকে auto-calculate হবে।
+
+## ২) TenantFormDialog.tsx পরিবর্তন
+- `advance_balance` field-এর label পরিবর্তন: "বুকিং মানি / অগ্রিম (৳)" 
+- এটা initial deposit হিসেবে save হবে + `booking_transactions`-এ "deposit" entry যোগ হবে
+
+## ৩) Tenants.tsx পরিবর্তন
+- প্রতিটি tenant card-এ **বুকিং ব্যালেন্স** দেখাবে (যদি > 0)
+- Tenant dropdown menu-তে নতুন option: **"বুকিং মানি ম্যানেজ"**
+- Click করলে **BookingMoneyDialog** খুলবে
+
+## ৪) নতুন Component: `BookingMoneyDialog.tsx`
+
+Dialog-এ দেখাবে:
+- **বর্তমান ব্যালেন্স** (মোট জমা - মোট কর্তন/ফেরত)
+- **Transaction history** — তারিখ, ধরন, পরিমাণ
+- **৩টি Action button:**
+  - **➕ জমা যোগ করুন** — নতুন deposit (পরিমাণ + বিবরণ)
+  - **🏠 ভাড়া থেকে কাটুন** — rent deduction (পরিমাণ + কোন মাসের ভাড়া)
+  - **💵 ক্যাশ ফেরত** — cash refund (পরিমাণ + বিবরণ)
+- প্রতিটি transaction accounting_entries তেও auto-entry করবে
+
+## ৫) Accounting integration
+- Booking money deposit → accounting-এ "advance_payment" income
+- Rent deduction → advance_balance কমবে, ভাড়া paid হিসেবে count হবে
+- Cash refund → accounting-এ "booking_refund" expense
+
+---
+
+### পরিবর্তিত/নতুন files:
+- `supabase/migrations/` — booking_transactions table + RLS
+- `src/components/tenants/BookingMoneyDialog.tsx` — নতুন
+- `src/pages/Tenants.tsx` — booking balance display + menu option
+- `src/components/tenants/TenantFormDialog.tsx` — label update
+- `src/components/accounting/AccountingEntryDialog.tsx` — নতুন category যোগ
 

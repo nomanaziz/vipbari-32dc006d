@@ -158,7 +158,33 @@ const Tenants = () => {
     enabled: !!effectiveOwnerId,
   });
 
-  const hasBills = (tenantId: string) => (tenantBillCounts?.[tenantId] || 0) > 0;
+  // Query blocked users by this landlord
+  const { data: blockedUsers, refetch: refetchBlocks } = useQuery({
+    queryKey: ["user-blocks", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("user_blocks")
+        .select("id, blocked_id, reason, created_at")
+        .eq("blocker_id", user!.id);
+      if (!data || data.length === 0) return [];
+      const blockedIds = data.map((b: any) => b.blocked_id);
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("user_id, full_name, phone")
+        .in("user_id", blockedIds);
+      const profileMap = Object.fromEntries((profiles || []).map((p: any) => [p.user_id, p]));
+      return data.map((b: any) => ({
+        ...b,
+        full_name: profileMap[b.blocked_id]?.full_name || "",
+        phone: profileMap[b.blocked_id]?.phone || "",
+      }));
+    },
+    enabled: !!user,
+  });
+
+  const blockedUserIds = new Set((blockedUsers || []).map((b: any) => b.blocked_id));
+  const [blockedListOpen, setBlockedListOpen] = useState(false);
+
 
   const deleteMutation = useMutation({
     mutationFn: async (tenant: any) => {

@@ -902,19 +902,25 @@ const Properties = () => {
               .map(ps => staffMembers?.find(s => s.user_id === ps.staff_user_id)?.full_name)
               .filter(Boolean);
             return (
-              <Card key={p.id} className="hover:shadow-md transition-shadow overflow-hidden">
+              <Card key={p.id} className={`hover:shadow-md transition-shadow overflow-hidden ${(p as any).status === 'draft' ? 'opacity-70 border-dashed' : ''}`}>
                 {coverImage && (
                   <div className="h-36 overflow-hidden">
                     <img src={coverImage.image_url} alt={p.name} className="w-full h-full object-cover" />
                   </div>
                 )}
                 <CardContent className="p-4">
-                  {/* Header: icon + name + type badge */}
+                  {/* Header: icon + name + type badge + draft badge */}
                   <div className="flex items-center gap-2">
                     <div className="p-1.5 rounded-md bg-primary/10 text-primary shrink-0">
                       <Building2 className="h-4 w-4" />
                     </div>
                     <h3 className="font-semibold text-base truncate flex-1">{p.name}</h3>
+                    {(p as any).status === 'draft' && (
+                      <Badge variant="outline" className="text-[10px] shrink-0 border-orange-400 text-orange-600 dark:text-orange-400">
+                        <FileText className="h-3 w-3 mr-0.5" />
+                        {language === "bn" ? "ড্রাফট" : "Draft"}
+                      </Badge>
+                    )}
                     <span className="text-[10px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground shrink-0">
                       {getTypeLabel(p.property_type)}
                     </span>

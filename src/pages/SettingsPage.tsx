@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Bell, BellOff, Loader2, Camera, ImagePlus, User, Lock, DoorOpen, Palette, CreditCard, Zap, Settings2 } from "lucide-react";
+import { Bell, BellOff, Loader2, Camera, ImagePlus, User, Lock, DoorOpen, Palette, CreditCard, Zap, Settings2, Globe } from "lucide-react";
 import { toast } from "sonner";
 import PaymentAccountCard from "@/components/settings/PaymentAccountCard";
 import { ColorPresetPicker } from "@/components/ColorPresetPicker";

@@ -109,6 +109,7 @@ export default function TenantLandlord() {
       if (!tenantIsSelfOwned) {
         landlordId = tenant.owner_id;
         setLandlordUserId(tenant.owner_id);
+      } else {
         const { data: acceptedReq } = await supabase
           .from("tolet_requests")
           .select("landlord_user_id, room_id")
@@ -120,6 +121,7 @@ export default function TenantLandlord() {
 
         if (acceptedReq) {
           landlordId = acceptedReq.landlord_user_id;
+          setLandlordUserId(acceptedReq.landlord_user_id);
           fallbackRoomId = acceptedReq.room_id;
         }
         setIsUnlinked(!acceptedReq);

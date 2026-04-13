@@ -687,6 +687,50 @@ const Tenants = () => {
           <TenantRegistrationPrint tenant={printTenant} familyMembers={printMembers} />
         </div>
       )}
+
+      {/* Blocked Users List Dialog */}
+      <Dialog open={blockedListOpen} onOpenChange={setBlockedListOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>{language === "bn" ? "ব্লক তালিকা" : "Blocked Users"}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2 max-h-[60vh] overflow-y-auto">
+            {(!blockedUsers || blockedUsers.length === 0) ? (
+              <p className="text-sm text-muted-foreground text-center py-6">
+                {language === "bn" ? "কোনো ব্লক করা ব্যবহারকারী নেই" : "No blocked users"}
+              </p>
+            ) : (
+              blockedUsers.map((b: any) => (
+                <div key={b.id} className="flex items-center justify-between p-3 rounded-lg border">
+                  <div>
+                    <p className="font-medium text-sm">{b.full_name || (language === "bn" ? "অজানা" : "Unknown")}</p>
+                    <p className="text-xs text-muted-foreground">{b.phone}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {language === "bn" ? "ব্লক করা হয়েছে" : "Blocked"}: {new Date(b.created_at).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={async () => {
+                      try {
+                        await supabase.from("user_blocks").delete().eq("id", b.id);
+                        refetchBlocks();
+                        toast.success(language === "bn" ? "আনব্লক করা হয়েছে" : "Unblocked");
+                      } catch (e: any) {
+                        toast.error(e.message);
+                      }
+                    }}
+                  >
+                    <ShieldCheck className="h-3.5 w-3.5 mr-1" />
+                    {language === "bn" ? "আনব্লক" : "Unblock"}
+                  </Button>
+                </div>
+              ))
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

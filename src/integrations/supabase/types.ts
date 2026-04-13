@@ -1030,6 +1030,7 @@ export type Database = {
           created_at: string
           description: string
           id: string
+          is_pinned: boolean
           owner_id: string
           target_id: string | null
           target_type: string
@@ -1040,6 +1041,7 @@ export type Database = {
           created_at?: string
           description?: string
           id?: string
+          is_pinned?: boolean
           owner_id: string
           target_id?: string | null
           target_type?: string
@@ -1050,6 +1052,7 @@ export type Database = {
           created_at?: string
           description?: string
           id?: string
+          is_pinned?: boolean
           owner_id?: string
           target_id?: string | null
           target_type?: string

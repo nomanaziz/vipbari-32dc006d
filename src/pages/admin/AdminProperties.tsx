@@ -126,6 +126,11 @@ const AdminProperties = () => {
                 <TableCell>{p.property_type}</TableCell>
                 <TableCell>{p.total_rooms}</TableCell>
                 <TableCell>
+                  <Badge variant={(p as any).status === 'draft' ? 'outline' : 'default'} className="text-[10px]">
+                    {(p as any).status === 'draft' ? (language === "bn" ? "ড্রাফট" : "Draft") : (language === "bn" ? "সক্রিয়" : "Active")}
+                  </Badge>
+                </TableCell>
+                <TableCell>
                   <div className="flex gap-1">
                     <Button variant="ghost" size="icon" title={language === "bn" ? "হস্তান্তর" : "Reassign"} onClick={() => setReassignItem({ id: p.id, name: p.name })}>
                       <UserPlus className="h-4 w-4" />

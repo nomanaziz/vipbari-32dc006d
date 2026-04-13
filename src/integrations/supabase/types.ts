@@ -209,6 +209,7 @@ export type Database = {
       }
       assets: {
         Row: {
+          add_to_accounting: boolean
           category: string
           condition: string
           created_at: string
@@ -221,10 +222,17 @@ export type Database = {
           owner_id: string
           property_id: string | null
           purchase_date: string | null
+          purchase_price: number
+          purchased_by: string
           room_id: string | null
           updated_at: string
+          vendor_name: string
+          vendor_phone: string
+          warranty_end_date: string | null
+          warranty_months: number
         }
         Insert: {
+          add_to_accounting?: boolean
           category?: string
           condition?: string
           created_at?: string
@@ -237,10 +245,17 @@ export type Database = {
           owner_id: string
           property_id?: string | null
           purchase_date?: string | null
+          purchase_price?: number
+          purchased_by?: string
           room_id?: string | null
           updated_at?: string
+          vendor_name?: string
+          vendor_phone?: string
+          warranty_end_date?: string | null
+          warranty_months?: number
         }
         Update: {
+          add_to_accounting?: boolean
           category?: string
           condition?: string
           created_at?: string
@@ -253,8 +268,14 @@ export type Database = {
           owner_id?: string
           property_id?: string | null
           purchase_date?: string | null
+          purchase_price?: number
+          purchased_by?: string
           room_id?: string | null
           updated_at?: string
+          vendor_name?: string
+          vendor_phone?: string
+          warranty_end_date?: string | null
+          warranty_months?: number
         }
         Relationships: [
           {

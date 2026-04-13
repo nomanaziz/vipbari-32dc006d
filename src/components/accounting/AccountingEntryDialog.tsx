@@ -32,6 +32,7 @@ const EXPENSE_CATEGORIES = [
   { value: "insurance", en: "Insurance", bn: "বীমা" },
   { value: "booking_refund", en: "Booking Refund", bn: "বুকিং ফেরত" },
   { value: "booking_rent_deduct", en: "Booking Rent Deduct", bn: "বুকিং ভাড়া কর্তন" },
+  { value: "asset_purchase", en: "Asset Purchase", bn: "সম্পদ ক্রয়" },
   { value: "other_expense", en: "Other Expense", bn: "অন্যান্য খরচ" },
 ];
 

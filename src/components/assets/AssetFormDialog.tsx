@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -51,6 +52,12 @@ export function AssetFormDialog({ open, onOpenChange, asset, onSuccess }: AssetF
   const [location, setLocation] = useState("");
   const [purchaseDate, setPurchaseDate] = useState("");
   const [notes, setNotes] = useState("");
+  const [purchasePrice, setPurchasePrice] = useState("");
+  const [warrantyMonths, setWarrantyMonths] = useState("");
+  const [vendorName, setVendorName] = useState("");
+  const [vendorPhone, setVendorPhone] = useState("");
+  const [purchasedBy, setPurchasedBy] = useState("");
+  const [addToAccounting, setAddToAccounting] = useState(true);
   const [loading, setLoading] = useState(false);
   const [properties, setProperties] = useState<any[]>([]);
   const [rooms, setRooms] = useState<any[]>([]);
@@ -84,16 +91,33 @@ export function AssetFormDialog({ open, onOpenChange, asset, onSuccess }: AssetF
       setLocation(asset.location || "");
       setPurchaseDate(asset.purchase_date || "");
       setNotes(asset.notes || "");
+      setPurchasePrice(asset.purchase_price ? String(asset.purchase_price) : "");
+      setWarrantyMonths(asset.warranty_months ? String(asset.warranty_months) : "");
+      setVendorName(asset.vendor_name || "");
+      setVendorPhone(asset.vendor_phone || "");
+      setPurchasedBy(asset.purchased_by || "");
+      setAddToAccounting(false);
     } else {
       setName(""); setCategory("other"); setCondition("good");
       setPropertyId(""); setRoomId(""); setFloor(0);
       setLocation(""); setPurchaseDate(""); setNotes("");
+      setPurchasePrice(""); setWarrantyMonths("");
+      setVendorName(""); setVendorPhone(""); setPurchasedBy("");
+      setAddToAccounting(true);
     }
   }, [asset, open]);
+
+  const calcWarrantyEndDate = (): string | null => {
+    if (!purchaseDate || !warrantyMonths || Number(warrantyMonths) <= 0) return null;
+    const d = new Date(purchaseDate);
+    d.setMonth(d.getMonth() + Number(warrantyMonths));
+    return d.toISOString().split("T")[0];
+  };
 
   const handleSubmit = async () => {
     if (!name.trim() || !user) return;
     setLoading(true);
+    const warrantyEnd = calcWarrantyEndDate();
     const payload = {
       owner_id: user.id,
       name: name.trim(),
@@ -105,6 +129,13 @@ export function AssetFormDialog({ open, onOpenChange, asset, onSuccess }: AssetF
       location: location.trim(),
       purchase_date: purchaseDate || null,
       notes: notes.trim(),
+      purchase_price: purchasePrice ? parseFloat(purchasePrice) : 0,
+      warranty_months: warrantyMonths ? parseInt(warrantyMonths) : 0,
+      warranty_end_date: warrantyEnd,
+      vendor_name: vendorName.trim(),
+      vendor_phone: vendorPhone.trim(),
+      purchased_by: purchasedBy.trim(),
+      add_to_accounting: !asset && addToAccounting,
     };
 
     let error;
@@ -112,6 +143,17 @@ export function AssetFormDialog({ open, onOpenChange, asset, onSuccess }: AssetF
       ({ error } = await supabase.from("assets").update(payload).eq("id", asset.id));
     } else {
       ({ error } = await supabase.from("assets").insert(payload));
+      // Add accounting entry if requested (only for new assets)
+      if (!error && addToAccounting && purchasePrice && parseFloat(purchasePrice) > 0) {
+        await supabase.from("accounting_entries").insert({
+          owner_id: user.id,
+          type: "expense",
+          category: "asset_purchase",
+          entry_date: purchaseDate || new Date().toISOString().split("T")[0],
+          description: `${L("Asset Purchase", "সম্পদ ক্রয়")}: ${name.trim()}${vendorName.trim() ? ` (${vendorName.trim()})` : ""}`,
+          amount: parseFloat(purchasePrice),
+        });
+      }
     }
 
     setLoading(false);
@@ -193,14 +235,66 @@ export function AssetFormDialog({ open, onOpenChange, asset, onSuccess }: AssetF
               <Input value={location} onChange={e => setLocation(e.target.value)} placeholder={L("e.g. Rooftop", "যেমন: ছাদ")} />
             </div>
           </div>
-          <div>
-            <Label>{L("Purchase Date", "ক্রয়ের তারিখ")}</Label>
-            <Input type="date" value={purchaseDate} onChange={e => setPurchaseDate(e.target.value)} />
+
+          {/* Purchase & Warranty Section */}
+          <div className="border-t pt-4 mt-2">
+            <h4 className="text-sm font-semibold mb-3">{L("Purchase & Warranty", "ক্রয় ও ওয়ারেন্টি")}</h4>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>{L("Purchase Price (৳)", "ক্রয়মূল্য (৳)")}</Label>
+                <Input type="number" min="0" step="0.01" value={purchasePrice} onChange={e => setPurchasePrice(e.target.value)} placeholder="0" />
+              </div>
+              <div>
+                <Label>{L("Purchase Date", "ক্রয়ের তারিখ")}</Label>
+                <Input type="date" value={purchaseDate} onChange={e => setPurchaseDate(e.target.value)} />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3 mt-3">
+              <div>
+                <Label>{L("Warranty (Months)", "ওয়ারেন্টি (মাস)")}</Label>
+                <Input type="number" min="0" value={warrantyMonths} onChange={e => setWarrantyMonths(e.target.value)} placeholder="0" />
+              </div>
+              <div>
+                <Label>{L("Purchased By", "কে কিনেছেন")}</Label>
+                <Input value={purchasedBy} onChange={e => setPurchasedBy(e.target.value)} placeholder={L("Buyer name", "ক্রেতার নাম")} />
+              </div>
+            </div>
           </div>
+
+          {/* Vendor Section */}
+          <div className="border-t pt-4 mt-2">
+            <h4 className="text-sm font-semibold mb-3">{L("Vendor Information", "ভেন্ডর তথ্য")}</h4>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>{L("Vendor/Shop Name", "ভেন্ডর/দোকানের নাম")}</Label>
+                <Input value={vendorName} onChange={e => setVendorName(e.target.value)} placeholder={L("e.g. ABC Electronics", "যেমন: ABC ইলেকট্রনিক্স")} />
+              </div>
+              <div>
+                <Label>{L("Vendor Phone", "ভেন্ডরের ফোন")}</Label>
+                <Input value={vendorPhone} onChange={e => setVendorPhone(e.target.value)} placeholder="01XXXXXXXXX" />
+              </div>
+            </div>
+          </div>
+
           <div>
             <Label>{L("Notes", "নোট")}</Label>
             <Textarea value={notes} onChange={e => setNotes(e.target.value)} rows={2} />
           </div>
+
+          {/* Accounting checkbox - only for new assets */}
+          {!asset && (
+            <div className="flex items-center gap-2 border-t pt-3">
+              <Checkbox
+                id="addToAccounting"
+                checked={addToAccounting}
+                onCheckedChange={(v) => setAddToAccounting(!!v)}
+              />
+              <Label htmlFor="addToAccounting" className="cursor-pointer text-sm">
+                {L("Add to accounting as expense", "হিসাবে খরচ হিসেবে যোগ করুন")}
+              </Label>
+            </div>
+          )}
+
           <Button onClick={handleSubmit} disabled={loading || !name.trim()} className="w-full">
             {loading ? L("Saving...", "সংরক্ষণ হচ্ছে...") : asset ? L("Update", "আপডেট করুন") : L("Add", "যোগ করুন")}
           </Button>

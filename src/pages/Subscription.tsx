@@ -142,6 +142,11 @@ const Subscription = () => {
   const [paymentHistory, setPaymentHistory] = useState<any[]>([]);
   const [landlordDiscount, setLandlordDiscount] = useState<{ discount_type: string; discount_percent: number } | null>(null);
 
+  // Product visibility flags from admin settings
+  const [productFlags, setProductFlags] = useState({
+    room: true, tolet: true, sale_listing: true, boost: true, sms: false,
+  });
+
   // Boost & SMS balances
   const [boostBalances, setBoostBalances] = useState<any[]>([]);
   const [smsBalance, setSmsBalance] = useState({ total: 0, used: 0 });

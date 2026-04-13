@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { Save } from "lucide-react";
 import AdvanceSettingsTab from "@/components/settings/AdvanceSettingsTab";
@@ -28,6 +29,11 @@ const defaultSettings = {
   bank_routing_number: "",
   maintenance_mode: "false",
   announcement: "",
+  product_room_enabled: "true",
+  product_tolet_enabled: "true",
+  product_sale_listing_enabled: "true",
+  product_boost_enabled: "true",
+  product_sms_enabled: "false",
 };
 
 const AdminSettings = () => {
@@ -170,6 +176,31 @@ const AdminSettings = () => {
                 <Input value={settings.bank_routing_number} onChange={(e) => update("bank_routing_number", e.target.value)} />
               </div>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Product Control */}
+        <Card>
+          <CardHeader><CardTitle>{language === "bn" ? "প্রোডাক্ট নিয়ন্ত্রণ" : "Product Control"}</CardTitle></CardHeader>
+          <CardContent className="grid gap-4">
+            <p className="text-sm text-muted-foreground">
+              {language === "bn" ? "যে প্রোডাক্ট বন্ধ করবেন সেটা গ্রাহকের সাবস্ক্রিপশন পেজে দেখাবে না।" : "Disabled products will be hidden from the subscription page."}
+            </p>
+            {[
+              { key: "product_room_enabled", label: "Room/Flat", labelBn: "রুম/ফ্ল্যাট" },
+              { key: "product_tolet_enabled", label: "To-Let", labelBn: "টু-লেট" },
+              { key: "product_sale_listing_enabled", label: "Sale Listing", labelBn: "বিক্রয় লিস্টিং" },
+              { key: "product_boost_enabled", label: "Boost", labelBn: "বুস্ট" },
+              { key: "product_sms_enabled", label: "SMS (API)", labelBn: "SMS (API)" },
+            ].map((product) => (
+              <div key={product.key} className="flex items-center justify-between">
+                <Label>{language === "bn" ? product.labelBn : product.label}</Label>
+                <Switch
+                  checked={settings[product.key as keyof typeof settings] === "true"}
+                  onCheckedChange={(checked) => update(product.key, checked ? "true" : "false")}
+                />
+              </div>
+            ))}
           </CardContent>
         </Card>
 

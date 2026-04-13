@@ -120,7 +120,7 @@ const Guests = () => {
           <SelectContent>
             <SelectItem value="all">{L("All", "সকল")}</SelectItem>
             <SelectItem value="active">{L("Active", "সক্রিয়")}</SelectItem>
-            <SelectItem value="pending">{L("Pending", "অপেক্ষমান")}</SelectItem>
+            <SelectItem value="pending">{L("Pending", "অপেক্ষমাণ")}</SelectItem>
             <SelectItem value="inactive">{L("Expired / Rejected", "মেয়াদোত্তীর্ণ / প্রত্যাখ্যাত")}</SelectItem>
           </SelectContent>
         </Select>
@@ -160,7 +160,7 @@ const Guests = () => {
                     )}
                     {g.status === "pending" && !isExpired && (
                       <Badge variant="secondary" className="text-xs">
-                        <Clock className="h-3 w-3 mr-1" />{L("Pending", "অপেক্ষমান")}
+                        <Clock className="h-3 w-3 mr-1" />{L("Pending", "অপেক্ষমাণ")}
                       </Badge>
                     )}
                     {g.status === "rejected" && (

@@ -375,6 +375,21 @@ const Properties = () => {
     },
   });
 
+  const activateMutation = useMutation({
+    mutationFn: async (id: string) => {
+      if (isTrialOnly && activePropertyCount >= trialPropertyLimit) {
+        throw new Error(language === "bn" ? "ট্রায়াল লিমিট পূর্ণ। সাবস্ক্রিপশন কিনুন।" : "Trial limit reached. Please subscribe.");
+      }
+      const { error } = await supabase.from("properties").update({ status: 'active' } as any).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["properties"] });
+      toast.success(language === "bn" ? "সম্পত্তি সক্রিয় করা হয়েছে" : "Property activated");
+    },
+    onError: (e) => toast.error(e.message),
+  });
+
   const resetForm = () => { setForm(defaultForm); setSelectedStaff([]); };
 
   const openEdit = (p: Property) => {

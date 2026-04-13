@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Bell, BellOff, Loader2, Camera, ImagePlus, User, Lock, DoorOpen, Palette, CreditCard, Zap, Settings2 } from "lucide-react";
+import { Bell, BellOff, Loader2, Camera, ImagePlus, User, Lock, DoorOpen, Palette, CreditCard, Zap, Settings2, Globe } from "lucide-react";
 import { toast } from "sonner";
 import PaymentAccountCard from "@/components/settings/PaymentAccountCard";
 import { ColorPresetPicker } from "@/components/ColorPresetPicker";
@@ -48,7 +48,7 @@ async function compressImage(file: File): Promise<Blob> {
 }
 
 const SettingsPage = () => {
-  const { t, language } = useLanguage();
+  const { t, language, setLanguage } = useLanguage();
   const { user, role, profile, refreshProfile } = useAuth();
   const { isSupported, isSubscribed, subscribe, unsubscribe, loading: notifLoading } = usePushNotifications();
 
@@ -197,6 +197,32 @@ const SettingsPage = () => {
             <CardContent>
               <p className="text-sm text-muted-foreground mb-4">{t("settings.color_theme_desc")}</p>
               <ColorPresetPicker />
+            </CardContent>
+          </Card>
+
+          {/* Language */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Globe className="h-5 w-5" />
+                {language === "bn" ? "ভাষা সেটিংস" : "Language Settings"}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex gap-4">
+                <Button
+                  variant={language === "bn" ? "default" : "outline"}
+                  onClick={() => setLanguage("bn")}
+                >
+                  বাংলা
+                </Button>
+                <Button
+                  variant={language === "en" ? "default" : "outline"}
+                  onClick={() => setLanguage("en")}
+                >
+                  English
+                </Button>
+              </div>
             </CardContent>
           </Card>
 

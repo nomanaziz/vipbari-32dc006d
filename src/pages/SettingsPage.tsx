@@ -200,6 +200,32 @@ const SettingsPage = () => {
             </CardContent>
           </Card>
 
+          {/* Language */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Globe className="h-5 w-5" />
+                {language === "bn" ? "ভাষা সেটিংস" : "Language Settings"}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex gap-4">
+                <Button
+                  variant={language === "bn" ? "default" : "outline"}
+                  onClick={() => setLanguage("bn")}
+                >
+                  বাংলা
+                </Button>
+                <Button
+                  variant={language === "en" ? "default" : "outline"}
+                  onClick={() => setLanguage("en")}
+                >
+                  English
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Profile */}
           <Card>
             <CardHeader>

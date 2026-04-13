@@ -11,7 +11,8 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Plus, Users, Pencil, Trash2, Phone, Search, MapPin, CalendarDays, MoreVertical, UserPlus, UserMinus, Link, RotateCcw, Archive, ArrowRightLeft, ShieldBan, Printer } from "lucide-react";
+import { Plus, Users, Pencil, Trash2, Phone, Search, MapPin, CalendarDays, MoreVertical, UserPlus, UserMinus, Link, RotateCcw, Archive, ArrowRightLeft, ShieldBan, ShieldCheck, Printer } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 
 import TenantFormDialog from "@/components/tenants/TenantFormDialog";

@@ -5,6 +5,7 @@ import { Heart, MapPin, BedDouble, Bath, Maximize, Building2 } from "lucide-reac
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useNavigate } from "react-router-dom";
 import { getDefaultImage } from "@/lib/defaultImages";
+import { getPropertyTypeLabel } from "@/lib/propertyTypes";
 
 interface SaleListingCardProps {
   listing: {
@@ -33,14 +34,7 @@ export function SaleListingCard({ listing, isFavorited, onToggleFavorite, showAc
   const navigate = useNavigate();
   const imageUrl = listing.images?.[0]?.image_url || getDefaultImage(listing.property_type);
 
-  const typeLabels: Record<string, string> = {
-    flat: language === "bn" ? "ফ্ল্যাট" : "Flat",
-    apartment: language === "bn" ? "অ্যাপার্টমেন্ট" : "Apartment",
-    land: language === "bn" ? "জমি" : "Land",
-    house: language === "bn" ? "বাড়ি" : "House",
-    shop: language === "bn" ? "দোকান" : "Shop",
-    tin_shed: language === "bn" ? "টিনশেড" : "Tin Shed",
-  };
+  const getTypeLabel = (v: string) => getPropertyTypeLabel(v, language);
 
   return (
     <Card
@@ -96,7 +90,7 @@ export function SaleListingCard({ listing, isFavorited, onToggleFavorite, showAc
         <div className="flex items-center gap-3 text-xs text-muted-foreground">
           <span className="flex items-center gap-1">
             <Building2 className="h-3 w-3" />
-            {typeLabels[listing.property_type] || listing.property_type}
+            {getTypeLabel(listing.property_type)}
           </span>
           {listing.bedrooms > 0 && (
             <span className="flex items-center gap-1">

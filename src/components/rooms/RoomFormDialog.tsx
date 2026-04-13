@@ -105,8 +105,20 @@ const RoomFormDialog = ({ open, onOpenChange, editing, properties, onSubmit, isP
   const roomTypeConfig: Record<string, { options: string[]; default: string }> = {
     building: { options: ["flat", "shop"], default: "flat" },
     house: { options: ["room"], default: "room" },
-    shop: { options: ["shop"], default: "shop" },
+    duplex: { options: ["room", "flat"], default: "flat" },
+    semi_pucca: { options: ["room"], default: "room" },
     tin_shed: { options: ["room"], default: "room" },
+    sublet: { options: ["room"], default: "room" },
+    mess: { options: ["room"], default: "room" },
+    hostel: { options: ["room"], default: "room" },
+    slum: { options: ["room"], default: "room" },
+    shop: { options: ["shop"], default: "shop" },
+    office: { options: ["room", "shop"], default: "room" },
+    warehouse: { options: ["room", "shop"], default: "room" },
+    factory: { options: ["room", "shop"], default: "room" },
+    commercial_complex: { options: ["shop"], default: "shop" },
+    market: { options: ["shop"], default: "shop" },
+    plot: { options: ["room"], default: "room" },
   };
 
   const currentConfig = roomTypeConfig[effectivePropertyType || ""] || { options: ["room", "flat", "shop"], default: "room" };

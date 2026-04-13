@@ -422,7 +422,7 @@ const Subscription = () => {
                 ) : (
                   paymentHistory.map((p) => {
                     const statusConfig: Record<string, { label: string; labelBn: string; className: string }> = {
-                      pending: { label: "Pending", labelBn: "অপেক্ষমান", className: "bg-yellow-500/10 text-yellow-600 border-yellow-500/20" },
+                      pending: { label: "Pending", labelBn: "অপেক্ষমাণ", className: "bg-yellow-500/10 text-yellow-600 border-yellow-500/20" },
                       manual_pending: { label: "Awaiting Approval", labelBn: "অনুমোদনের অপেক্ষায়", className: "bg-orange-500/10 text-orange-600 border-orange-500/20" },
                       completed: { label: "Completed", labelBn: "সম্পন্ন", className: "bg-green-500/10 text-green-600 border-green-500/20" },
                       rejected: { label: "Rejected", labelBn: "প্রত্যাখ্যাত", className: "bg-red-500/10 text-red-600 border-red-500/20" },

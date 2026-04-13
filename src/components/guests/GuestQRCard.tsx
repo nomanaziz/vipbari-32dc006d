@@ -70,7 +70,7 @@ export function GuestQRCard({ guest, language, onEdit, onDelete, onGenerateQR, o
                 </Badge>
               ) : (
                 <Badge variant="secondary" className="text-xs">
-                  <Clock className="h-3 w-3 mr-1" />{L("Pending", "অপেক্ষমান")}
+                  <Clock className="h-3 w-3 mr-1" />{L("Pending", "অপেক্ষমাণ")}
                 </Badge>
               )}
               {isExpired && (

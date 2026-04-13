@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Plus, Users, Pencil, Trash2, Phone, Search, MapPin, CalendarDays, MoreVertical, UserPlus, UserMinus, Link, RotateCcw, Archive, ArrowRightLeft, ShieldBan, ShieldCheck, Printer } from "lucide-react";
+import { Plus, Users, Pencil, Trash2, Phone, Search, MapPin, CalendarDays, MoreVertical, UserPlus, UserMinus, Link, RotateCcw, Archive, ArrowRightLeft, ShieldBan, ShieldCheck, Printer, Wallet } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 
@@ -25,6 +25,7 @@ import TenantStatsCards from "@/components/tenants/TenantStatsCards";
 import LinkTenantDialog from "@/components/tenants/LinkTenantDialog";
 import TenantReleaseDialog from "@/components/tenants/TenantReleaseDialog";
 import RoomShiftDialog from "@/components/tenants/RoomShiftDialog";
+import BookingMoneyDialog from "@/components/tenants/BookingMoneyDialog";
 
 const Tenants = () => {
   const { language, t } = useLanguage();
@@ -43,6 +44,7 @@ const Tenants = () => {
   const [shiftTenant, setShiftTenant] = useState<any>(null);
   const [printTenant, setPrintTenant] = useState<any>(null);
   const [printMembers, setPrintMembers] = useState<any[]>([]);
+  const [bookingTenant, setBookingTenant] = useState<any>(null);
   const { data: rooms } = useQuery({
     queryKey: ["rooms-for-assign", effectiveOwnerId],
     queryFn: async () => {
@@ -490,6 +492,12 @@ const Tenants = () => {
                               {tenant.billing_type === "billing" ? (language === "bn" ? "বিলিং" : "Billing") : tenant.billing_type === "free" ? (language === "bn" ? "ফ্রি" : "Free") : (language === "bn" ? "পার্সোনাল" : "Personal")}
                             </Badge>
                           )}
+                          {Number(tenant.advance_balance || 0) > 0 && (
+                            <Badge variant="outline" className="text-xs gap-1 cursor-pointer" onClick={() => setBookingTenant(tenant)}>
+                              <Wallet className="h-3 w-3" />
+                              ৳{Number(tenant.advance_balance).toLocaleString()}
+                            </Badge>
+                          )}
                         </div>
                         {/* Meta info */}
                         <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
@@ -555,6 +563,10 @@ const Tenants = () => {
                             <DropdownMenuItem className="text-orange-600" onClick={() => setReleaseTenant(tenant)}>
                               <UserMinus className="h-3.5 w-3.5 mr-2" />
                               {language === "bn" ? "রিলিজ করুন" : "Release"}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setBookingTenant(tenant)}>
+                              <Wallet className="h-3.5 w-3.5 mr-2" />
+                              {language === "bn" ? "বুকিং মানি" : "Booking Money"}
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => setShiftTenant(tenant)}>
                               <ArrowRightLeft className="h-3.5 w-3.5 mr-2" />
@@ -687,6 +699,13 @@ const Tenants = () => {
           <TenantRegistrationPrint tenant={printTenant} familyMembers={printMembers} />
         </div>
       )}
+
+      {/* Booking Money Dialog */}
+      <BookingMoneyDialog
+        open={!!bookingTenant}
+        onOpenChange={(v) => { if (!v) setBookingTenant(null); }}
+        tenant={bookingTenant}
+      />
 
       {/* Blocked Users List Dialog */}
       <Dialog open={blockedListOpen} onOpenChange={setBlockedListOpen}>

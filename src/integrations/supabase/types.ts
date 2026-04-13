@@ -366,6 +366,47 @@ export type Database = {
           },
         ]
       }
+      booking_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          description: string
+          id: string
+          owner_id: string
+          tenant_id: string
+          transaction_date: string
+          type: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          description?: string
+          id?: string
+          owner_id: string
+          tenant_id: string
+          transaction_date?: string
+          type?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          description?: string
+          id?: string
+          owner_id?: string
+          tenant_id?: string
+          transaction_date?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_transactions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       boost_balances: {
         Row: {
           boost_type: string

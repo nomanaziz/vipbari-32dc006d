@@ -1,41 +1,66 @@
 
 
-# ভাড়াটিয়া ফর্মে দুইটি পরিবর্তন
+# ভাড়াটিয়া ফর্মের ৩টি বাগ ফিক্স
 
-## পরিবর্তন ১: শিক্ষাগত যোগ্যতা Select + Custom
+## সমস্যা ১: Collapsible section গুলো টাইপ করলে বন্ধ হয়ে যায়
 
-**বর্তমান অবস্থা:** Education field একটি plain text Input (line 392-395)
+**Root Cause:** `SectionCollapsible` component টি `TenantFormDialog` এর ভিতরে define করা আছে (line 332-342)। প্রতিটি re-render এ React এটাকে **নতুন component** মনে করে, তাই unmount/remount হয় এবং collapsible এর open state হারিয়ে যায়।
 
-**পরিবর্তন:** Select dropdown দিয়ে বাংলাদেশী শিক্ষাগত যোগ্যতা options + "অন্যান্য" option-এ custom text input
+**Fix:** `SectionCollapsible` কে component-এর বাইরে আলাদা function হিসেবে move করবো। এতে React component identity ঠিক থাকবে এবং typing এ collapse হবে না।
 
-Options:
-- অশিক্ষিত / Illiterate
-- পঞ্চম পাস / PSC
-- অষ্টম পাস / JSC
-- এসএসসি / SSC
-- এইচএসসি / HSC
-- ডিপ্লোমা / Diploma
-- অনার্স / Honours
-- বিএসসি / BSc
-- মাস্টার্স / Masters
-- এমএসসি / MSc
-- এমবিএ / MBA
-- এমবিবিএস / MBBS
-- পিএইচডি / PhD
-- অন্যান্য / Other (custom text input দেখাবে)
+## সমস্যা ২: স্থায়ী ঠিকানায় জেলা ও থানা মুছে যায়
 
-## পরিবর্তন ২: Room select আগে আনা + বর্তমান ঠিকানা auto-fill
+**Root Cause:** Collapsible re-mount issue সহ Select component গুলোর value management এ সমস্যা। Division change handler district/thana clear করে, কিন্তু same-value re-selection এও clear হতে পারে যদি normalization mismatch হয়।
 
-**বর্তমান অবস্থা:** 
-- Room selection ফর্মের একদম শেষে (line 730+)
-- নতুন tenant তৈরি করার সময় বর্তমান ঠিকানা editable fields দেখায়
-- Room select করলে property address auto-fill হয় না
+**Fix:** 
+- Division change handler এ আরও robust check দিবো
+- District ও thana value retention নিশ্চিত করবো
+- Computed values (districts, thanas arrays) stable রাখবো
 
-**পরিবর্তন:**
-- "রুম ও অ্যাসাইনমেন্ট" section-টি **স্থায়ী ঠিকানার আগে** নিয়ে আসবো (Basic Info-র পরে)
-- নতুন tenant-এ room select করলে `availableRooms` থেকে ঐ room-এর property data নিয়ে বর্তমান ঠিকানা auto-fill + disabled দেখাবে
-- Room select না করলে manual editable fields দেখাবে
+## সমস্যা ৩: পূর্ববর্তী বাড়িওয়ালার তথ্য auto-fill
 
-### পরিবর্তিত file
-- `src/components/tenants/TenantFormDialog.tsx` — education dropdown, room section reorder, present address auto-fill
+**বর্তমান অবস্থা:** Manual input fields আছে। Tenant release করার সময় `release_reason` ও `prev_leave_reason` DB-তে save হয়।
+
+**পরিকল্পনা:** 
+- নতুন tenant তৈরি করার সময়, phone number দিলে DB-তে check করবো যে এই phone-এ কোনো পুরানো inactive tenant আছে কিনা
+- যদি থাকে, তার `owner_id` থেকে পূর্ববর্তী বাড়িওয়ালার নাম/ফোন এবং `prev_leave_reason` auto-fill করবো
+- বাড়িওয়ালা চাইলে overwrite করতে পারবে (disabled করবো না)
+
+## পরিবর্তিত file
+- `src/components/tenants/TenantFormDialog.tsx`
+  - `SectionCollapsible` কে component-এর বাইরে নিয়ে যাওয়া
+  - Address cascading logic robust করা
+  - Phone number দিলে পুরানো tenant data fetch করে previous landlord auto-fill
+
+## Technical Details
+
+```text
+Current SectionCollapsible (BUGGY):
+  const TenantFormDialog = () => {
+    const SectionCollapsible = ({...}) => (  // ← re-created each render!
+      <Collapsible>...</Collapsible>
+    );
+  }
+
+Fixed:
+  const SectionCollapsible = ({...}) => (   // ← stable identity
+    <Collapsible>...</Collapsible>
+  );
+  const TenantFormDialog = () => {
+    // uses SectionCollapsible from outer scope
+  }
+```
+
+Previous landlord auto-fill flow:
+```text
+Phone input → debounced query → 
+  supabase.from("tenants")
+    .select("*, profiles!inner(full_name, phone)")
+    .eq("phone", phoneValue)
+    .eq("status", "inactive")
+    .neq("owner_id", currentUserId)
+    .order("released_at", {ascending: false})
+    .limit(1)
+→ auto-fill prev_landlord_name, prev_landlord_phone, prev_leave_reason
+```
 

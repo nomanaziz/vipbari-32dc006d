@@ -185,6 +185,8 @@ const Tenants = () => {
   const blockedUserIds = new Set((blockedUsers || []).map((b: any) => b.blocked_id));
   const [blockedListOpen, setBlockedListOpen] = useState(false);
 
+  const hasBills = (tenantId: string) => (tenantBillCounts?.[tenantId] || 0) > 0;
+
 
   const deleteMutation = useMutation({
     mutationFn: async (tenant: any) => {

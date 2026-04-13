@@ -172,13 +172,28 @@ const Subscription = () => {
     if (!user) return;
     setLoading(true);
 
-    const [subsRes, payRes, discountRes, boostRes, smsRes] = await Promise.all([
+    const [subsRes, payRes, discountRes, boostRes, smsRes, flagsRes] = await Promise.all([
       supabase.from("user_subscriptions").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
       supabase.from("subscription_payments").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
       supabase.from("landlord_discounts").select("discount_type, discount_percent").eq("user_id", user.id).eq("is_active", true).limit(1),
       supabase.from("boost_balances").select("*").eq("user_id", user.id),
       supabase.from("sms_balances").select("*").eq("user_id", user.id),
+      supabase.from("site_settings").select("key, value").in("key", ["product_room_enabled", "product_tolet_enabled", "product_sale_listing_enabled", "product_boost_enabled", "product_sms_enabled"]),
     ]);
+
+    // Parse product flags
+    if (flagsRes.data) {
+      const flags = { room: true, tolet: true, sale_listing: true, boost: true, sms: false };
+      flagsRes.data.forEach((s: any) => {
+        const val = typeof s.value === "string" ? s.value : JSON.stringify(s.value);
+        if (s.key === "product_room_enabled") flags.room = val === "true";
+        else if (s.key === "product_tolet_enabled") flags.tolet = val === "true";
+        else if (s.key === "product_sale_listing_enabled") flags.sale_listing = val === "true";
+        else if (s.key === "product_boost_enabled") flags.boost = val === "true";
+        else if (s.key === "product_sms_enabled") flags.sms = val === "true";
+      });
+      setProductFlags(flags);
+    }
 
     const allSubs = subsRes.data;
     if (allSubs) {

@@ -48,7 +48,7 @@ async function compressImage(file: File): Promise<Blob> {
 }
 
 const SettingsPage = () => {
-  const { t, language } = useLanguage();
+  const { t, language, setLanguage } = useLanguage();
   const { user, role, profile, refreshProfile } = useAuth();
   const { isSupported, isSubscribed, subscribe, unsubscribe, loading: notifLoading } = usePushNotifications();
 

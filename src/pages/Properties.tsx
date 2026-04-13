@@ -10,7 +10,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel } from "@/components/ui/select";
+import { propertyTypeGroups, getPropertyTypeLabel } from "@/lib/propertyTypes";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Plus, Building2, MapPin, Pencil, Trash2, Shield, Flame, Zap, Users, Wifi, Tv, Camera, ArrowUpFromLine, BatteryCharging, Car, Fuel, Droplets, Home, Phone, Map, ShoppingBag, ArrowRightLeft, Check, X, UserCheck, UserX } from "lucide-react";
 import { SellDialog } from "@/components/sale/SellDialog";
@@ -460,13 +461,7 @@ const Properties = () => {
     );
   };
 
-  const typeLabels: Record<string, string> = {
-    building: t("property.building") || "Building",
-    house: t("property.house") || "House",
-    
-    shop: t("property.shop") || "Shop",
-    tin_shed: language === "bn" ? "টিনশেড / কমন" : "Tin Shed / Common",
-  };
+  const getTypeLabel = (v: string) => getPropertyTypeLabel(v, language);
 
   return (
     <div className="space-y-6">
@@ -493,11 +488,16 @@ const Properties = () => {
                 <Select value={form.property_type} onValueChange={v => setForm(f => ({ ...f, property_type: v }))}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                    <SelectItem value="building">{typeLabels.building}</SelectItem>
-                    <SelectItem value="house">{typeLabels.house}</SelectItem>
-                    
-                    <SelectItem value="shop">{typeLabels.shop}</SelectItem>
-                    <SelectItem value="tin_shed">{typeLabels.tin_shed}</SelectItem>
+                    {propertyTypeGroups.map((group) => (
+                      <SelectGroup key={group.label_en}>
+                        <SelectLabel>{language === "bn" ? group.label_bn : group.label_en}</SelectLabel>
+                        {group.types.map((t) => (
+                          <SelectItem key={t.value} value={t.value}>
+                            {language === "bn" ? t.bn : t.en}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -897,7 +897,7 @@ const Properties = () => {
                     </div>
                     <h3 className="font-semibold text-base truncate flex-1">{p.name}</h3>
                     <span className="text-[10px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground shrink-0">
-                      {typeLabels[p.property_type] || p.property_type}
+                      {getTypeLabel(p.property_type)}
                     </span>
                   </div>
 

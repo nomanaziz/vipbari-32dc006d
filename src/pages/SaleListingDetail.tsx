@@ -16,6 +16,7 @@ import { TransferPropertyDialog } from "@/components/sale/TransferPropertyDialog
 import { toast } from "sonner";
 import { useState } from "react";
 import { getDefaultImage } from "@/lib/defaultImages";
+import { getPropertyTypeLabel } from "@/lib/propertyTypes";
 
 export default function SaleListingDetail() {
   const { id } = useParams();
@@ -144,14 +145,7 @@ export default function SaleListingDetail() {
   const mainImage = images[selectedImg]?.image_url || getDefaultImage(listing.property_type);
   const isOwner = user?.id === listing.owner_id;
 
-  const typeLabels: Record<string, string> = {
-    flat: language === "bn" ? "ফ্ল্যাট" : "Flat",
-    apartment: language === "bn" ? "অ্যাপার্টমেন্ট" : "Apartment",
-    land: language === "bn" ? "জমি" : "Land",
-    house: language === "bn" ? "বাড়ি" : "House",
-    shop: language === "bn" ? "দোকান" : "Shop",
-    tin_shed: language === "bn" ? "টিনশেড" : "Tin Shed",
-  };
+  const getTypeLabel = (v: string) => getPropertyTypeLabel(v, language);
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -215,7 +209,7 @@ export default function SaleListingDetail() {
             <div className="grid grid-cols-2 gap-3">
               <div className="flex items-center gap-2 text-sm">
                 <Building2 className="h-4 w-4 text-muted-foreground" />
-                {typeLabels[listing.property_type] || listing.property_type}
+                {getTypeLabel(listing.property_type)}
               </div>
               {listing.bedrooms > 0 && (
                 <div className="flex items-center gap-2 text-sm">

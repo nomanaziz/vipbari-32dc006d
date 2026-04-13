@@ -36,6 +36,13 @@ export function SaleFilters({ search, setSearch, propertyType, setPropertyType, 
           <SelectItem value="all">{language === "bn" ? "সব ধরন" : "All Types"}</SelectItem>
           <SelectItem value="flat">{language === "bn" ? "ফ্ল্যাট" : "Flat"}</SelectItem>
           <SelectItem value="apartment">{language === "bn" ? "অ্যাপার্টমেন্ট" : "Apartment"}</SelectItem>
+          <SelectItem value="building">{language === "bn" ? "পাকা বিল্ডিং" : "Building"}</SelectItem>
+          <SelectItem value="house">{language === "bn" ? "বাড়ি" : "House"}</SelectItem>
+          <SelectItem value="duplex">{language === "bn" ? "ডুপ্লেক্স" : "Duplex"}</SelectItem>
+          <SelectItem value="shop">{language === "bn" ? "দোকান" : "Shop"}</SelectItem>
+          <SelectItem value="office">{language === "bn" ? "অফিস" : "Office"}</SelectItem>
+          <SelectItem value="warehouse">{language === "bn" ? "গোডাউন" : "Warehouse"}</SelectItem>
+          <SelectItem value="plot">{language === "bn" ? "প্লট/জমি" : "Plot/Land"}</SelectItem>
           <SelectItem value="land">{language === "bn" ? "জমি" : "Land"}</SelectItem>
         </SelectContent>
       </Select>

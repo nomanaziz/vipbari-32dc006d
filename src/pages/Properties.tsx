@@ -13,7 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel } from "@/components/ui/select";
 import { propertyTypeGroups, getPropertyTypeLabel } from "@/lib/propertyTypes";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, Building2, MapPin, Pencil, Trash2, Shield, Flame, Zap, Users, Wifi, Tv, Camera, ArrowUpFromLine, BatteryCharging, Car, Fuel, Droplets, Home, Phone, Map, ShoppingBag, ArrowRightLeft, Check, X, UserCheck, UserX } from "lucide-react";
+import { Plus, Building2, MapPin, Pencil, Trash2, Shield, Flame, Zap, Users, Wifi, Tv, Camera, ArrowUpFromLine, BatteryCharging, Car, Fuel, Droplets, Home, Phone, Map, ShoppingBag, ArrowRightLeft, Check, X, UserCheck, UserX, FileText } from "lucide-react";
 import { SellDialog } from "@/components/sale/SellDialog";
 import PropertyHistoryDialog from "@/components/properties/PropertyHistoryDialog";
 import { toast } from "sonner";

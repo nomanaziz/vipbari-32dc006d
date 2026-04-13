@@ -1,45 +1,49 @@
 
 
-# প্রপার্টি Draft মোডে সংরক্ষণ
+# সম্পদ (Assets) — ক্রয় তথ্য, ওয়ারেন্টি ও হিসাব সংযোগ
 
-## সমস্যা
-ট্রায়াল ইউজার সর্বোচ্চ ১টি সম্পত্তি যোগ করতে পারে। লিমিট পূর্ণ হলে আর যোগ করা যায় না। ইউজার চায় draft আকারে সেভ করে রাখতে, পরে সাবস্ক্রিপশন কিনলে active করতে।
+## কি হবে
+Asset form-এ ক্রয়মূল্য, ওয়ারেন্টি, ভেন্ডর তথ্য এবং ক্রেতার নাম যোগ হবে। সম্পদ যোগ করলে স্বয়ংক্রিয়ভাবে accounting-এ expense entry তৈরি হবে। Asset list-এ ওয়ারেন্টি বাকি কতদিন আছে সেটাও দেখাবে।
 
-## সমাধান
+## Database Migration
 
-### ১) Database Migration
-`properties` table-এ নতুন column:
-```sql
-ALTER TABLE public.properties 
-  ADD COLUMN status text NOT NULL DEFAULT 'active';
-```
-- `active` = সচল সম্পত্তি (বর্তমান সব property এই status পাবে)
-- `draft` = ড্রাফট, ট্রায়াল লিমিটে গণনা হবে না
+`assets` table-এ নতুন columns:
 
-### ২) Properties.tsx পরিবর্তন
+| Column | Type | Default | বর্ণনা |
+|--------|------|---------|--------|
+| `purchase_price` | numeric | 0 | ক্রয়মূল্য (৳) |
+| `warranty_months` | integer | 0 | ওয়ারেন্টি (মাস) |
+| `warranty_end_date` | date | null | ওয়ারেন্টি শেষের তারিখ |
+| `vendor_name` | text | '' | ভেন্ডর/দোকানের নাম |
+| `vendor_phone` | text | '' | ভেন্ডরের ফোন নম্বর |
+| `purchased_by` | text | '' | কে কিনেছেন |
+| `add_to_accounting` | boolean | false | হিসাবে যোগ করতে চায় কিনা |
 
-**Create mutation:**
-- ট্রায়াল লিমিটে hit করলে error না দিয়ে `status: 'draft'` দিয়ে save করবে
-- Toast-এ জানাবে: "ড্রাফট হিসেবে সংরক্ষিত। সাবস্ক্রিপশন কিনলে সক্রিয় হবে।"
-- লিমিটের মধ্যে থাকলে `status: 'active'` দিয়ে save হবে
+## পরিবর্তন
 
-**Property list:**
-- Draft property গুলো আলাদা badge দেখাবে ("ড্রাফট" badge)
-- Draft property-তে "সক্রিয় করুন" button থাকবে
-- "সক্রিয় করুন" click করলে চেক করবে — সাবস্ক্রিপশন কিনেছে কিনা, active property limit-এর মধ্যে আছে কিনা
+### 1) `AssetFormDialog.tsx`
+- নতুন fields যোগ: ক্রয়মূল্য, ওয়ারেন্টি (মাস), ভেন্ডরের নাম, ভেন্ডরের ফোন, কে কিনেছেন
+- ক্রয়ের তারিখ ও ওয়ারেন্টি মাস দিলে warranty_end_date auto-calculate
+- "হিসাবে যোগ করুন" checkbox — checked থাকলে save করার সময় `accounting_entries`-তে `asset_purchase` category-তে expense entry insert হবে
+- Edit mode-এ accounting entry আবার তৈরি হবে না (শুধু নতুন asset-এ)
 
-**Property count:**
-- `propertyCount` গণনায় শুধু `status = 'active'` গুলো count হবে
-- `canAddProperty` চেক শুধু active property-র জন্য
+### 2) `Assets.tsx` (list page)
+- Table-এ নতুন column: "ওয়ারেন্টি" — বাকি দিন/মাস দেখাবে
+  - সবুজ badge: ওয়ারেন্টি আছে
+  - লাল badge: ওয়ারেন্টি শেষ
+  - হলুদ badge: ৩০ দিনের মধ্যে শেষ হবে
+- ক্রয়মূল্য column যোগ (৳ সহ)
 
-**Query filter:**
-- Properties query-তে সব (active + draft) দেখাবে, কিন্তু draft আলাদা visual সহ
+### 3) `AccountingEntryDialog.tsx`
+- EXPENSE_CATEGORIES-এ `asset_purchase` (সম্পদ ক্রয়) category যোগ
 
-### ৩) অন্যান্য জায়গায় draft filter
-- Rooms, Tenants, Bills ইত্যাদি page-এ property dropdown-এ শুধু `active` property দেখাবে (draft এ room/tenant add করা যাবে না)
+### 4) `types.ts`
+- Auto-updated after migration
 
-### পরিবর্তিত files
-- `supabase/migrations/` — status column যোগ
-- `src/pages/Properties.tsx` — draft save logic, badge, activate button
+## পরিবর্তিত files
+- `supabase/migrations/` — নতুন columns
+- `src/components/assets/AssetFormDialog.tsx` — vendor, warranty, price fields + accounting integration
+- `src/pages/Assets.tsx` — warranty status ও price column
+- `src/components/accounting/AccountingEntryDialog.tsx` — asset_purchase category
 - `src/integrations/supabase/types.ts` — auto-updated
 

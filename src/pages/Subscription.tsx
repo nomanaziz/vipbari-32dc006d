@@ -142,6 +142,11 @@ const Subscription = () => {
   const [paymentHistory, setPaymentHistory] = useState<any[]>([]);
   const [landlordDiscount, setLandlordDiscount] = useState<{ discount_type: string; discount_percent: number } | null>(null);
 
+  // Product visibility flags from admin settings
+  const [productFlags, setProductFlags] = useState({
+    room: true, tolet: true, sale_listing: true, boost: true, sms: false,
+  });
+
   // Boost & SMS balances
   const [boostBalances, setBoostBalances] = useState<any[]>([]);
   const [smsBalance, setSmsBalance] = useState({ total: 0, used: 0 });
@@ -167,13 +172,28 @@ const Subscription = () => {
     if (!user) return;
     setLoading(true);
 
-    const [subsRes, payRes, discountRes, boostRes, smsRes] = await Promise.all([
+    const [subsRes, payRes, discountRes, boostRes, smsRes, flagsRes] = await Promise.all([
       supabase.from("user_subscriptions").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
       supabase.from("subscription_payments").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
       supabase.from("landlord_discounts").select("discount_type, discount_percent").eq("user_id", user.id).eq("is_active", true).limit(1),
       supabase.from("boost_balances").select("*").eq("user_id", user.id),
       supabase.from("sms_balances").select("*").eq("user_id", user.id),
+      supabase.from("site_settings").select("key, value").in("key", ["product_room_enabled", "product_tolet_enabled", "product_sale_listing_enabled", "product_boost_enabled", "product_sms_enabled"]),
     ]);
+
+    // Parse product flags
+    if (flagsRes.data) {
+      const flags = { room: true, tolet: true, sale_listing: true, boost: true, sms: false };
+      flagsRes.data.forEach((s: any) => {
+        const val = typeof s.value === "string" ? s.value : JSON.stringify(s.value);
+        if (s.key === "product_room_enabled") flags.room = val === "true";
+        else if (s.key === "product_tolet_enabled") flags.tolet = val === "true";
+        else if (s.key === "product_sale_listing_enabled") flags.sale_listing = val === "true";
+        else if (s.key === "product_boost_enabled") flags.boost = val === "true";
+        else if (s.key === "product_sms_enabled") flags.sms = val === "true";
+      });
+      setProductFlags(flags);
+    }
 
     const allSubs = subsRes.data;
     if (allSubs) {
@@ -260,12 +280,12 @@ const Subscription = () => {
     return { base, durationDiscount: durationDiscountAmt, specialDiscount: specialDiscountAmt, total };
   };
 
-  const roomPrice = calcLinePrice(roomCount, PRICE_PER_ROOM, true);
-  const toletPrice = calcLinePrice(toletCount, PRICE_PER_TOLET, true);
-  const salePrice = calcLinePrice(saleCount, PRICE_PER_SALE_LISTING, true);
-  const boost3Price = calcLinePrice(boost3Count, BOOST_PRICES["3_day"], false);
-  const boost7Price = calcLinePrice(boost7Count, BOOST_PRICES["7_day"], false);
-  const smsPrice = calcLinePrice(smsCount, PRICE_PER_SMS, false);
+  const roomPrice = productFlags.room ? calcLinePrice(roomCount, PRICE_PER_ROOM, true) : { base: 0, durationDiscount: 0, specialDiscount: 0, total: 0 };
+  const toletPrice = productFlags.tolet ? calcLinePrice(toletCount, PRICE_PER_TOLET, true) : { base: 0, durationDiscount: 0, specialDiscount: 0, total: 0 };
+  const salePrice = productFlags.sale_listing ? calcLinePrice(saleCount, PRICE_PER_SALE_LISTING, true) : { base: 0, durationDiscount: 0, specialDiscount: 0, total: 0 };
+  const boost3Price = productFlags.boost ? calcLinePrice(boost3Count, BOOST_PRICES["3_day"], false) : { base: 0, durationDiscount: 0, specialDiscount: 0, total: 0 };
+  const boost7Price = productFlags.boost ? calcLinePrice(boost7Count, BOOST_PRICES["7_day"], false) : { base: 0, durationDiscount: 0, specialDiscount: 0, total: 0 };
+  const smsPrice = productFlags.sms ? calcLinePrice(smsCount, PRICE_PER_SMS, false) : { base: 0, durationDiscount: 0, specialDiscount: 0, total: 0 };
 
   const grandTotal = roomPrice.total + toletPrice.total + salePrice.total + boost3Price.total + boost7Price.total + smsPrice.total;
   const totalBase = roomPrice.base + toletPrice.base + salePrice.base + boost3Price.base + boost7Price.base + smsPrice.base;
@@ -293,12 +313,12 @@ const Subscription = () => {
   const handleAddAllToCart = () => {
     if (!hasSelection) return;
     let added = 0;
-    if (roomCount > 0) { addItem({ type: "room_management", label: "Room/Flat", labelBn: "রুম/ফ্ল্যাট", count: roomCount, durationMonths: duration, unitPrice: PRICE_PER_ROOM, discountPercent: durationDiscountPct, couponCode, lineTotal: roomPrice.total }); added++; }
-    if (toletCount > 0) { addItem({ type: "tolet", label: "To-Let", labelBn: "টু-লেট", count: toletCount, durationMonths: duration, unitPrice: PRICE_PER_TOLET, discountPercent: durationDiscountPct, couponCode, lineTotal: toletPrice.total }); added++; }
-    if (saleCount > 0) { addItem({ type: "sale_listing", label: "Sale Listing", labelBn: "বিক্রয় লিস্টিং", count: saleCount, durationMonths: duration, unitPrice: PRICE_PER_SALE_LISTING, discountPercent: durationDiscountPct, couponCode, lineTotal: salePrice.total }); added++; }
-    if (boost3Count > 0) { addItem({ type: "boost_3_day", label: "3-Day Boost", labelBn: "৩ দিনের বুস্ট", count: boost3Count, durationMonths: 0, unitPrice: BOOST_PRICES["3_day"], discountPercent: 0, couponCode: "", lineTotal: boost3Price.total }); added++; }
-    if (boost7Count > 0) { addItem({ type: "boost_7_day", label: "7-Day Boost", labelBn: "৭ দিনের বুস্ট", count: boost7Count, durationMonths: 0, unitPrice: BOOST_PRICES["7_day"], discountPercent: 0, couponCode: "", lineTotal: boost7Price.total }); added++; }
-    if (smsCount > 0) { addItem({ type: "sms", label: "SMS", labelBn: "SMS", count: smsCount, durationMonths: 0, unitPrice: PRICE_PER_SMS, discountPercent: 0, couponCode: "", lineTotal: smsPrice.total }); added++; }
+    if (productFlags.room && roomCount > 0) { addItem({ type: "room_management", label: "Room/Flat", labelBn: "রুম/ফ্ল্যাট", count: roomCount, durationMonths: duration, unitPrice: PRICE_PER_ROOM, discountPercent: durationDiscountPct, couponCode, lineTotal: roomPrice.total }); added++; }
+    if (productFlags.tolet && toletCount > 0) { addItem({ type: "tolet", label: "To-Let", labelBn: "টু-লেট", count: toletCount, durationMonths: duration, unitPrice: PRICE_PER_TOLET, discountPercent: durationDiscountPct, couponCode, lineTotal: toletPrice.total }); added++; }
+    if (productFlags.sale_listing && saleCount > 0) { addItem({ type: "sale_listing", label: "Sale Listing", labelBn: "বিক্রয় লিস্টিং", count: saleCount, durationMonths: duration, unitPrice: PRICE_PER_SALE_LISTING, discountPercent: durationDiscountPct, couponCode, lineTotal: salePrice.total }); added++; }
+    if (productFlags.boost && boost3Count > 0) { addItem({ type: "boost_3_day", label: "3-Day Boost", labelBn: "৩ দিনের বুস্ট", count: boost3Count, durationMonths: 0, unitPrice: BOOST_PRICES["3_day"], discountPercent: 0, couponCode: "", lineTotal: boost3Price.total }); added++; }
+    if (productFlags.boost && boost7Count > 0) { addItem({ type: "boost_7_day", label: "7-Day Boost", labelBn: "৭ দিনের বুস্ট", count: boost7Count, durationMonths: 0, unitPrice: BOOST_PRICES["7_day"], discountPercent: 0, couponCode: "", lineTotal: boost7Price.total }); added++; }
+    if (productFlags.sms && smsCount > 0) { addItem({ type: "sms", label: "SMS", labelBn: "SMS", count: smsCount, durationMonths: 0, unitPrice: PRICE_PER_SMS, discountPercent: 0, couponCode: "", lineTotal: smsPrice.total }); added++; }
     if (added > 0) {
       toast.success(language === "bn" ? `${added}টি আইটেম কার্টে যোগ হয়েছে!` : `${added} item(s) added to cart!`);
       setIsCartOpen(true);
@@ -346,12 +366,12 @@ const Subscription = () => {
 
   /* ─── Summary Line Items ─── */
   const summaryLines: { label: string; detail: string; price: number }[] = [];
-  if (roomCount > 0) summaryLines.push({ label: language === "bn" ? "রুম/ফ্ল্যাট" : "Room/Flat", detail: `${roomCount} × ${getDurationLabel(duration, language)}`, price: roomPrice.total });
-  if (toletCount > 0) summaryLines.push({ label: language === "bn" ? "টু-লেট" : "To-Let", detail: `${toletCount} × ${getDurationLabel(duration, language)}`, price: toletPrice.total });
-  if (saleCount > 0) summaryLines.push({ label: language === "bn" ? "বিক্রয় লিস্টিং" : "Sale Listing", detail: `${saleCount} × ${getDurationLabel(duration, language)}`, price: salePrice.total });
-  if (boost3Count > 0) summaryLines.push({ label: language === "bn" ? "৩ দিনের বুস্ট" : "3-Day Boost", detail: `× ${boost3Count}`, price: boost3Price.total });
-  if (boost7Count > 0) summaryLines.push({ label: language === "bn" ? "৭ দিনের বুস্ট" : "7-Day Boost", detail: `× ${boost7Count}`, price: boost7Price.total });
-  if (smsCount > 0) summaryLines.push({ label: "SMS", detail: `× ${smsCount}`, price: smsPrice.total });
+  if (productFlags.room && roomCount > 0) summaryLines.push({ label: language === "bn" ? "রুম/ফ্ল্যাট" : "Room/Flat", detail: `${roomCount} × ${getDurationLabel(duration, language)}`, price: roomPrice.total });
+  if (productFlags.tolet && toletCount > 0) summaryLines.push({ label: language === "bn" ? "টু-লেট" : "To-Let", detail: `${toletCount} × ${getDurationLabel(duration, language)}`, price: toletPrice.total });
+  if (productFlags.sale_listing && saleCount > 0) summaryLines.push({ label: language === "bn" ? "বিক্রয় লিস্টিং" : "Sale Listing", detail: `${saleCount} × ${getDurationLabel(duration, language)}`, price: salePrice.total });
+  if (productFlags.boost && boost3Count > 0) summaryLines.push({ label: language === "bn" ? "৩ দিনের বুস্ট" : "3-Day Boost", detail: `× ${boost3Count}`, price: boost3Price.total });
+  if (productFlags.boost && boost7Count > 0) summaryLines.push({ label: language === "bn" ? "৭ দিনের বুস্ট" : "7-Day Boost", detail: `× ${boost7Count}`, price: boost7Price.total });
+  if (productFlags.sms && smsCount > 0) summaryLines.push({ label: "SMS", detail: `× ${smsCount}`, price: smsPrice.total });
 
   /* ─── Summary Panel (reused desktop + mobile) ─── */
   const SummaryContent = () => (
@@ -553,6 +573,7 @@ const Subscription = () => {
         {/* Left: Product Sections */}
         <div className="lg:col-span-2 space-y-5">
           {/* Room/Flat */}
+          {productFlags.room && (
           <Card>
             <CardContent className="p-4 space-y-3">
               <div className="flex items-center gap-2">
@@ -563,8 +584,10 @@ const Subscription = () => {
               <ChipSelector chips={ROOM_CHIPS} value={roomCount} onChange={setRoomCount} />
             </CardContent>
           </Card>
+          )}
 
           {/* To-Let */}
+          {productFlags.tolet && (
           <Card>
             <CardContent className="p-4 space-y-3">
               <div className="flex items-center gap-2">
@@ -581,8 +604,10 @@ const Subscription = () => {
               <ChipSelector chips={TOLET_CHIPS} value={toletCount} onChange={setToletCount} />
             </CardContent>
           </Card>
+          )}
 
           {/* Sale Listing */}
+          {productFlags.sale_listing && (
           <Card>
             <CardContent className="p-4 space-y-3">
               <div className="flex items-center gap-2">
@@ -593,6 +618,7 @@ const Subscription = () => {
               <ChipSelector chips={SALE_CHIPS} value={saleCount} onChange={setSaleCount} />
             </CardContent>
           </Card>
+          )}
 
           {/* Duration (shared) */}
           {(roomCount > 0 || toletCount > 0 || saleCount > 0) && (
@@ -619,6 +645,7 @@ const Subscription = () => {
           )}
 
           {/* Boost */}
+          {productFlags.boost && (
           <Card>
             <CardContent className="p-4 space-y-4">
               <div className="flex items-center gap-2">
@@ -637,8 +664,10 @@ const Subscription = () => {
               </div>
             </CardContent>
           </Card>
+          )}
 
           {/* SMS */}
+          {productFlags.sms && (
           <Card>
             <CardContent className="p-4 space-y-3">
               <div className="flex items-center gap-2">
@@ -649,6 +678,7 @@ const Subscription = () => {
               <ChipSelector chips={SMS_CHIPS} value={smsCount} onChange={setSmsCount} />
             </CardContent>
           </Card>
+          )}
 
           {/* Coupon */}
           <Card>

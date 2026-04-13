@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -24,6 +24,23 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { toast } from "sonner";
 import { RefreshCw, ChevronDown } from "lucide-react";
 import { DIVISIONS, DIVISIONS_BN, DISTRICTS, DISTRICTS_BN, THANAS, THANAS_BN, getBnLabel, normalizeDivision, normalizeDistrict, normalizeThana, findDivisionForDistrict, findDistrictForThana } from "@/data/bangladeshAddress";
+
+const EDUCATION_OPTIONS = [
+  { value: "illiterate", bn: "অশিক্ষিত", en: "Illiterate" },
+  { value: "psc", bn: "পঞ্চম পাস (PSC)", en: "PSC (Class 5)" },
+  { value: "jsc", bn: "অষ্টম পাস (JSC)", en: "JSC (Class 8)" },
+  { value: "ssc", bn: "এসএসসি (SSC)", en: "SSC" },
+  { value: "hsc", bn: "এইচএসসি (HSC)", en: "HSC" },
+  { value: "diploma", bn: "ডিপ্লোমা", en: "Diploma" },
+  { value: "honours", bn: "অনার্স", en: "Honours" },
+  { value: "bsc", bn: "বিএসসি (BSc)", en: "BSc" },
+  { value: "masters", bn: "মাস্টার্স", en: "Masters" },
+  { value: "msc", bn: "এমএসসি (MSc)", en: "MSc" },
+  { value: "mba", bn: "এমবিএ (MBA)", en: "MBA" },
+  { value: "mbbs", bn: "এমবিবিএস (MBBS)", en: "MBBS" },
+  { value: "phd", bn: "পিএইচডি (PhD)", en: "PhD" },
+  { value: "other", bn: "অন্যান্য", en: "Other" },
+];
 
 interface Props {
   open: boolean;
@@ -67,6 +84,11 @@ const TenantFormDialog = ({ open, onOpenChange, editing, availableRooms, onCrede
   const [form, setForm] = useState(emptyForm);
   const [createAccount, setCreateAccount] = useState(false);
   const [password, setPassword] = useState("");
+  const [customEducation, setCustomEducation] = useState("");
+
+  // Check if education value is a known option or custom
+  const isKnownEducation = (val: string) => EDUCATION_OPTIONS.some(o => o.value === val);
+  const educationSelectValue = form.education ? (isKnownEducation(form.education) ? form.education : "other") : "none";
 
   const permanentDivisionValue = normalizeDivision(form.permanent_division);
   const permanentDistrictValue = normalizeDistrict(form.permanent_district);
@@ -81,6 +103,13 @@ const TenantFormDialog = ({ open, onOpenChange, editing, availableRooms, onCrede
   // Present address cascading
   const presentDistricts = presentDivisionValue ? (DISTRICTS[presentDivisionValue] || []) : [];
   const presentThanas = presentDistrictValue ? (THANAS[presentDistrictValue] || []) : [];
+
+  // Get selected room's property data for auto-filling present address
+  const selectedRoomProperty = useMemo(() => {
+    if (!form.room_id) return null;
+    const room = availableRooms.find((r: any) => r.id === form.room_id);
+    return room?.properties || null;
+  }, [form.room_id, availableRooms]);
 
   useEffect(() => {
     if (editing) {
@@ -100,11 +129,9 @@ const TenantFormDialog = ({ open, onOpenChange, editing, availableRooms, onCrede
       let permDiv = normalizeDivision(f.permanent_division);
       let permDist = normalizeDistrict(f.permanent_district);
       let permThana = normalizeThana(f.permanent_thana);
-      // If district doesn't match division, try to find the correct division
       if (permDist && !permDiv) {
         permDiv = findDivisionForDistrict(permDist);
       }
-      // If thana doesn't match district, try to find the correct district
       if (permThana && !permDist) {
         permDist = findDistrictForThana(permThana);
         if (permDist && !permDiv) {
@@ -135,10 +162,17 @@ const TenantFormDialog = ({ open, onOpenChange, editing, availableRooms, onCrede
       setForm(f);
       setCreateAccount(false);
       setPassword("");
+      // Set custom education if not a known value
+      if (f.education && !isKnownEducation(f.education)) {
+        setCustomEducation(f.education);
+      } else {
+        setCustomEducation("");
+      }
     } else {
       setForm(emptyForm);
       setCreateAccount(false);
       setPassword("");
+      setCustomEducation("");
     }
   }, [editing, open]);
 
@@ -291,6 +325,10 @@ const TenantFormDialog = ({ open, onOpenChange, editing, availableRooms, onCrede
   const isPending = createMutation.isPending || updateMutation.isPending || createWithAccountMutation.isPending;
   const set = (key: string, val: string) => setForm(f => ({ ...f, [key]: val }));
 
+  // Determine if present address should be auto-filled from property
+  const hasPropertyAddress = editing ? !!editing?.rooms?.properties : !!selectedRoomProperty;
+  const propertyForAddress = editing ? editing?.rooms?.properties : selectedRoomProperty;
+
   const SectionCollapsible = ({ title, children }: { title: string; children: React.ReactNode }) => (
     <Collapsible>
       <CollapsibleTrigger className="flex items-center justify-between w-full py-2 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors">
@@ -389,10 +427,45 @@ const TenantFormDialog = ({ open, onOpenChange, editing, availableRooms, onCrede
                   </SelectContent>
                 </Select>
               </div>
+              {/* Education - Select with BD options + custom */}
               <div className="space-y-2">
                 <Label>{language === "bn" ? "শিক্ষাগত যোগ্যতা" : "Education"}</Label>
-                <Input value={form.education} onChange={e => set("education", e.target.value)} />
+                <Select
+                  value={educationSelectValue}
+                  onValueChange={v => {
+                    if (v === "none") {
+                      set("education", "");
+                      setCustomEducation("");
+                    } else if (v === "other") {
+                      set("education", customEducation);
+                    } else {
+                      set("education", v);
+                      setCustomEducation("");
+                    }
+                  }}
+                >
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">—</SelectItem>
+                    {EDUCATION_OPTIONS.map(o => (
+                      <SelectItem key={o.value} value={o.value}>{language === "bn" ? o.bn : o.en}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
+              {educationSelectValue === "other" && (
+                <div className="space-y-2">
+                  <Label>{language === "bn" ? "শিক্ষাগত যোগ্যতা লিখুন" : "Enter Education"}</Label>
+                  <Input
+                    value={customEducation}
+                    onChange={e => {
+                      setCustomEducation(e.target.value);
+                      set("education", e.target.value);
+                    }}
+                    placeholder={language === "bn" ? "যেমন: BBA, LLB, ইত্যাদি" : "e.g. BBA, LLB, etc."}
+                  />
+                </div>
+              )}
               <div className="space-y-2 col-span-2">
                 <Label>{language === "bn" ? "পেশা ও কর্মস্থলের ঠিকানা" : "Workplace Address"}</Label>
                 <Input value={form.workplace_address} onChange={e => set("workplace_address", e.target.value)} />
@@ -459,6 +532,46 @@ const TenantFormDialog = ({ open, onOpenChange, editing, availableRooms, onCrede
             </div>
           )}
 
+          {/* Room & Assignment - moved BEFORE address sections */}
+          <div>
+            <h3 className="text-sm font-semibold text-muted-foreground mb-3">{language === "bn" ? "রুম ও অ্যাসাইনমেন্ট" : "Room & Assignment"}</h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>{t("room.number")}</Label>
+                <Select value={form.room_id || "none"} onValueChange={v => set("room_id", v === "none" ? "" : v)}>
+                  <SelectTrigger><SelectValue placeholder={t("tenant.select_room")} /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">—</SelectItem>
+                    {availableRooms.map((r: any) => (
+                      <SelectItem key={r.id} value={r.id}>
+                        {r.room_number} ({r.properties?.name})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>{t("tenant.advance_balance")}</Label>
+                <Input type="number" value={form.advance_balance} onChange={e => set("advance_balance", e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label>{t("tenant.move_in")}</Label>
+                <Input type="date" value={form.move_in_date} onChange={e => set("move_in_date", e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label>{language === "bn" ? "বিলিং টাইপ" : "Billing Type"}</Label>
+                <Select value={form.billing_type} onValueChange={v => set("billing_type", v)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="billing">{language === "bn" ? "বিলিং" : "Billing"}</SelectItem>
+                    <SelectItem value="personal">{language === "bn" ? "পার্সোনাল" : "Personal"}</SelectItem>
+                    <SelectItem value="free">{language === "bn" ? "ফ্রি" : "Free"}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+
           {/* Permanent Address */}
           <div>
             <h3 className="text-sm font-semibold text-muted-foreground mb-3">{t("tenant.permanent_address_title")}</h3>
@@ -524,34 +637,34 @@ const TenantFormDialog = ({ open, onOpenChange, editing, availableRooms, onCrede
             </div>
           </div>
 
-          {/* Present Address */}
+          {/* Present Address - auto-filled from property when room is selected */}
           <div>
             <h3 className="text-sm font-semibold text-muted-foreground mb-3">{language === "bn" ? "বর্তমান ঠিকানা" : "Present Address"}</h3>
-            {editing?.rooms?.properties ? (
+            {hasPropertyAddress && propertyForAddress ? (
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>{t("tenant.division")}</Label>
-                  <Input value={language === "bn" ? (DIVISIONS_BN[editing.rooms.properties.division] || editing.rooms.properties.division || "") : (editing.rooms.properties.division || "")} disabled className="bg-muted" />
+                  <Input value={language === "bn" ? (DIVISIONS_BN[propertyForAddress.division] || propertyForAddress.division || "") : (propertyForAddress.division || "")} disabled className="bg-muted" />
                 </div>
                 <div className="space-y-2">
                   <Label>{t("tenant.district")}</Label>
-                  <Input value={language === "bn" ? (DISTRICTS_BN[editing.rooms.properties.district] || editing.rooms.properties.district || "") : (editing.rooms.properties.district || "")} disabled className="bg-muted" />
+                  <Input value={language === "bn" ? (DISTRICTS_BN[propertyForAddress.district] || propertyForAddress.district || "") : (propertyForAddress.district || "")} disabled className="bg-muted" />
                 </div>
                 <div className="space-y-2">
                   <Label>{t("tenant.thana")}</Label>
-                  <Input value={language === "bn" ? (THANAS_BN[editing.rooms.properties.thana] || editing.rooms.properties.thana || "") : (editing.rooms.properties.thana || "")} disabled className="bg-muted" />
+                  <Input value={language === "bn" ? (THANAS_BN[propertyForAddress.thana] || propertyForAddress.thana || "") : (propertyForAddress.thana || "")} disabled className="bg-muted" />
                 </div>
                 <div className="space-y-2">
                   <Label>{language === "bn" ? "গ্রাম/এলাকা" : "Village/Area"}</Label>
-                  <Input value={editing.rooms.properties.area || ""} disabled className="bg-muted" />
+                  <Input value={propertyForAddress.area || ""} disabled className="bg-muted" />
                 </div>
                 <div className="space-y-2">
                   <Label>{language === "bn" ? "পোস্টাল কোড" : "Postal Code"}</Label>
-                  <Input value={editing.rooms.properties.postal_code || ""} disabled className="bg-muted" />
+                  <Input value={propertyForAddress.postal_code || ""} disabled className="bg-muted" />
                 </div>
                 <div className="space-y-2">
                   <Label>{language === "bn" ? "বিস্তারিত ঠিকানা" : "Detailed Address"}</Label>
-                  <Input value={[editing.rooms.properties.house_number, editing.rooms.properties.road_number].filter(Boolean).join(", ")} disabled className="bg-muted" />
+                  <Input value={[propertyForAddress.house_number, propertyForAddress.road_number].filter(Boolean).join(", ")} disabled className="bg-muted" />
                 </div>
                 <p className="col-span-2 text-xs text-muted-foreground">{language === "bn" ? "বর্তমান ঠিকানা প্রপার্টি থেকে স্বয়ংক্রিয়ভাবে আসে" : "Present address is auto-derived from the property"}</p>
               </div>
@@ -726,46 +839,6 @@ const TenantFormDialog = ({ open, onOpenChange, editing, availableRooms, onCrede
               </div>
             </div>
           </SectionCollapsible>
-
-          {/* Room & Assignment */}
-          <div>
-            <h3 className="text-sm font-semibold text-muted-foreground mb-3">{language === "bn" ? "রুম ও অ্যাসাইনমেন্ট" : "Room & Assignment"}</h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>{t("room.number")}</Label>
-                <Select value={form.room_id || "none"} onValueChange={v => set("room_id", v === "none" ? "" : v)}>
-                  <SelectTrigger><SelectValue placeholder={t("tenant.select_room")} /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">—</SelectItem>
-                    {availableRooms.map((r: any) => (
-                      <SelectItem key={r.id} value={r.id}>
-                        {r.room_number} ({r.properties?.name})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>{t("tenant.advance_balance")}</Label>
-                <Input type="number" value={form.advance_balance} onChange={e => set("advance_balance", e.target.value)} />
-              </div>
-              <div className="space-y-2">
-                <Label>{t("tenant.move_in")}</Label>
-                <Input type="date" value={form.move_in_date} onChange={e => set("move_in_date", e.target.value)} />
-              </div>
-              <div className="space-y-2">
-                <Label>{language === "bn" ? "বিলিং টাইপ" : "Billing Type"}</Label>
-                <Select value={form.billing_type} onValueChange={v => set("billing_type", v)}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="billing">{language === "bn" ? "বিলিং" : "Billing"}</SelectItem>
-                    <SelectItem value="personal">{language === "bn" ? "পার্সোনাল" : "Personal"}</SelectItem>
-                    <SelectItem value="free">{language === "bn" ? "ফ্রি" : "Free"}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </div>
 
           <div className="flex justify-end gap-2 pt-2 border-t">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>

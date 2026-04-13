@@ -700,6 +700,13 @@ const Tenants = () => {
         </div>
       )}
 
+      {/* Booking Money Dialog */}
+      <BookingMoneyDialog
+        open={!!bookingTenant}
+        onOpenChange={(v) => { if (!v) setBookingTenant(null); }}
+        tenant={bookingTenant}
+      />
+
       {/* Blocked Users List Dialog */}
       <Dialog open={blockedListOpen} onOpenChange={setBlockedListOpen}>
         <DialogContent className="max-w-md">

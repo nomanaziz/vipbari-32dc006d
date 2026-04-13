@@ -108,7 +108,7 @@ export default function TenantLandlord() {
 
       if (!tenantIsSelfOwned) {
         landlordId = tenant.owner_id;
-      } else {
+        setLandlordUserId(tenant.owner_id);
         const { data: acceptedReq } = await supabase
           .from("tolet_requests")
           .select("landlord_user_id, room_id")

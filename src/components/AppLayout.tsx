@@ -62,6 +62,9 @@ export function AppLayout({ children }: AppLayoutProps) {
               </Badge>
             </div>
             <div className="flex items-center gap-0.5 sm:gap-2 shrink-0">
+              <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => setShowCalc(v => !v)} title="ক্যালকুলেটর">
+                <Calculator className="h-4 w-4" />
+              </Button>
               <NotificationBell />
               {/* Profile dropdown — always visible, contains Visit Site, Language, Theme on mobile */}
               <div className="pl-1 sm:pl-2 sm:border-l sm:ml-1">
@@ -124,6 +127,7 @@ export function AppLayout({ children }: AppLayoutProps) {
           </main>
           <MobileBottomNav />
           <ScrollToTop />
+          {showCalc && <FloatingCalculator onClose={() => setShowCalc(false)} />}
         </div>
       </div>
     </SidebarProvider>

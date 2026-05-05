@@ -45,7 +45,7 @@ const CMSPage = () => {
   // Replace contact placeholders with values from Admin Settings
   if (content && siteSettings) {
     content = content
-      .replace(/\{\{support_email\}\}/g, siteSettings.support_email || "support@vipbari.com")
+      .replace(/\{\{support_email\}\}/g, siteSettings.support_email || "support@varaplus.xyz")
       .replace(/\{\{support_phone\}\}/g, siteSettings.support_phone || "+880 1700-000000");
   }
 

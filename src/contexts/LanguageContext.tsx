@@ -268,7 +268,7 @@ const translations: Record<string, Record<Language, string>> = {
   "bill.partial": { bn: "আংশিক", en: "Partial" },
   
   // App
-  "app.name": { bn: "ভিআইপি বাড়ি", en: "VIP Bari" },
+  "app.name": { bn: "ভাড়া প্লাস", en: "Vara Plus" },
   "app.tagline": { bn: "ভাড়া ব্যবস্থাপনা সহজ করুন", en: "Simplify Rental Management" },
 
   // ===== Landing Page =====
@@ -399,19 +399,19 @@ const translations: Record<string, Record<Language, string>> = {
   "landing.test_title": { bn: "বাড়িওয়ালারা কি বলছেন", en: "What Landlords Say" },
   "landing.test1_name": { bn: "আবদুল করিম", en: "Abdul Karim" },
   "landing.test1_loc": { bn: "ঢাকা", en: "Dhaka" },
-  "landing.test1_text": { bn: "VIP Bari অ্যাপ ব্যবহার করে আমার ভাড়া ম্যানেজমেন্ট অনেক সহজ হয়ে গেছে। আগে খাতায় হিসাব রাখতাম, এখন সব ডিজিটাল।", en: "Using VIP Bari has made my rental management so much easier. I used to keep records in notebooks, now everything is digital." },
+  "landing.test1_text": { bn: "Vara Plus অ্যাপ ব্যবহার করে আমার ভাড়া ম্যানেজমেন্ট অনেক সহজ হয়ে গেছে। আগে খাতায় হিসাব রাখতাম, এখন সব ডিজিটাল।", en: "Using Vara Plus has made my rental management so much easier. I used to keep records in notebooks, now everything is digital." },
   "landing.test2_name": { bn: "ফাতেমা বেগম", en: "Fatema Begum" },
   "landing.test2_loc": { bn: "চট্টগ্রাম", en: "Chittagong" },
   "landing.test2_text": { bn: "প্রতি মাসে বিল তৈরি করতে অনেক সময় লাগতো। এখন এক ক্লিকে সব বিল তৈরি হয়ে যায়!", en: "It used to take so long to create bills every month. Now all bills are generated in one click!" },
   "landing.test3_name": { bn: "রহিম উদ্দিন", en: "Rahim Uddin" },
   "landing.test3_loc": { bn: "সিলেট", en: "Sylhet" },
-  "landing.test3_text": { bn: "আমার ৩টি বিল্ডিং আছে, ৪০টির বেশি রুম। VIP Bari ছাড়া এত রুম ম্যানেজ করা অসম্ভব ছিল।", en: "I have 3 buildings with 40+ rooms. Managing this many rooms would be impossible without VIP Bari." },
+  "landing.test3_text": { bn: "আমার ৩টি বিল্ডিং আছে, ৪০টির বেশি রুম। Vara Plus ছাড়া এত রুম ম্যানেজ করা অসম্ভব ছিল।", en: "I have 3 buildings with 40+ rooms. Managing this many rooms would be impossible without Vara Plus." },
 
   "landing.faq_title": { bn: "সাধারণ জিজ্ঞাসা", en: "Frequently Asked Questions" },
-  "landing.faq1_q": { bn: "VIP Bari কি ফ্রি?", en: "Is VIP Bari free?" },
+  "landing.faq1_q": { bn: "Vara Plus কি ফ্রি?", en: "Is Vara Plus free?" },
   "landing.faq1_a": { bn: "হ্যাঁ! ৩০ দিনের ফ্রি ট্রায়াল আছে — ২০টি রুম ও ৫টি টু-লেট স্লট সহ সব ফিচার। এরপর প্রতি রুম মাত্র ১০ টাকা/মাস।", en: "Yes! There's a 30-day free trial with 20 rooms and 5 to-let slots, all features included. After that, it's just ৳10/room/month." },
   "landing.faq2_q": { bn: "মোবাইলে ব্যবহার করা যাবে?", en: "Can I use it on mobile?" },
-  "landing.faq2_a": { bn: "অবশ্যই! VIP Bari সম্পূর্ণ মোবাইল-ফ্রেন্ডলি। যেকোনো ব্রাউজারে ব্যবহার করতে পারবেন।", en: "Absolutely! VIP Bari is fully mobile-friendly. Use it in any browser." },
+  "landing.faq2_a": { bn: "অবশ্যই! Vara Plus সম্পূর্ণ মোবাইল-ফ্রেন্ডলি। যেকোনো ব্রাউজারে ব্যবহার করতে পারবেন।", en: "Absolutely! Vara Plus is fully mobile-friendly. Use it in any browser." },
   "landing.faq3_q": { bn: "আমার ডেটা কি নিরাপদ?", en: "Is my data secure?" },
   "landing.faq3_a": { bn: "১০০% নিরাপদ। আমরা এনক্রিপশন ও সিকিউর সার্ভার ব্যবহার করি। আপনার ডেটা শুধু আপনি দেখতে পারবেন।", en: "100% secure. We use encryption and secure servers. Only you can access your data." },
   "landing.faq4_q": { bn: "একাধিক সম্পত্তি যোগ করা যাবে?", en: "Can I add multiple properties?" },
@@ -474,7 +474,7 @@ const translations: Record<string, Record<Language, string>> = {
   "feat_bill_calculation.s3": { bn: "মিটার রিডিং", en: "Meter Reading" },
   "feat_bill_calculation.s3_d": { bn: "মাস সিলেক্ট করুন এবং মিটার রিডিং দিন", en: "Select month and enter meter reading" },
   "feat_bill_calculation.s4": { bn: "অটো হিসাব", en: "Auto Calculation" },
-  "feat_bill_calculation.s4_d": { bn: "VIP Bari অটো সব হিসাব করবে", en: "VIP Bari will auto-calculate everything" },
+  "feat_bill_calculation.s4_d": { bn: "Vara Plus অটো সব হিসাব করবে", en: "Vara Plus will auto-calculate everything" },
   "feat_bill_calculation.cmp_b1": { bn: "ক্যালকুলেটর দিয়ে ঘণ্টার পর ঘণ্টা হিসাব", en: "Hours of manual calculation with a calculator" },
   "feat_bill_calculation.cmp_a1": { bn: "এক ক্লিকে সব বিল তৈরি", en: "Generate all bills in one click" },
   "feat_bill_calculation.cmp_b2": { bn: "হিসাবে ভুল হলে ভাড়াটিয়ার সাথে ঝামেলা", en: "Calculation errors lead to disputes with tenants" },
@@ -822,7 +822,7 @@ const translations: Record<string, Record<Language, string>> = {
   // ===== Buy & Sell Feature =====
   "feat_buy_sell.title": { bn: "কেনা-বেচা", en: "Buy & Sell" },
   "feat_buy_sell.subtitle": { bn: "সম্পত্তি কিনুন বা বিক্রি করুন — সহজে ও নিরাপদে!", en: "Buy or sell properties — easily and securely!" },
-  "feat_buy_sell.desc": { bn: "আপনার সম্পত্তি বিক্রি করতে চান? অথবা নতুন সম্পত্তি কিনতে চান? VIP Bari-তে লিস্টিং দিন, আগ্রহী ক্রেতা/বিক্রেতার সাথে সরাসরি যোগাযোগ করুন। দালাল ছাড়া, নিরাপদ লেনদেন!", en: "Want to sell your property? Or buy a new one? List on VIP Bari, connect directly with interested buyers/sellers. No brokers, secure transactions!" },
+  "feat_buy_sell.desc": { bn: "আপনার সম্পত্তি বিক্রি করতে চান? অথবা নতুন সম্পত্তি কিনতে চান? Vara Plus-তে লিস্টিং দিন, আগ্রহী ক্রেতা/বিক্রেতার সাথে সরাসরি যোগাযোগ করুন। দালাল ছাড়া, নিরাপদ লেনদেন!", en: "Want to sell your property? Or buy a new one? List on Vara Plus, connect directly with interested buyers/sellers. No brokers, secure transactions!" },
   "feat_buy_sell.f1": { bn: "সম্পত্তি লিস্টিং", en: "Property Listing" },
   "feat_buy_sell.f1_d": { bn: "ছবি ও বিস্তারিত তথ্য দিয়ে বিক্রয় পোস্ট করুন", en: "Create sale posts with photos and details" },
   "feat_buy_sell.f2": { bn: "সরাসরি যোগাযোগ", en: "Direct Contact" },
@@ -834,7 +834,7 @@ const translations: Record<string, Record<Language, string>> = {
   "feat_buy_sell.f5": { bn: "ফেভারিট তালিকা", en: "Favorites List" },
   "feat_buy_sell.f5_d": { bn: "পছন্দের সম্পত্তি সেভ করে রাখুন", en: "Save your favorite properties" },
   "feat_buy_sell.f6": { bn: "মালিকানা হস্তান্তর", en: "Ownership Transfer" },
-  "feat_buy_sell.f6_d": { bn: "VIP Bari-তে মালিকানা ট্রান্সফার করুন", en: "Transfer ownership within VIP Bari" },
+  "feat_buy_sell.f6_d": { bn: "Vara Plus-তে মালিকানা ট্রান্সফার করুন", en: "Transfer ownership within Vara Plus" },
   "feat_buy_sell.b1": { bn: "দালাল ছাড়া", en: "No Brokers" },
   "feat_buy_sell.b1_d": { bn: "সরাসরি মালিকের সাথে যোগাযোগ", en: "Connect directly with the owner" },
   "feat_buy_sell.b2": { bn: "নিরাপদ লেনদেন", en: "Secure Transactions" },
@@ -1169,7 +1169,7 @@ const translations: Record<string, Record<Language, string>> = {
   "admin.desc_bn": { bn: "বিবরণ (বাংলা)", en: "Description (BN)" },
   "admin.desc_en": { bn: "বিবরণ (ইংরেজি)", en: "Description (EN)" },
   "tutorial.title": { bn: "ভিডিও টিউটোরিয়াল", en: "Video Tutorials" },
-  "tutorial.subtitle": { bn: "VIP Bari কিভাবে ব্যবহার করবেন শিখুন আমাদের ভিডিও গাইডের মাধ্যমে", en: "Learn how to use VIP Bari with our step-by-step video guides" },
+  "tutorial.subtitle": { bn: "Vara Plus কিভাবে ব্যবহার করবেন শিখুন আমাদের ভিডিও গাইডের মাধ্যমে", en: "Learn how to use Vara Plus with our step-by-step video guides" },
   "tutorial.video_count": { bn: "টি ভিডিও", en: "Videos" },
   "tutorial.all": { bn: "সব", en: "All" },
   "tutorial.landlord": { bn: "বাড়িওয়ালা", en: "Landlord" },
@@ -1179,7 +1179,7 @@ const translations: Record<string, Record<Language, string>> = {
   "tutorial.no_tutorials": { bn: "কোন টিউটোরিয়াল পাওয়া যায়নি", en: "No tutorials found" },
   "tutorial.coming_soon": { bn: "শীঘ্রই আসছে!", en: "Coming soon!" },
   "tutorial.cta_title": { bn: "এখনই শুরু করুন!", en: "Get Started Today!" },
-  "tutorial.cta_desc": { bn: "VIP Bari দিয়ে আপনার সম্পত্তি ব্যবস্থাপনা সহজ করুন", en: "Simplify your property management with VIP Bari" },
+  "tutorial.cta_desc": { bn: "Vara Plus দিয়ে আপনার সম্পত্তি ব্যবস্থাপনা সহজ করুন", en: "Simplify your property management with Vara Plus" },
   "footer.tutorials": { bn: "টিউটোরিয়াল", en: "Tutorials" },
 
   // Images
@@ -1190,8 +1190,8 @@ const translations: Record<string, Record<Language, string>> = {
   "image.max_3": { bn: "সর্বোচ্চ ৩টি", en: "Max 3" },
   "image.max_10": { bn: "সর্বোচ্চ ১০টি", en: "Max 10" },
 
-  // ===== Why VIP Bari Section =====
-  "landing.why_badge": { bn: "কেন VIP Bari?", en: "Why VIP Bari?" },
+  // ===== Why Vara Plus Section =====
+  "landing.why_badge": { bn: "কেন Vara Plus?", en: "Why Vara Plus?" },
   "landing.why_title": { bn: "আমাদের বিশেষত্ব", en: "Our Specialties" },
   "landing.why_sub": { bn: "বাংলাদেশের সেরা বাড়ি ভাড়া ম্যানেজমেন্ট প্ল্যাটফর্ম", en: "Bangladesh's best rental management platform" },
   "landing.why_bangla": { bn: "বাংলায় তৈরি", en: "Built in Bengali" },
@@ -1217,7 +1217,7 @@ const translations: Record<string, Record<Language, string>> = {
 
   // ===== Benefits Section =====
   "landing.benefit_badge": { bn: "আপনার সুবিধা", en: "Your Benefits" },
-  "landing.benefit_title": { bn: "VIP Bari ব্যবহার করলে আপনি পাবেন", en: "What You Get with VIP Bari" },
+  "landing.benefit_title": { bn: "Vara Plus ব্যবহার করলে আপনি পাবেন", en: "What You Get with Vara Plus" },
   "landing.benefit_hassle": { bn: "ঝামেলা নেই", en: "No Hassle" },
   "landing.benefit_hassle_desc": { bn: "এক জায়গায় সব — রুম, ভাড়াটিয়া, বিল, পেমেন্ট", en: "Everything in one place — rooms, tenants, bills, payments" },
   "landing.benefit_save_money": { bn: "টাকা বাঁচান", en: "Save Money" },
@@ -1240,13 +1240,13 @@ const translations: Record<string, Record<Language, string>> = {
   // ===== Install Section =====
   "landing.install_badge": { bn: "অ্যাপ ডাউনলোড করুন", en: "Download App" },
   "landing.install_title": { bn: "আপনার ফোনে ইনস্টল করুন", en: "Install on Your Phone" },
-  "landing.install_sub": { bn: "VIP Bari অ্যাপ আপনার হোম স্ক্রিনে যোগ করুন দ্রুত অ্যাক্সেসের জন্য।", en: "Add VIP Bari to your home screen for quick access." },
+  "landing.install_sub": { bn: "Vara Plus অ্যাপ আপনার হোম স্ক্রিনে যোগ করুন দ্রুত অ্যাক্সেসের জন্য।", en: "Add Vara Plus to your home screen for quick access." },
   "landing.install_android": { bn: "Android (Chrome ব্রাউজার)", en: "Android (Chrome Browser)" },
-  "landing.install_android_1": { bn: "Chrome ব্রাউজারে vipbari.app খুলুন", en: "Open vipbari.app in Chrome" },
+  "landing.install_android_1": { bn: "Chrome ব্রাউজারে varaplus.xyz খুলুন", en: "Open varaplus.xyz in Chrome" },
   "landing.install_android_2": { bn: "মেনু (⋮) থেকে 'Add to Home screen' চাপুন", en: "Tap menu (⋮) → 'Add to Home screen'" },
   "landing.install_android_3": { bn: "'Install' বাটনে ক্লিক করুন", en: "Click 'Install' button" },
   "landing.install_ios": { bn: "iPhone/iPad (Safari ব্রাউজার)", en: "iPhone/iPad (Safari Browser)" },
-  "landing.install_ios_1": { bn: "Safari ব্রাউজারে vipbari.app খুলুন", en: "Open vipbari.app in Safari" },
+  "landing.install_ios_1": { bn: "Safari ব্রাউজারে varaplus.xyz খুলুন", en: "Open varaplus.xyz in Safari" },
   "landing.install_ios_2": { bn: "Share (↑) বাটন চাপুন", en: "Tap Share (↑) button" },
   "landing.install_ios_3": { bn: "'Add to Home Screen' সিলেক্ট করুন", en: "Select 'Add to Home Screen'" },
   "landing.install_btn": { bn: "ইনস্টল করুন", en: "Install Now" },

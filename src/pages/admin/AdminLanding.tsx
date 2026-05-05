@@ -25,7 +25,7 @@ interface LandingSection {
 const GROUPS = [
   { key: "hero", label: "Hero" },
   { key: "stats", label: "Stats" },
-  { key: "why", label: "Why VIP Bari" },
+  { key: "why", label: "Why Vara Plus" },
   { key: "tolet_hl", label: "To-Let Highlight" },
   { key: "who", label: "Who Uses" },
   { key: "benefits", label: "Benefits" },

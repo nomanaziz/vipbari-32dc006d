@@ -64,7 +64,7 @@ Deno.serve(async (req) => {
 
     // Generate placeholder email from phone
     const cleanPhone = phone.replace(/[^0-9]/g, "");
-    const placeholderEmail = `${cleanPhone}@tenant.vipbari.app`;
+    const placeholderEmail = `${cleanPhone}@tenant.varaplus.xyz`;
 
     // Create auth user
     const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({

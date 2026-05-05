@@ -15,7 +15,7 @@ const TenantCredentialsDialog = ({ open, onOpenChange, credentials }: Props) => 
 
   if (!credentials) return null;
 
-  const shareText = `VipBari Login\nUser ID: ${credentials.phone}\nPassword: ${credentials.password}`;
+  const shareText = `VaraPlus Login\nUser ID: ${credentials.phone}\nPassword: ${credentials.password}`;
 
   const handleCopy = async () => {
     try {
@@ -29,7 +29,7 @@ const TenantCredentialsDialog = ({ open, onOpenChange, credentials }: Props) => 
   const handleShare = async () => {
     if (navigator.share) {
       try {
-        await navigator.share({ title: "VipBari Login", text: shareText });
+        await navigator.share({ title: "VaraPlus Login", text: shareText });
       } catch {
         // User cancelled
       }

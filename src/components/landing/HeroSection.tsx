@@ -97,7 +97,7 @@ const HeroSection = () => {
                     <div className="h-6 w-6 rounded-md bg-emerald-500 flex items-center justify-center">
                       <Building2 className="h-3.5 w-3.5 text-white" />
                     </div>
-                    <span className="text-[11px] font-bold text-gray-800">VIP Bari</span>
+                    <span className="text-[11px] font-bold text-gray-800">Vara Plus</span>
                   </div>
                   <span className="text-[7px] px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-600 font-medium">অনলাইন</span>
                 </div>

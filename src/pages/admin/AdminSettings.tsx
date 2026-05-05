@@ -13,8 +13,8 @@ import { Save } from "lucide-react";
 import AdvanceSettingsTab from "@/components/settings/AdvanceSettingsTab";
 
 const defaultSettings = {
-  app_name: "VIP Bari",
-  support_email: "support@vipbari.com",
+  app_name: "Vara Plus",
+  support_email: "support@varaplus.xyz",
   support_phone: "+880 1700-000000",
   sms_api_key: "",
   sms_sender_id: "",

@@ -71,7 +71,7 @@ export const PWAInstallBanner = () => {
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-sm font-semibold text-foreground leading-tight">
-            {bn ? "VIP Bari" : "VIP Bari"}
+            {bn ? "Vara Plus" : "Vara Plus"}
           </p>
           <p className="text-xs text-muted-foreground">
             {bn ? "অ্যাপ ইনস্টল করুন" : "Install as app"}

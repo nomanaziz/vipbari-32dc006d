@@ -48,8 +48,8 @@ export const LandingFooter = () => {
               {t("footer.desc")}
             </p>
             <div className="flex flex-col gap-2 text-sm opacity-70">
-              <a href="mailto:support@vipbari.com" className="flex items-center gap-2 hover:opacity-100 transition-opacity">
-                <Mail className="h-4 w-4" /> support@vipbari.com
+              <a href="mailto:support@varaplus.xyz" className="flex items-center gap-2 hover:opacity-100 transition-opacity">
+                <Mail className="h-4 w-4" /> support@varaplus.xyz
               </a>
               <a href="tel:+8801700000000" className="flex items-center gap-2 hover:opacity-100 transition-opacity">
                 <Phone className="h-4 w-4" /> +880 1700-000000

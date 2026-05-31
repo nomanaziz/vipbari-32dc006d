@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Home, User, Lock, Mail } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { RoleSelectorDialog } from "@/components/RoleSelectorDialog";
 
 const Login = () => {
   const { signIn, signInWithEmail, user, loading: authLoading, role } = useAuth();
@@ -21,16 +22,18 @@ const Login = () => {
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [showResendVerification, setShowResendVerification] = useState(false);
   const [resendingEmail, setResendingEmail] = useState(false);
+  const [showRoleSelector, setShowRoleSelector] = useState(false);
+  const [pendingRedirect, setPendingRedirect] = useState(false);
 
   useEffect(() => {
-    if (!authLoading && user && !isLoggingIn) {
+    if (!authLoading && user && !isLoggingIn && !showRoleSelector && !pendingRedirect) {
       toast.info("You are already logged in");
       const target = (role === "admin" || role === "employee") ? "/admin" : "/dashboard";
       navigate(target, { replace: true });
     }
-  }, [user, authLoading, role, navigate, isLoggingIn]);
+  }, [user, authLoading, role, navigate, isLoggingIn, showRoleSelector, pendingRedirect]);
 
-  if (authLoading || (user && !isLoggingIn)) return null;
+  if (authLoading || (user && !isLoggingIn && !showRoleSelector && !pendingRedirect)) return null;
 
   const isEmail = (value: string) => value.includes("@");
 

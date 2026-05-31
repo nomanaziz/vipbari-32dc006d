@@ -52,19 +52,29 @@ const Login = () => {
     }
 
     if (!result.error) {
-      // Check if user is admin/employee — block them from regular login
+      // Inspect roles after login
       const { data: { user: currentUser } } = await supabase.auth.getUser();
       if (currentUser) {
         const { data: roles } = await supabase
           .from("user_roles")
           .select("role")
           .eq("user_id", currentUser.id);
-        const isAdminOrEmployee = roles?.some(r => ["admin", "employee"].includes(r.role));
+        const roleList = (roles || []).map((r) => r.role);
+        const isAdminOrEmployee = roleList.some((r) => ["admin", "employee"].includes(r));
         if (isAdminOrEmployee) {
           await supabase.auth.signOut();
           setLoading(false);
           setIsLoggingIn(false);
-          toast.error("This account is not allowed to log in here. Please use the admin panel.");
+          toast.error("এই অ্যাকাউন্ট এখানে প্রবেশ করতে পারবে না। অনুগ্রহ করে অ্যাডমিন প্যানেল ব্যবহার করুন।");
+          return;
+        }
+        // Dual landlord + tenant → show role selector
+        const hasLandlord = roleList.includes("landlord");
+        const hasTenant = roleList.includes("tenant");
+        if (hasLandlord && hasTenant) {
+          setLoading(false);
+          setIsLoggingIn(false);
+          setShowRoleSelector(true);
           return;
         }
       }

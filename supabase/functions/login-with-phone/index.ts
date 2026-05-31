@@ -12,7 +12,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { phone } = await req.json();
+    const { phone, purpose } = await req.json();
     if (!phone) {
       return new Response(JSON.stringify({ error: "Phone number is required" }), {
         status: 400,
@@ -36,6 +36,23 @@ Deno.serve(async (req) => {
         JSON.stringify({ error: "No account found with this phone number" }),
         {
           status: 404,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    // Placeholder emails (staff/admin-created accounts) cannot receive mail.
+    // For password reset flow, surface a clear error instead of attempting send.
+    const isPlaceholder = /@placeholder\.local$/i.test(data.email);
+    if (isPlaceholder && purpose === "reset") {
+      return new Response(
+        JSON.stringify({
+          error: "NO_REAL_EMAIL",
+          message:
+            "এই মোবাইল নাম্বারে কোনো বৈধ ইমেইল যুক্ত নেই। PIN পরিবর্তনের জন্য আপনার বাড়িওয়ালা বা অ্যাডমিনের সাথে যোগাযোগ করুন।",
+        }),
+        {
+          status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         }
       );

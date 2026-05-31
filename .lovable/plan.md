@@ -1,31 +1,50 @@
+# Login & Forgot PIN — তিনটি সমস্যার সমাধান
 
+## ১) Forgot PIN error: "Email address ...placeholder.local is invalid"
 
-# SMS অপশন Admin থেকে On/Off নিয়ন্ত্রণ
+### কারণ
+Staff/employee account তৈরি হওয়ার সময় email হিসেবে `staff_xxx@placeholder.local` save হয়। এটা আসল email না — শুধু internal placeholder। Forgot Password page এ mobile দিলে `login-with-phone` সেই placeholder email ফেরত দেয়, তারপর `supabase.auth.resetPasswordForEmail()` সেটায় mail পাঠানোর চেষ্টা করে এবং Supabase reject করে।
 
-## কি হবে
-Admin Settings-এ প্রতিটি subscription product (Room, To-Let, Sale Listing, Boost, SMS) on/off করার toggle থাকবে। SMS ডিফল্ট off থাকবে। Off করা product Subscription page-এ দেখাবে না।
+### সমাধান
+- `login-with-phone` edge function এ check: যদি email `@placeholder.local` দিয়ে শেষ হয়, তাহলে `{ error: "no_real_email" }` ফেরত দিবে।
+- `ForgotPassword.tsx` সেই error দেখলে clear Bangla message দিবে: "এই মোবাইল নাম্বারে কোনো বৈধ email নেই। PIN reset করতে আপনার মালিক/admin এর সাথে যোগাযোগ করুন।"
+- Staff/tenant যাদের real email নেই (admin-created), তারা শুধু landlord/admin এর মাধ্যমেই PIN reset করতে পারবে (Staff Password Dialog আগে থেকেই আছে)।
+- যেহেতু SMS gateway এখনো নাই, mobile-based OTP reset এখন possible না — তাই এটাই সঠিক behavior।
 
-## পরিবর্তন
+## ২) Login page এ "Sign in with Google" যোগ
 
-### 1) `AdminSettings.tsx`
-`defaultSettings`-এ নতুন keys যোগ:
+Register page এ Google button আছে কিন্তু Login page এ নাই। `Login.tsx` এ একই Google sign-in button যোগ করব (Register এর মতো একই SVG ও handler)। যেহেতু login এ role আগে থেকেই জানা থাকে না, OAuth flow এ existing user হলে তার current role auto-detect হবে; নতুন হলে `/dashboard` এ যাবে (existing OAuthCallbackHandler).
+
+## ৩) এক mobile/email এ দুই role থাকলে login এ role selector
+
+### Plan
+একই login page থাকবে (option B: আপনার দ্বিতীয় idea)। Email+PIN বা phone+PIN দিয়ে login successful হওয়ার পর:
+
+```text
+User এর user_roles fetch
+   │
+   ├─ শুধু landlord  → /dashboard
+   ├─ শুধু tenant   → /dashboard (tenant module)
+   ├─ admin/employee → block (error, must use admin login)
+   └─ landlord + tenant দুটোই → Role Selector Dialog দেখাবে
+                                  ├─ "বাড়িওয়ালা হিসেবে প্রবেশ করুন" → /dashboard
+                                  └─ "ভাড়াটিয়া হিসেবে প্রবেশ করুন" → /dashboard
 ```
-product_room_enabled: "true"
-product_tolet_enabled: "true"  
-product_sale_listing_enabled: "true"
-product_boost_enabled: "true"
-product_sms_enabled: "false"   ← ডিফল্ট off
-```
-UI-তে একটা নতুন Card "প্রোডাক্ট নিয়ন্ত্রণ" — প্রতিটি product-এর জন্য Switch toggle।
 
-### 2) `Subscription.tsx`
-- Page load-এ `site_settings` থেকে `product_*_enabled` keys fetch করবে
-- যে product disabled, সেটার Card, chip selector, summary line, এবং cart add logic সব hide/skip হবে
-- SMS section শুধু `product_sms_enabled === "true"` হলে দেখাবে
+### Implementation
+- `Login.tsx` এ login success-এর পর `user_roles` table থেকে সব role আনব।
+- যদি landlord ও tenant দুটোই থাকে → modal/dialog দেখাবে দুটো বড় button দিয়ে (বাড়িওয়ালা / ভাড়াটিয়া)।
+- User এর choice `localStorage.active_role` এ save হবে।
+- `AppLayout`/`Dashboard` route এ `active_role` দেখে correct module render হবে (যেটা ইতিমধ্যে role-based routing দিয়ে কাজ করছে — শুধু selected role-কে primary হিসেবে treat করতে হবে)।
+- Top-bar এ একটা small "Role switch" option থাকবে যাতে user পরে role swap করতে পারে (logout না করে)।
 
-### পরিবর্তিত files
-- `src/pages/admin/AdminSettings.tsx` — product toggle section
-- `src/pages/Subscription.tsx` — fetch settings + conditional render
+## পরিবর্তিত files
+- `supabase/functions/login-with-phone/index.ts` — placeholder email filter
+- `src/pages/ForgotPassword.tsx` — better error message
+- `src/pages/Login.tsx` — Google sign-in button + role detection + role selector dialog
+- `src/components/RoleSelectorDialog.tsx` (নতুন) — দুই button-এর modal
+- `src/contexts/AuthContext.tsx` — `activeRole` state + setter, localStorage-এ persist
+- `src/components/AppLayout.tsx` বা relevant routing — `activeRole` respect করবে
+- একটা ছোট "Switch Role" menu item top-bar এ (যদি user-এর dual role থাকে)
 
-কোনো migration লাগবে না — `site_settings` table-এ key-value হিসেবে save হবে।
-
+কোনো DB migration লাগবে না।

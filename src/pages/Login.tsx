@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Home, User, Lock, Mail } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { RoleSelectorDialog } from "@/components/RoleSelectorDialog";
 
 const Login = () => {
   const { signIn, signInWithEmail, user, loading: authLoading, role } = useAuth();
@@ -21,16 +22,18 @@ const Login = () => {
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [showResendVerification, setShowResendVerification] = useState(false);
   const [resendingEmail, setResendingEmail] = useState(false);
+  const [showRoleSelector, setShowRoleSelector] = useState(false);
+  const [pendingRedirect, setPendingRedirect] = useState(false);
 
   useEffect(() => {
-    if (!authLoading && user && !isLoggingIn) {
+    if (!authLoading && user && !isLoggingIn && !showRoleSelector && !pendingRedirect) {
       toast.info("You are already logged in");
       const target = (role === "admin" || role === "employee") ? "/admin" : "/dashboard";
       navigate(target, { replace: true });
     }
-  }, [user, authLoading, role, navigate, isLoggingIn]);
+  }, [user, authLoading, role, navigate, isLoggingIn, showRoleSelector, pendingRedirect]);
 
-  if (authLoading || (user && !isLoggingIn)) return null;
+  if (authLoading || (user && !isLoggingIn && !showRoleSelector && !pendingRedirect)) return null;
 
   const isEmail = (value: string) => value.includes("@");
 
@@ -49,19 +52,29 @@ const Login = () => {
     }
 
     if (!result.error) {
-      // Check if user is admin/employee — block them from regular login
+      // Inspect roles after login
       const { data: { user: currentUser } } = await supabase.auth.getUser();
       if (currentUser) {
         const { data: roles } = await supabase
           .from("user_roles")
           .select("role")
           .eq("user_id", currentUser.id);
-        const isAdminOrEmployee = roles?.some(r => ["admin", "employee"].includes(r.role));
+        const roleList = (roles || []).map((r) => r.role);
+        const isAdminOrEmployee = roleList.some((r) => ["admin", "employee"].includes(r));
         if (isAdminOrEmployee) {
           await supabase.auth.signOut();
           setLoading(false);
           setIsLoggingIn(false);
-          toast.error("This account is not allowed to log in here. Please use the admin panel.");
+          toast.error("এই অ্যাকাউন্ট এখানে প্রবেশ করতে পারবে না। অনুগ্রহ করে অ্যাডমিন প্যানেল ব্যবহার করুন।");
+          return;
+        }
+        // Dual landlord + tenant → show role selector
+        const hasLandlord = roleList.includes("landlord");
+        const hasTenant = roleList.includes("tenant");
+        if (hasLandlord && hasTenant) {
+          setLoading(false);
+          setIsLoggingIn(false);
+          setShowRoleSelector(true);
           return;
         }
       }
@@ -176,6 +189,40 @@ const Login = () => {
               )}
             </form>
 
+            <div className="relative my-4">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-card px-2 text-muted-foreground">{t("auth.or") || "Or"}</span>
+              </div>
+            </div>
+
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full h-11 gap-3 font-medium"
+              disabled={loading}
+              onClick={async () => {
+                const { error } = await supabase.auth.signInWithOAuth({
+                  provider: "google",
+                  options: {
+                    redirectTo: window.location.origin + "/dashboard",
+                    queryParams: { access_type: "offline", prompt: "consent" },
+                  },
+                });
+                if (error) toast.error(error.message);
+              }}
+            >
+              <svg className="h-5 w-5" viewBox="0 0 24 24">
+                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
+                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+              </svg>
+              Sign in with Google
+            </Button>
+
             <div className="flex items-center justify-center gap-4 mt-4">
               <Link to="/forgot-password" className="text-sm text-primary font-medium hover:underline">
                 {t("auth.forgot_pin_link")}
@@ -195,6 +242,17 @@ const Login = () => {
           </CardContent>
         </Card>
       </div>
+
+      <RoleSelectorDialog
+        open={showRoleSelector}
+        onSelect={(selectedRole) => {
+          try { localStorage.setItem("active_role", selectedRole); } catch {}
+          setShowRoleSelector(false);
+          setPendingRedirect(true);
+          // Force AuthContext to re-read role from localStorage
+          window.location.href = "/dashboard";
+        }}
+      />
     </div>
   );
 };

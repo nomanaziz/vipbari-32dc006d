@@ -25,10 +25,19 @@ const ForgotPassword = () => {
     setLoading(true);
 
     try {
-      // Look up real email from phone
+      // Look up real email from phone (purpose=reset blocks placeholder emails)
       const { data, error } = await supabase.functions.invoke("login-with-phone", {
-        body: { phone },
+        body: { phone, purpose: "reset" },
       });
+
+      if (data?.error === "NO_REAL_EMAIL") {
+        toast.error(
+          data.message ||
+            "এই মোবাইল নাম্বারে কোনো বৈধ ইমেইল যুক্ত নেই। PIN পরিবর্তনের জন্য আপনার বাড়িওয়ালা বা অ্যাডমিনের সাথে যোগাযোগ করুন।"
+        );
+        setLoading(false);
+        return;
+      }
 
       if (error || !data?.email) {
         toast.error(t("auth.no_account_phone"));

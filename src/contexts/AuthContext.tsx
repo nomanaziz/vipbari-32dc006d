@@ -71,7 +71,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (roleRes.data && roleRes.data.length > 0) {
       const rolePriority: AppRole[] = ["admin", "employee", "landlord", "landlord_staff", "staff", "tenant"];
       const userRoles = roleRes.data.map((r) => r.role as AppRole);
-      const highestRole = rolePriority.find((currentRole) => userRoles.includes(currentRole)) || userRoles[0];
+      // Respect user-selected active role (for dual landlord+tenant accounts)
+      const stored = typeof window !== "undefined" ? localStorage.getItem("active_role") : null;
+      const storedRole = stored && (userRoles as string[]).includes(stored) ? (stored as AppRole) : null;
+      const highestRole = storedRole || rolePriority.find((currentRole) => userRoles.includes(currentRole)) || userRoles[0];
       setRole(highestRole);
 
       if (highestRole === "employee" || highestRole === "landlord_staff") {
@@ -254,6 +257,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signOut = async () => {
+    try { localStorage.removeItem("active_role"); } catch {}
     await supabase.auth.signOut();
   };
 
